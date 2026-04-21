@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "gate4/pkg/pb";
+
+import "account.proto";
+
+service Gateway {
+  rpc GetAccount(AccountRequest) returns (AccountResponse) {}
+}
