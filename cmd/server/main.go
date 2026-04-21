@@ -13,18 +13,19 @@ import (
 func main() {
 	logger := initLogger()
 	logger.Info("start application")
-	err := run(context.Background())
+	err := run(context.Background(), logger)
 	if err != nil {
 		logger.Error("application exited with error", "error", err.Error())
 	}
 }
 
-func run(ctx context.Context) error {
+func run(ctx context.Context, logger *slog.Logger) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("cannot load config: %w", err)
 	}
-	server := transport.NewServer(cfg.Addr)
+	cfg.LogParams(logger)
+	server := transport.NewServer(cfg, logger)
 	return server.Run(ctx)
 }
 

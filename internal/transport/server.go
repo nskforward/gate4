@@ -9,21 +9,27 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
 	pb.UnimplementedGatewayServer
-	addr      string
-	transport *grpc.Server
+	addr          string
+	transport     *grpc.Server
+	finamAccounts *finam.Store
+	logger        *slog.Logger
 }
 
-func NewServer(addr string) *Server {
+func NewServer(cfg config.Config, logger *slog.Logger) *Server {
 	transportServer := grpc.NewServer()
 	s := &Server{
-		addr:      addr,
-		transport: transportServer,
+		addr:          cfg.ListenAddr,
+		transport:     transportServer,
+		finamAccounts: finam.NewStore(cfg.FinamAddr),
+		logger:        logger,
 	}
 	pb.RegisterGatewayServer(transportServer, s)
 	return s
@@ -35,7 +41,7 @@ func (s *Server) Run(ctx context.Context) error {
 		return fmt.Errorf("net.Listen error: %w", err)
 	}
 
-	slog.Info("start server", "addr", s.addr)
+	s.logger.Info("start server", "addr", s.addr)
 
 	errorc := s.serve(listener)
 
