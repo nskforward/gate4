@@ -11,3 +11,6 @@ run_server:
 
 test:
 	go test ./test/... -v
+
+build_client:
+	go build -o build/gate4 cmd/cli/*
