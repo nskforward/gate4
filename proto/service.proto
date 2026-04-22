@@ -5,7 +5,14 @@ package proto;
 option go_package = "gate4/pkg/pb";
 
 import "account.proto";
+import "admin.proto";
 
 service Gateway {
   rpc GetAccount(AccountRequest) returns (AccountResponse) {}
+}
+
+service Admin {
+  rpc ListBrokers(EmptyRequest) returns (ListBrokersResponse) {}
+  rpc AddBroker(AddBrokerRequest) returns (EmptyResponse) {}
+  rpc DeleteBroker(DeleteBrokerRequest) returns (EmptyResponse) {}
 }

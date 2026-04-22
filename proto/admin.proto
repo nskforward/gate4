@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "gate4/pkg/pb";
+
+message Broker {
+  string id = 1;
+  string address = 2;
+}
+
+message Robot {
+  string id = 1;
+  Broker broker = 2;
+}
+
+message EmptyRequest {}
+
+message EmptyResponse {}
+
+
+// brokers
+
+message ListBrokersResponse {
+  repeated Broker items = 1;
+}
+
+message AddBrokerRequest {
+    Broker broker = 1;
+}
+
+message DeleteBrokerRequest {
+    string id = 1;
+}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/transport"
+	"github.com/nskforward/gate4/pkg/race"
 )
 
 func main() {
@@ -25,8 +26,11 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return fmt.Errorf("cannot load config: %w", err)
 	}
 	cfg.LogParams(logger)
-	server := transport.NewServer(cfg, logger)
-	return server.Run(ctx)
+
+	gatewayServer := transport.NewGatewayServer(cfg, logger)
+	adminServer := transport.NewAdminServer(cfg, logger)
+
+	return race.Run(ctx, gatewayServer.Run, adminServer.Run)
 }
 
 func initLogger() *slog.Logger {
