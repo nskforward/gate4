@@ -18,12 +18,7 @@ type AdminServer struct {
 	accountStore *store.AccountStore
 }
 
-func NewAdminServer(cfg config.Config, logger *slog.Logger) (*AdminServer, error) {
-	accountStore, err := store.NewAccountStore(store.NewAccountFileProvider(cfg.StoreDir))
-	if err != nil {
-		return nil, err
-	}
-
+func NewAdminServer(cfg config.Config, logger *slog.Logger, accountStore *store.AccountStore) *AdminServer {
 	s := &AdminServer{
 		transport:    grpcserv.New(cfg.Admin.ListenAddr),
 		logger:       logger,
@@ -36,8 +31,7 @@ func NewAdminServer(cfg config.Config, logger *slog.Logger) (*AdminServer, error
 	s.transport.OnStop = func() {
 		logger.Info("admin service stoppped")
 	}
-
-	return s, nil
+	return s
 }
 
 func (s *AdminServer) Run(ctx context.Context) error {

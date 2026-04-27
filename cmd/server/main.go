@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/internal/store"
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/race"
 )
@@ -27,12 +28,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 	cfg.LogParams(logger)
 
-	adminServer, err := transport.NewAdminServer(cfg, logger)
+	accountStore, err := store.NewAccountStore(store.NewAccountFileProvider(cfg.StoreDir))
 	if err != nil {
 		return err
 	}
 
-	gatewayServer := transport.NewGatewayServer(cfg, logger)
+	adminServer := transport.NewAdminServer(cfg, logger, accountStore)
+	gatewayServer := transport.NewGatewayServer(cfg, logger, accountStore)
 
 	return race.Run(ctx, gatewayServer.Run, adminServer.Run)
 }

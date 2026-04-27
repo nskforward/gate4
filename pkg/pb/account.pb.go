@@ -23,8 +23,7 @@ const (
 
 type AccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	BrokerId      string                 `protobuf:"bytes,1,opt,name=broker_id,json=brokerId,proto3" json:"broker_id,omitempty"`
-	AccountId     string                 `protobuf:"bytes,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,16 +58,9 @@ func (*AccountRequest) Descriptor() ([]byte, []int) {
 	return file_account_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AccountRequest) GetBrokerId() string {
+func (x *AccountRequest) GetAccountKey() string {
 	if x != nil {
-		return x.BrokerId
-	}
-	return ""
-}
-
-func (x *AccountRequest) GetAccountId() string {
-	if x != nil {
-		return x.AccountId
+		return x.AccountKey
 	}
 	return ""
 }
@@ -129,11 +121,10 @@ var File_account_proto protoreflect.FileDescriptor
 
 const file_account_proto_rawDesc = "" +
 	"\n" +
-	"\raccount.proto\x12\x05proto\"L\n" +
-	"\x0eAccountRequest\x12\x1b\n" +
-	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x1d\n" +
-	"\n" +
-	"account_id\x18\x02 \x01(\tR\taccountId\"M\n" +
+	"\raccount.proto\x12\x05proto\"1\n" +
+	"\x0eAccountRequest\x12\x1f\n" +
+	"\vaccount_key\x18\x01 \x01(\tR\n" +
+	"accountKey\"M\n" +
 	"\x0fAccountResponse\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x1d\n" +
 	"\n" +
