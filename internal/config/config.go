@@ -14,6 +14,7 @@ type Config struct {
 		ListenAddr string
 	}
 	FinamAddr string
+	StoreDir  string
 }
 
 func Load() (Config, error) {
@@ -21,6 +22,8 @@ func Load() (Config, error) {
 	adminListenAddr := flag.String("admin-addr", os.Getenv("GATE4_ADMIN_ADDR"), "admin address to listen")
 
 	finamAddr := flag.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
+	storeDir := flag.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
+
 	flag.Parse()
 
 	var cfg Config
@@ -43,9 +46,19 @@ func Load() (Config, error) {
 		cfg.FinamAddr = "api.finam.ru:443"
 	}
 
+	if storeDir != nil && *storeDir != "" {
+		cfg.StoreDir = *storeDir
+	} else {
+		wd, err := os.Getwd()
+		if err != nil {
+			return cfg, err
+		}
+		cfg.StoreDir = wd
+	}
+
 	return cfg, nil
 }
 
 func (cfg Config) LogParams(logger *slog.Logger) {
-	slog.Info("config initialized", "gateway-addr", cfg.Gateway.ListenAddr, "admin-addr", cfg.Admin.ListenAddr, "finam-addr", cfg.FinamAddr)
+	slog.Info("config initialized", "gateway-addr", cfg.Gateway.ListenAddr, "admin-addr", cfg.Admin.ListenAddr, "finam-addr", cfg.FinamAddr, "store-dir", cfg.StoreDir)
 }

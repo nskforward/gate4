@@ -2,6 +2,8 @@ package store
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/nskforward/gate4/pkg/pb"
@@ -12,10 +14,16 @@ type AccountStore struct {
 	mx    sync.Mutex
 }
 
-func NewAccountStore() *AccountStore {
-	return &AccountStore{
+func NewAccountStore(storeDir string) *AccountStore {
+	s := &AccountStore{
 		items: make(map[string]*pb.Account),
 	}
+	filename := filepath.Join(storeDir, "accounts.json")
+	_, err := os.Stat(filename)
+	if err == nil {
+		s.loadFromFile(filename)
+	}
+	return s
 }
 
 func (s *AccountStore) List() []*pb.Account {
@@ -55,4 +63,12 @@ func (s *AccountStore) Del(id string) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	delete(s.items, id)
+}
+
+func (s *AccountStore) loadFromFile(path string) {
+
+}
+
+func (s *AccountStore) saveToFile(path string) {
+
 }
