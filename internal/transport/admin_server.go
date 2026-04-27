@@ -17,11 +17,16 @@ type AdminServer struct {
 	accountStore *store.AccountStore
 }
 
-func NewAdminServer(cfg config.Config, logger *slog.Logger) *AdminServer {
+func NewAdminServer(cfg config.Config, logger *slog.Logger) (*AdminServer, error) {
+	accountStore, err := store.NewAccountStore(store.NewAccountFileProvider(cfg.StoreDir))
+	if err != nil {
+		return nil, err
+	}
+
 	s := &AdminServer{
 		transport:    grpcserv.New(cfg.Admin.ListenAddr),
 		logger:       logger,
-		accountStore: store.NewAccountStore(),
+		accountStore: accountStore,
 	}
 	pb.RegisterAdminServer(s.transport, s)
 	s.transport.OnListen = func() {
@@ -30,11 +35,15 @@ func NewAdminServer(cfg config.Config, logger *slog.Logger) *AdminServer {
 	s.transport.OnStop = func() {
 		logger.Info("admin service stoppped")
 	}
-	return s
+	return s, nil
 }
 
 func (s *AdminServer) Run(ctx context.Context) error {
-	return s.transport.Run(ctx)
+	err := s.transport.Run(ctx)
+	if err != nil {
+		return err
+	}
+	return s.accountStore.Close()
 }
 
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
