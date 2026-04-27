@@ -2,14 +2,16 @@ package store
 
 import (
 	"fmt"
+	"slices"
 	"sync"
+	"time"
 
 	"github.com/nskforward/gate4/pkg/pb"
 )
 
 type AccountStore struct {
 	items    map[string]*pb.Account
-	mx       sync.Mutex
+	mx       sync.RWMutex
 	provider AccountProvider
 }
 
@@ -25,15 +27,9 @@ func NewAccountStore(provider AccountProvider) (*AccountStore, error) {
 	return s, nil
 }
 
-func (s *AccountStore) Close() error {
-	s.mx.Lock()
-	defer s.mx.Unlock()
-	return s.provider.Save(s.items)
-}
-
 func (s *AccountStore) List() []*pb.Account {
-	s.mx.Lock()
-	defer s.mx.Unlock()
+	s.mx.RLock()
+	defer s.mx.RUnlock()
 	result := make([]*pb.Account, 0, len(s.items))
 	for _, item := range s.items {
 		result = append(result, &pb.Account{
@@ -45,18 +41,20 @@ func (s *AccountStore) List() []*pb.Account {
 }
 
 func (s *AccountStore) Set(account *pb.Account) error {
-	if account == nil || account.Id == "" || account.BrokerId == "" {
-		return fmt.Errorf("input account fields must be filled")
+	err := validateAccount(account)
+	if err != nil {
+		return fmt.Errorf("account validation failed: %w", err)
 	}
+	key := fmt.Sprintf("%s.%s", account.BrokerId, account.Id)
 	s.mx.Lock()
 	defer s.mx.Unlock()
-	s.items[account.Id] = account
-	return nil
+	s.items[key] = account
+	return s.provider.Save(s.items)
 }
 
 func (s *AccountStore) Get(id string) *pb.Account {
-	s.mx.Lock()
-	defer s.mx.Unlock()
+	s.mx.RLock()
+	defer s.mx.RUnlock()
 	account, ok := s.items[id]
 	if !ok {
 		return nil
@@ -64,8 +62,25 @@ func (s *AccountStore) Get(id string) *pb.Account {
 	return account
 }
 
-func (s *AccountStore) Del(id string) {
+func (s *AccountStore) Del(id string) error {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	delete(s.items, id)
+	return s.provider.Save(s.items)
+}
+
+func validateAccount(account *pb.Account) error {
+	if account == nil {
+		return fmt.Errorf("account cannot be a nil")
+	}
+	if account.Id == "" {
+		return fmt.Errorf("account id cannot be empty")
+	}
+	if !slices.Contains([]string{"finam"}, account.BrokerId) {
+		return fmt.Errorf("unknown broker id: %s", account.BrokerId)
+	}
+	if account.ValidUntil < time.Now().Unix() {
+		return fmt.Errorf("valid date year cannot be in the past")
+	}
+	return nil
 }

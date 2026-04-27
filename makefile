@@ -7,7 +7,7 @@ protoc:
 	protoc --proto_path=proto --go_out=pkg/pb --go_opt=paths=source_relative --go-grpc_out=pkg/pb --go-grpc_opt=paths=source_relative proto/*.proto
 
 run_server:
-	go run cmd/server/*
+	go run cmd/server/* --store-dir=data
 
 test:
 	go test ./test/... -v

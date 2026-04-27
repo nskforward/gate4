@@ -41,24 +41,25 @@ func (c *AdminClient) ListAccounts(ctx context.Context) ([]*pb.Account, error) {
 	return resp.Items, nil
 }
 
-func (c *AdminClient) AddAccount(ctx context.Context, brokerID, id, secret string) error {
+func (c *AdminClient) AddAccount(ctx context.Context, brokerID, id, secret string, validDate int64) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.AddAccount(reqCtx, &pb.AddAccountRequest{
 		Account: &pb.Account{
-			Id:       id,
-			BrokerId: brokerID,
-			Secret:   secret,
+			Id:         id,
+			BrokerId:   brokerID,
+			Secret:     secret,
+			ValidUntil: validDate,
 		},
 	})
 	return err
 }
 
-func (c *AdminClient) DeleteAccount(ctx context.Context, id string) error {
+func (c *AdminClient) DeleteAccount(ctx context.Context, key string) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.DeleteAccount(reqCtx, &pb.DeleteAccountRequest{
-		Id: id,
+		Key: key,
 	})
 	return err
 }

@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/ssl"
@@ -25,7 +26,7 @@ func main() {
 func run(ctx context.Context) error {
 	args := os.Args
 	if len(args) < 2 {
-		return errors.New("no commands provided")
+		return errors.New("no commands provided, run `gate4 help` to see possible commands")
 	}
 	client, err := transport.NewAdminClient(":4001")
 	if err != nil {
@@ -60,28 +61,36 @@ func commandAccount(ctx context.Context, client *transport.AdminClient, args []s
 	case "add":
 		return commandAccountAdd(ctx, client)
 	case "del":
-		return commandAccountDelete(ctx, client)
+		return commandAccountDelete(ctx, client, args)
 	default:
 		return fmt.Errorf("unknown account sub command: %s", subCommand)
 	}
 }
 
-func commandAccountDelete(ctx context.Context, client *transport.AdminClient) error {
-	var accountID string
-	fmt.Print("account_id: ")
-	fmt.Scanln(&accountID)
-	return client.DeleteAccount(ctx, accountID)
+func commandAccountDelete(ctx context.Context, client *transport.AdminClient, args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("requres 1 argument")
+	}
+	return client.DeleteAccount(ctx, args[0])
 }
 
 func commandAccountAdd(ctx context.Context, client *transport.AdminClient) error {
-	var brokerID, accountID, secret string
+	var brokerID, accountID, secret, validUntil string
 	fmt.Print("broker_id: ")
 	fmt.Scanln(&brokerID)
 	fmt.Print("account_id: ")
 	fmt.Scanln(&accountID)
 	fmt.Print("secret: ")
 	fmt.Scanln(&secret)
-	return client.AddAccount(ctx, brokerID, accountID, secret)
+	fmt.Print("valid until date (YYYY-MM-DD): ")
+	fmt.Scanln(&validUntil)
+
+	t, err := time.Parse("2006-01-02", validUntil)
+	if err != nil {
+		return fmt.Errorf("invalid date format")
+	}
+
+	return client.AddAccount(ctx, brokerID, accountID, secret, t.Unix())
 }
 
 func commandAccountList(ctx context.Context, client *transport.AdminClient) error {
@@ -94,7 +103,7 @@ func commandAccountList(ctx context.Context, client *transport.AdminClient) erro
 		return nil
 	}
 	for i := range len(items) {
-		fmt.Printf("%d. %s (%s)\n", i+1, items[i].Id, items[i].BrokerId)
+		fmt.Printf("%d. %s.%s\n", i+1, items[i].BrokerId, items[i].Id)
 	}
 	return nil
 }
@@ -121,7 +130,7 @@ func commandHelp(context.Context) error {
 	commandInfo("init-ca", "generate ssl CA key and cert and store to files", "gate4 init-ca path/to/key path/to/cert")
 	commandInfo("account list", "show accounts list", "gate4 account list")
 	commandInfo("account add", "add a new account", "gate4 account add")
-	commandInfo("account del", "delete a account", "gate4 account del")
+	commandInfo("account del <key>", "delete a account", "gate4 account del <key>")
 	return nil
 }
 

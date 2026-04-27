@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -28,37 +29,36 @@ func Load() (Config, error) {
 
 	var cfg Config
 
-	if gatewayListenAddr != nil && *gatewayListenAddr != "" {
-		cfg.Gateway.ListenAddr = *gatewayListenAddr
-	} else {
-		cfg.Gateway.ListenAddr = ":4000"
-	}
-
-	if adminListenAddr != nil && *adminListenAddr != "" {
-		cfg.Admin.ListenAddr = *adminListenAddr
-	} else {
-		cfg.Admin.ListenAddr = ":4001"
-	}
-
-	if finamAddr != nil && *finamAddr != "" {
-		cfg.FinamAddr = *finamAddr
-	} else {
-		cfg.FinamAddr = "api.finam.ru:443"
-	}
-
-	if storeDir != nil && *storeDir != "" {
-		cfg.StoreDir = *storeDir
-	} else {
-		wd, err := os.Getwd()
-		if err != nil {
-			return cfg, err
-		}
-		cfg.StoreDir = wd
-	}
+	cfg.Gateway.ListenAddr = buildDefaultStr(gatewayListenAddr, ":4000")
+	cfg.Admin.ListenAddr = buildDefaultStr(adminListenAddr, ":4001")
+	cfg.FinamAddr = buildDefaultStr(finamAddr, "api.finam.ru:443")
+	cfg.StoreDir = buildStoreDir(storeDir)
 
 	return cfg, nil
 }
 
 func (cfg Config) LogParams(logger *slog.Logger) {
 	slog.Info("config initialized", "gateway-addr", cfg.Gateway.ListenAddr, "admin-addr", cfg.Admin.ListenAddr, "finam-addr", cfg.FinamAddr, "store-dir", cfg.StoreDir)
+}
+
+func buildDefaultStr(in *string, def string) string {
+	if in == nil || *in == "" {
+		return def
+	}
+	return *in
+}
+
+func buildStoreDir(in *string) string {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	if in == nil || *in == "" {
+		return wd
+	}
+	path := *in
+	if path[0] == '/' {
+		return path
+	}
+	return filepath.Join(wd, path)
 }
