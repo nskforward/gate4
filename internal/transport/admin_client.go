@@ -31,12 +31,34 @@ func (c *AdminClient) Close() {
 	c.conn.Close()
 }
 
-func (c *AdminClient) ListBrokers(ctx context.Context) ([]*pb.Broker, error) {
+func (c *AdminClient) ListAccounts(ctx context.Context) ([]*pb.Account, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := c.client.ListBrokers(reqCtx, &pb.EmptyRequest{})
+	resp, err := c.client.ListAccounts(reqCtx, &pb.EmptyMessage{})
 	if err != nil {
 		return nil, err
 	}
 	return resp.Items, nil
+}
+
+func (c *AdminClient) AddAccount(ctx context.Context, brokerID, id, secret string) error {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	_, err := c.client.AddAccount(reqCtx, &pb.AddAccountRequest{
+		Account: &pb.Account{
+			Id:       id,
+			BrokerId: brokerID,
+			Secret:   secret,
+		},
+	})
+	return err
+}
+
+func (c *AdminClient) DeleteAccount(ctx context.Context, id string) error {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	_, err := c.client.DeleteAccount(reqCtx, &pb.DeleteAccountRequest{
+		Id: id,
+	})
+	return err
 }

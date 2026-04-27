@@ -12,7 +12,7 @@ service Gateway {
 }
 
 service Admin {
-  rpc ListBrokers(EmptyRequest) returns (ListBrokersResponse) {}
-  rpc AddBroker(AddBrokerRequest) returns (EmptyResponse) {}
-  rpc DeleteBroker(DeleteBrokerRequest) returns (EmptyResponse) {}
+  rpc ListAccounts(EmptyMessage) returns (ListAccountsResponse) {}
+  rpc AddAccount(AddAccountRequest) returns (EmptyMessage) {}
+  rpc DeleteAccount(DeleteAccountRequest) returns (EmptyMessage) {}
 }

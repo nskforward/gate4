@@ -41,14 +41,14 @@ func execCommand(ctx context.Context, client *transport.AdminClient, command str
 		return commandHelp(ctx)
 	case "init-ca":
 		return commandInitCA(ctx, args)
-	case "broker":
-		return commandBroker(ctx, client, args)
+	case "account":
+		return commandAccount(ctx, client, args)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
 }
 
-func commandBroker(ctx context.Context, client *transport.AdminClient, args []string) error {
+func commandAccount(ctx context.Context, client *transport.AdminClient, args []string) error {
 	if len(args) == 0 {
 		return errors.New("broker command requres sub command")
 	}
@@ -56,23 +56,45 @@ func commandBroker(ctx context.Context, client *transport.AdminClient, args []st
 	args = args[1:]
 	switch subCommand {
 	case "list":
-		return commandBrokerList(ctx, client)
+		return commandAccountList(ctx, client)
+	case "add":
+		return commandAccountAdd(ctx, client)
+	case "del":
+		return commandAccountDelete(ctx, client)
 	default:
-		return fmt.Errorf("unknown broker sub command: %s", subCommand)
+		return fmt.Errorf("unknown account sub command: %s", subCommand)
 	}
 }
 
-func commandBrokerList(ctx context.Context, client *transport.AdminClient) error {
-	items, err := client.ListBrokers(ctx)
+func commandAccountDelete(ctx context.Context, client *transport.AdminClient) error {
+	var accountID string
+	fmt.Print("account_id: ")
+	fmt.Scanln(&accountID)
+	return client.DeleteAccount(ctx, accountID)
+}
+
+func commandAccountAdd(ctx context.Context, client *transport.AdminClient) error {
+	var brokerID, accountID, secret string
+	fmt.Print("broker_id: ")
+	fmt.Scanln(&brokerID)
+	fmt.Print("account_id: ")
+	fmt.Scanln(&accountID)
+	fmt.Print("secret: ")
+	fmt.Scanln(&secret)
+	return client.AddAccount(ctx, brokerID, accountID, secret)
+}
+
+func commandAccountList(ctx context.Context, client *transport.AdminClient) error {
+	items, err := client.ListAccounts(ctx)
 	if err != nil {
 		return err
 	}
 	if len(items) == 0 {
-		fmt.Println("no brokers")
+		fmt.Println("no accounts")
 		return nil
 	}
 	for i := range len(items) {
-		fmt.Printf("%d. %s (%s)\n", i+1, items[i].Id, items[i].Address)
+		fmt.Printf("%d. %s (%s)\n", i+1, items[i].Id, items[i].BrokerId)
 	}
 	return nil
 }
@@ -97,7 +119,9 @@ func commandHelp(context.Context) error {
 	printHeader("Command Help")
 	commandInfo("help", "show help menu", "gate4 help")
 	commandInfo("init-ca", "generate ssl CA key and cert and store to files", "gate4 init-ca path/to/key path/to/cert")
-	commandInfo("broker list", "show brokers list", "gate4 broker list")
+	commandInfo("account list", "show accounts list", "gate4 account list")
+	commandInfo("account add", "add a new account", "gate4 account add")
+	commandInfo("account del", "delete a account", "gate4 account del")
 	return nil
 }
 

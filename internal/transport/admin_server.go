@@ -12,16 +12,16 @@ import (
 
 type AdminServer struct {
 	pb.UnimplementedAdminServer
-	transport   *grpcserv.GRPCServer
-	logger      *slog.Logger
-	brokerStore *store.BrokerStore
+	transport    *grpcserv.GRPCServer
+	logger       *slog.Logger
+	accountStore *store.AccountStore
 }
 
 func NewAdminServer(cfg config.Config, logger *slog.Logger) *AdminServer {
 	s := &AdminServer{
-		transport:   grpcserv.New(cfg.Admin.ListenAddr),
-		logger:      logger,
-		brokerStore: store.NewBrokerStore(),
+		transport:    grpcserv.New(cfg.Admin.ListenAddr),
+		logger:       logger,
+		accountStore: store.NewAccountStore(),
 	}
 	pb.RegisterAdminServer(s.transport, s)
 	s.transport.OnListen = func() {
@@ -37,8 +37,21 @@ func (s *AdminServer) Run(ctx context.Context) error {
 	return s.transport.Run(ctx)
 }
 
-func (s *AdminServer) ListBrokers(context.Context, *pb.EmptyRequest) (*pb.ListBrokersResponse, error) {
-	return &pb.ListBrokersResponse{
-		Items: s.brokerStore.List(),
+func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
+	return &pb.ListAccountsResponse{
+		Items: s.accountStore.List(),
 	}, nil
+}
+
+func (s *AdminServer) AddAccount(_ context.Context, req *pb.AddAccountRequest) (*pb.EmptyMessage, error) {
+	err := s.accountStore.Set(req.Account)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.EmptyMessage{}, nil
+}
+
+func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.DeleteAccountRequest) (*pb.EmptyMessage, error) {
+	s.accountStore.Del(req.Id)
+	return &pb.EmptyMessage{}, nil
 }
