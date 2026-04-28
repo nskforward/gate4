@@ -1,59 +1,35 @@
 package finam
 
 import (
-	"fmt"
 	"sync"
 )
 
 type Store struct {
 	addr     string
-	accounts map[string]*Leaf
-	mx       sync.RWMutex
-}
-
-type Leaf struct {
-	secret string
-	client *Client
-	mx     sync.Mutex
+	accounts map[string]*Client
+	mx       sync.Mutex
 }
 
 func NewStore(addr string) *Store {
 	return &Store{
 		addr:     addr,
-		accounts: make(map[string]*Leaf),
+		accounts: make(map[string]*Client),
 	}
 }
 
-func (s *Store) Set(accountID, secret string) {
+func (s *Store) GetClient(accountID, secret string) (*Client, error) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
-	s.accounts[accountID] = &Leaf{
-		secret: secret,
-	}
-}
-
-func (s *Store) Get(accountID string) (*Client, error) {
-	s.mx.RLock()
-	defer s.mx.RUnlock()
-
-	leaf, ok := s.accounts[accountID]
-	if !ok {
-		return nil, fmt.Errorf("account %s has no stored secret", accountID)
+	client, ok := s.accounts[accountID]
+	if ok {
+		err := client.UpdateSecret(secret)
+		return client, err
 	}
 
-	leaf.mx.Lock()
-	defer leaf.mx.Unlock()
-
-	if leaf.client != nil {
-		return leaf.client, nil
-	}
-
-	client, err := NewClient(s.addr, leaf.secret)
+	client, err := NewClient(s.addr, secret)
 	if err != nil {
 		return nil, err
 	}
-
-	leaf.client = client
-
+	s.accounts[accountID] = client
 	return client, nil
 }

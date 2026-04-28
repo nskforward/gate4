@@ -32,6 +32,16 @@ func (s *tokenService) Context(ctx context.Context) (context.Context, error) {
 	return metadata.AppendToOutgoingContext(ctx, "Authorization", token), nil
 }
 
+func (s *tokenService) updateSecret(secret string) error {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+	if s.secret == secret {
+		return nil
+	}
+	s.secret = secret
+	return s.refreshToken()
+}
+
 func (s *tokenService) getToken() (string, error) {
 	s.mx.Lock()
 	defer s.mx.Unlock()

@@ -47,6 +47,10 @@ func NewClient(addr, secret string) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) UpdateSecret(secret string) error {
+	return c.tokenService.updateSecret(secret)
+}
+
 // GetAccountInfo возвращает информацию о счёте
 func (c *Client) GetAccountInfo(ctx context.Context, accountID string) (*accounts.GetAccountResponse, error) {
 	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
