@@ -2,47 +2,53 @@ package broker
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	"github.com/nskforward/gate4/internal/store"
-	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
 )
 
 type Broker struct {
-	accountStore *store.AccountStore
-	finamStore   *finam.Store
+	accountStore *AccountStore
+	finamClient  *FinamClient
 }
 
-func NewBroker(accountStore *store.AccountStore, finamStore *finam.Store) *Broker {
-	return &Broker{
-		accountStore: accountStore,
-		finamStore:   finamStore,
+func NewBroker() (*Broker, error) {
+	storage, err := NewAccountStore("data/accounts.json")
+	if err != nil {
+		return nil, err
 	}
+	return &Broker{
+		accountStore: storage,
+		finamClient:  NewFinamClient(),
+	}, nil
 }
 
 func (b *Broker) GetAccount(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
-	account := b.accountStore.Get(in.AccountKey)
-	if account == nil {
-		return nil, errors.New("unknown account key")
+	account, err := b.lookupAccount(in.AccountKey)
+	if err != nil {
+		return nil, err
 	}
+	client, err := b.lookupClient(account)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetAccountInfo(ctx, account)
+}
 
-	switch account.BrokerId {
+func (b *Broker) lookupAccount(key string) (Account, error) {
+	account, ok := b.accountStore.Lookup(key)
+	if !ok {
+		return account, fmt.Errorf("unknown account key: %s", key)
+	}
+	return account, nil
+}
+
+func (b *Broker) lookupClient(account Account) (Client, error) {
+	switch account.Broker {
 	case "finam":
-		client, err := b.finamStore.GetClient(account.Id, account.Secret)
-		if err != nil {
-			return nil, fmt.Errorf("cannot get finam client: %w", err)
-		}
-		resp, err := client.GetAccountInfo(ctx, account.Id)
-		if err != nil {
-			return nil, fmt.Errorf("finam communication error: %w", err)
-		}
-		return &pb.AccountResponse{
-			BrokerId:  "finam",
-			AccountId: resp.AccountId,
-		}, nil
-	}
+		return b.finamClient, nil
 
-	return nil, fmt.Errorf("broker '%s' not supported", account.BrokerId)
+	default:
+		return nil, fmt.Errorf("unknown broker: %s", account.Broker)
+	}
 }
