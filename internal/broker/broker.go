@@ -23,7 +23,23 @@ func NewBroker() (*Broker, error) {
 	}, nil
 }
 
-func (b *Broker) GetAccount(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
+func (b *Broker) AccountKeys() []string {
+	return b.accountStore.Keys()
+}
+
+func (b *Broker) Accounts() []*Account {
+	return b.accountStore.Accounts()
+}
+
+func (b *Broker) AddAccount(account *Account) error {
+	return b.accountStore.Set(account.Key(), account)
+}
+
+func (b *Broker) DeleteAccount(key string) error {
+	return b.accountStore.Del(key)
+}
+
+func (b *Broker) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
 	account, err := b.lookupAccount(in.AccountKey)
 	if err != nil {
 		return nil, err
@@ -35,7 +51,7 @@ func (b *Broker) GetAccount(ctx context.Context, in *pb.AccountRequest) (*pb.Acc
 	return client.GetAccountInfo(ctx, account)
 }
 
-func (b *Broker) lookupAccount(key string) (Account, error) {
+func (b *Broker) lookupAccount(key string) (*Account, error) {
 	account, ok := b.accountStore.Lookup(key)
 	if !ok {
 		return account, fmt.Errorf("unknown account key: %s", key)
@@ -43,7 +59,7 @@ func (b *Broker) lookupAccount(key string) (Account, error) {
 	return account, nil
 }
 
-func (b *Broker) lookupClient(account Account) (Client, error) {
+func (b *Broker) lookupClient(account *Account) (Client, error) {
 	switch account.Broker {
 	case "finam":
 		return b.finamClient, nil

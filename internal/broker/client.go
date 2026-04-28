@@ -7,5 +7,5 @@ import (
 )
 
 type Client interface {
-	GetAccountInfo(ctx context.Context, account Account) (*pb.AccountResponse, error)
+	GetAccountInfo(ctx context.Context, account *Account) (*pb.AccountResponse, error)
 }

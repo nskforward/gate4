@@ -127,7 +127,7 @@ func (*EmptyMessage) Descriptor() ([]byte, []int) {
 
 type ListAccountsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*Account             `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Items         []string               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -162,7 +162,7 @@ func (*ListAccountsResponse) Descriptor() ([]byte, []int) {
 	return file_admin_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ListAccountsResponse) GetItems() []*Account {
+func (x *ListAccountsResponse) GetItems() []string {
 	if x != nil {
 		return x.Items
 	}
@@ -268,9 +268,9 @@ const file_admin_proto_rawDesc = "" +
 	"\x06secret\x18\x03 \x01(\tR\x06secret\x12\x1f\n" +
 	"\vvalid_until\x18\x04 \x01(\x03R\n" +
 	"validUntil\"\x0e\n" +
-	"\fEmptyMessage\"<\n" +
-	"\x14ListAccountsResponse\x12$\n" +
-	"\x05items\x18\x01 \x03(\v2\x0e.proto.AccountR\x05items\"=\n" +
+	"\fEmptyMessage\",\n" +
+	"\x14ListAccountsResponse\x12\x14\n" +
+	"\x05items\x18\x01 \x03(\tR\x05items\"=\n" +
 	"\x11AddAccountRequest\x12(\n" +
 	"\aaccount\x18\x01 \x01(\v2\x0e.proto.AccountR\aaccount\"(\n" +
 	"\x14DeleteAccountRequest\x12\x10\n" +
@@ -297,13 +297,12 @@ var file_admin_proto_goTypes = []any{
 	(*DeleteAccountRequest)(nil), // 4: proto.DeleteAccountRequest
 }
 var file_admin_proto_depIdxs = []int32{
-	0, // 0: proto.ListAccountsResponse.items:type_name -> proto.Account
-	0, // 1: proto.AddAccountRequest.account:type_name -> proto.Account
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: proto.AddAccountRequest.account:type_name -> proto.Account
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_admin_proto_init() }

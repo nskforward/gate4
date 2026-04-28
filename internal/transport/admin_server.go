@@ -5,24 +5,24 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/store"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
 )
 
 type AdminServer struct {
 	pb.UnimplementedAdminServer
-	transport    *grpcserv.GRPCServer
-	logger       *slog.Logger
-	accountStore *store.AccountStore
+	transport *grpcserv.GRPCServer
+	logger    *slog.Logger
+	broker    *broker.Broker
 }
 
-func NewAdminServer(cfg config.Config, logger *slog.Logger, accountStore *store.AccountStore) *AdminServer {
+func NewAdminServer(cfg config.Config, logger *slog.Logger, broker *broker.Broker) *AdminServer {
 	s := &AdminServer{
-		transport:    grpcserv.New(cfg.Admin.ListenAddr),
-		logger:       logger,
-		accountStore: accountStore,
+		transport: grpcserv.New(cfg.Admin.ListenAddr),
+		logger:    logger,
+		broker:    broker,
 	}
 	pb.RegisterAdminServer(s.transport, s)
 	s.transport.OnListen = func() {
@@ -41,12 +41,12 @@ func (s *AdminServer) Run(ctx context.Context) error {
 
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
 	return &pb.ListAccountsResponse{
-		Items: s.accountStore.List(),
+		Items: s.broker.AccountKeys(),
 	}, nil
 }
 
 func (s *AdminServer) AddAccount(_ context.Context, req *pb.AddAccountRequest) (*pb.EmptyMessage, error) {
-	err := s.accountStore.Set(req.Account)
+	err := s.broker.AddAccount(broker.ImportAccount(req.Account))
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,10 @@ func (s *AdminServer) AddAccount(_ context.Context, req *pb.AddAccountRequest) (
 }
 
 func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.DeleteAccountRequest) (*pb.EmptyMessage, error) {
-	s.accountStore.Del(req.Key)
+	err := s.broker.DeleteAccount(req.Key)
+	if err != nil {
+		return nil, err
+	}
 	return &pb.EmptyMessage{}, nil
 }
 
@@ -72,15 +75,14 @@ func (s *AdminServer) watch(ctx context.Context) {
 
 func (s *AdminServer) checkAccounts() {
 	now := time.Now()
-	items := s.accountStore.List()
+	items := s.broker.Accounts()
 	for _, item := range items {
-		t := time.Unix(item.ValidUntil, 0)
-		p := t.Sub(now)
+		p := item.ValidUntil.Sub(now)
 		s.notifyAccountExpiration(item, p.Hours())
 	}
 }
 
-func (s *AdminServer) notifyAccountExpiration(account *pb.Account, hours float64) {
+func (s *AdminServer) notifyAccountExpiration(account *broker.Account, hours float64) {
 	if hours > 24*7 {
 		// greater than a week
 		return
@@ -88,7 +90,7 @@ func (s *AdminServer) notifyAccountExpiration(account *pb.Account, hours float64
 
 	days := int(hours / 24)
 
-	s.logger.Warn("account will expire soon", "broker_id", account.BrokerId, "account_id", account.Id, "expires_in_days", days)
+	s.logger.Warn("account will expire soon", "broker_id", account.Broker, "account_id", account.ID, "expires_in_days", days)
 }
 
 func getSleep() time.Duration {

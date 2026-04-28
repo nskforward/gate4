@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/store"
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/race"
 )
@@ -28,13 +28,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 	cfg.LogParams(logger)
 
-	accountStore, err := store.NewAccountStore(store.NewAccountFileProvider(cfg.StoreDir))
+	b, err := broker.NewBroker()
 	if err != nil {
 		return err
 	}
 
-	adminServer := transport.NewAdminServer(cfg, logger, accountStore)
-	gatewayServer := transport.NewGatewayServer(cfg, logger, accountStore)
+	adminServer := transport.NewAdminServer(cfg, logger, b)
+	gatewayServer := transport.NewGatewayServer(cfg, logger, b)
 
 	return race.Run(ctx, gatewayServer.Run, adminServer.Run)
 }

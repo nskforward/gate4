@@ -19,7 +19,7 @@ func NewFinamClient() *FinamClient {
 	}
 }
 
-func (c *FinamClient) GetAccountInfo(ctx context.Context, account Account) (*pb.AccountResponse, error) {
+func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb.AccountResponse, error) {
 	client, err := c.getClient(account)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account Account) (*pb.
 	}, nil
 }
 
-func (c *FinamClient) getClient(account Account) (*finam.Client, error) {
+func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 

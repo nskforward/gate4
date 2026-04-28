@@ -51,6 +51,26 @@ func (s *FileStorage[T]) Del(key string) error {
 	return s.saveToFile()
 }
 
+func (s *FileStorage[T]) Keys() []string {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+	result := make([]string, 0, len(s.items))
+	for key := range s.items {
+		result = append(result, key)
+	}
+	return result
+}
+
+func (s *FileStorage[T]) Objects() []T {
+	s.mx.RLock()
+	defer s.mx.RUnlock()
+	result := make([]T, 0, len(s.items))
+	for _, obj := range s.items {
+		result = append(result, obj)
+	}
+	return result
+}
+
 func (s *FileStorage[T]) readFromFile() error {
 	f, err := os.Open(s.filename)
 	if os.IsNotExist(err) {
