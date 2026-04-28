@@ -41,12 +41,24 @@ func (s *AdminServer) Run(ctx context.Context) error {
 
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
 	return &pb.ListAccountsResponse{
-		Items: s.broker.AccountKeys(),
+		Items: broker.ExportAccounts(s.broker.Accounts()),
 	}, nil
 }
 
-func (s *AdminServer) AddAccount(_ context.Context, req *pb.AddAccountRequest) (*pb.EmptyMessage, error) {
-	err := s.broker.AddAccount(broker.ImportAccount(req.Account))
+func (s *AdminServer) AddAccount(ctx context.Context, req *pb.AddAccountRequest) (*pb.EmptyMessage, error) {
+	account := broker.ImportAccount(req.Account)
+
+	client, err := s.broker.LookupClient(account)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = client.GetAccountInfo(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.broker.AddAccount(account)
 	if err != nil {
 		return nil, err
 	}

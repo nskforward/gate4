@@ -37,6 +37,6 @@ func (s *GatewayServer) Run(ctx context.Context) error {
 	return s.transport.Run(ctx)
 }
 
-func (s *GatewayServer) GetAccount(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
-	return s.broker.GetAccount(ctx, in)
+func (s *GatewayServer) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
+	return s.broker.GetAccountInfo(ctx, in)
 }

@@ -4,11 +4,11 @@ package proto;
 
 option go_package = "gate4/pkg/pb";
 
-import "account.proto";
+import "gateway.proto";
 import "admin.proto";
 
 service Gateway {
-  rpc GetAccount(AccountRequest) returns (AccountResponse) {}
+  rpc GetAccountInfo(AccountRequest) returns (AccountResponse) {}
 }
 
 service Admin {

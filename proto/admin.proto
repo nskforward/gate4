@@ -16,7 +16,7 @@ message EmptyMessage {}
 // brokers
 
 message ListAccountsResponse {
-  repeated string items = 1;
+  repeated Account items = 1;
 }
 
 message AddAccountRequest {

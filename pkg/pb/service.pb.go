@@ -24,10 +24,9 @@ var File_service_proto protoreflect.FileDescriptor
 
 const file_service_proto_rawDesc = "" +
 	"\n" +
-	"\rservice.proto\x12\x05proto\x1a\raccount.proto\x1a\vadmin.proto2H\n" +
-	"\aGateway\x12=\n" +
-	"\n" +
-	"GetAccount\x12\x15.proto.AccountRequest\x1a\x16.proto.AccountResponse\"\x002\xcf\x01\n" +
+	"\rservice.proto\x12\x05proto\x1a\rgateway.proto\x1a\vadmin.proto2L\n" +
+	"\aGateway\x12A\n" +
+	"\x0eGetAccountInfo\x12\x15.proto.AccountRequest\x1a\x16.proto.AccountResponse\"\x002\xcf\x01\n" +
 	"\x05Admin\x12B\n" +
 	"\fListAccounts\x12\x13.proto.EmptyMessage\x1a\x1b.proto.ListAccountsResponse\"\x00\x12=\n" +
 	"\n" +
@@ -43,11 +42,11 @@ var file_service_proto_goTypes = []any{
 	(*ListAccountsResponse)(nil), // 5: proto.ListAccountsResponse
 }
 var file_service_proto_depIdxs = []int32{
-	0, // 0: proto.Gateway.GetAccount:input_type -> proto.AccountRequest
+	0, // 0: proto.Gateway.GetAccountInfo:input_type -> proto.AccountRequest
 	1, // 1: proto.Admin.ListAccounts:input_type -> proto.EmptyMessage
 	2, // 2: proto.Admin.AddAccount:input_type -> proto.AddAccountRequest
 	3, // 3: proto.Admin.DeleteAccount:input_type -> proto.DeleteAccountRequest
-	4, // 4: proto.Gateway.GetAccount:output_type -> proto.AccountResponse
+	4, // 4: proto.Gateway.GetAccountInfo:output_type -> proto.AccountResponse
 	5, // 5: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
 	1, // 6: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
 	1, // 7: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
@@ -63,7 +62,7 @@ func file_service_proto_init() {
 	if File_service_proto != nil {
 		return
 	}
-	file_account_proto_init()
+	file_gateway_proto_init()
 	file_admin_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{

@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Gateway_GetAccount_FullMethodName = "/proto.Gateway/GetAccount"
+	Gateway_GetAccountInfo_FullMethodName = "/proto.Gateway/GetAccountInfo"
 )
 
 // GatewayClient is the client API for Gateway service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GatewayClient interface {
-	GetAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error)
+	GetAccountInfo(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error)
 }
 
 type gatewayClient struct {
@@ -37,10 +37,10 @@ func NewGatewayClient(cc grpc.ClientConnInterface) GatewayClient {
 	return &gatewayClient{cc}
 }
 
-func (c *gatewayClient) GetAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
+func (c *gatewayClient) GetAccountInfo(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, Gateway_GetAccount_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, Gateway_GetAccountInfo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *gatewayClient) GetAccount(ctx context.Context, in *AccountRequest, opts
 // All implementations must embed UnimplementedGatewayServer
 // for forward compatibility.
 type GatewayServer interface {
-	GetAccount(context.Context, *AccountRequest) (*AccountResponse, error)
+	GetAccountInfo(context.Context, *AccountRequest) (*AccountResponse, error)
 	mustEmbedUnimplementedGatewayServer()
 }
 
@@ -62,8 +62,8 @@ type GatewayServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGatewayServer struct{}
 
-func (UnimplementedGatewayServer) GetAccount(context.Context, *AccountRequest) (*AccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAccount not implemented")
+func (UnimplementedGatewayServer) GetAccountInfo(context.Context, *AccountRequest) (*AccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAccountInfo not implemented")
 }
 func (UnimplementedGatewayServer) mustEmbedUnimplementedGatewayServer() {}
 func (UnimplementedGatewayServer) testEmbeddedByValue()                 {}
@@ -86,20 +86,20 @@ func RegisterGatewayServer(s grpc.ServiceRegistrar, srv GatewayServer) {
 	s.RegisterService(&Gateway_ServiceDesc, srv)
 }
 
-func _Gateway_GetAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Gateway_GetAccountInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServer).GetAccount(ctx, in)
+		return srv.(GatewayServer).GetAccountInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Gateway_GetAccount_FullMethodName,
+		FullMethod: Gateway_GetAccountInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServer).GetAccount(ctx, req.(*AccountRequest))
+		return srv.(GatewayServer).GetAccountInfo(ctx, req.(*AccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GatewayServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetAccount",
-			Handler:    _Gateway_GetAccount_Handler,
+			MethodName: "GetAccountInfo",
+			Handler:    _Gateway_GetAccountInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

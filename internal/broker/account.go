@@ -26,3 +26,15 @@ func ImportAccount(in *pb.Account) *Account {
 		ValidUntil: time.Unix(in.ValidUntil, 0),
 	}
 }
+
+func ExportAccounts(list []*Account) []*pb.Account {
+	result := make([]*pb.Account, 0, len(list))
+	for _, account := range list {
+		result = append(result, &pb.Account{
+			BrokerId:   account.Broker,
+			Id:         account.ID,
+			ValidUntil: account.ValidUntil.Unix(),
+		})
+	}
+	return result
+}

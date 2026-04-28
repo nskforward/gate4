@@ -44,7 +44,7 @@ func (b *Broker) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb
 	if err != nil {
 		return nil, err
 	}
-	client, err := b.lookupClient(account)
+	client, err := b.LookupClient(account)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (b *Broker) lookupAccount(key string) (*Account, error) {
 	return account, nil
 }
 
-func (b *Broker) lookupClient(account *Account) (Client, error) {
+func (b *Broker) LookupClient(account *Account) (Client, error) {
 	switch account.Broker {
 	case "finam":
 		return b.finamClient, nil
