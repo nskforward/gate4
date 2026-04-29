@@ -33,7 +33,10 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	adminServer := transport.NewAdminServer(cfg, logger, b)
+	adminServer, err := transport.NewAdminServer(cfg, logger, b)
+	if err != nil {
+		return err
+	}
 	gatewayServer := transport.NewGatewayServer(cfg, logger, b)
 
 	return race.Run(ctx, gatewayServer.Run, adminServer.Run)

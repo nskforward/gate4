@@ -8,10 +8,12 @@ import (
 	"encoding/pem"
 	"io"
 	"os"
+
+	"github.com/nskforward/gate4/pkg/dir"
 )
 
 func GenKey(dst string) (*rsa.PrivateKey, error) {
-	f, err := os.Create(dst)
+	f, err := os.Create(dir.Normalize(dst))
 	if err != nil {
 		return nil, err
 	}

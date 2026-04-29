@@ -15,7 +15,18 @@ import (
 	"github.com/nskforward/gate4/pkg/dir"
 )
 
-func GenCA(dstKey, dstCert string, subject pkix.Name) error {
+func GenCert(srcCAKey, srcCACert, dstKey, dstCert string, subject pkix.Name) error {
+
+	caKey, err := LoadKey(srcCAKey)
+	if err != nil {
+		return fmt.Errorf("cannot load CA key: %w", err)
+	}
+
+	caCert, err := LoadCert(srcCACert)
+	if err != nil {
+		return fmt.Errorf("cannot load CA cert: %w", err)
+	}
+
 	privateKey, err := GenKey(dir.Normalize(dstKey))
 	if err != nil {
 		return fmt.Errorf("cannot create private key: %w", err)
@@ -25,15 +36,15 @@ func GenCA(dstKey, dstCert string, subject pkix.Name) error {
 		SerialNumber:          big.NewInt(math.Int63()),
 		Subject:               subject,
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
-		IsCA:                  true,
+		NotAfter:              time.Now().AddDate(2, 0, 0),
+		IsCA:                  false,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		SignatureAlgorithm:    x509.SHA256WithRSA,
 	}
 
-	data, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey.PublicKey, privateKey)
+	data, err := x509.CreateCertificate(rand.Reader, template, caCert, &privateKey.PublicKey, caKey)
 	if err != nil {
 		return fmt.Errorf("cannot create cert: %w", err)
 	}

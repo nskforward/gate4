@@ -18,10 +18,10 @@ type GRPCServer struct {
 	OnStop   func()
 }
 
-func New(addr string) *GRPCServer {
+func New(addr string, opt ...grpc.ServerOption) *GRPCServer {
 	return &GRPCServer{
 		addr:   addr,
-		Server: grpc.NewServer(),
+		Server: grpc.NewServer(opt...),
 	}
 }
 

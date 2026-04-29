@@ -9,6 +9,8 @@ import (
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type AdminServer struct {
@@ -18,9 +20,24 @@ type AdminServer struct {
 	broker    *broker.Broker
 }
 
-func NewAdminServer(cfg config.Config, logger *slog.Logger, broker *broker.Broker) *AdminServer {
+func NewAdminServer(cfg config.Config, logger *slog.Logger, broker *broker.Broker) (*AdminServer, error) {
+
+	var server *grpcserv.GRPCServer
+
+	if cfg.SSL.CA.CertPath != "" && cfg.SSL.Server.CertPath != "" && cfg.SSL.Server.KeyPath != "" {
+		tlsConfig, err := grpcserv.MTLSConfig(cfg.SSL.CA.CertPath, cfg.SSL.Server.CertPath, cfg.SSL.Server.KeyPath)
+		if err != nil {
+			return nil, err
+		}
+		server = grpcserv.New(cfg.Admin.ListenAddr, grpc.Creds(credentials.NewTLS(tlsConfig)))
+		logger.Info("mTLS enabled")
+	} else {
+		server = grpcserv.New(cfg.Admin.ListenAddr)
+		logger.Warn("mTLS disabled")
+	}
+
 	s := &AdminServer{
-		transport: grpcserv.New(cfg.Admin.ListenAddr),
+		transport: server,
 		logger:    logger,
 		broker:    broker,
 	}
@@ -31,7 +48,7 @@ func NewAdminServer(cfg config.Config, logger *slog.Logger, broker *broker.Broke
 	s.transport.OnStop = func() {
 		logger.Info("admin service stoppped")
 	}
-	return s
+	return s, nil
 }
 
 func (s *AdminServer) Run(ctx context.Context) error {
