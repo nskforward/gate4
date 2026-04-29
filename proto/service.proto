@@ -15,4 +15,5 @@ service Admin {
   rpc ListAccounts(EmptyMessage) returns (ListAccountsResponse) {}
   rpc AddAccount(AddAccountRequest) returns (EmptyMessage) {}
   rpc DeleteAccount(DeleteAccountRequest) returns (EmptyMessage) {}
+  rpc QuoteStream(QuoteStreamRequest) returns (stream QuoteStreamResponse);
 }

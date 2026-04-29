@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -88,6 +89,10 @@ func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.DeleteAccountRequ
 		return nil, err
 	}
 	return &pb.EmptyMessage{}, nil
+}
+
+func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
+	return fmt.Errorf("not implemented")
 }
 
 func (s *AdminServer) watch(ctx context.Context) {

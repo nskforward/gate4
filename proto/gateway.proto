@@ -13,4 +13,20 @@ message AccountResponse {
   string account_id = 2;
 }
 
+message QuoteStreamRequest {
+  string account_key = 1;
+  string symbol = 2;
+}
 
+message QuoteStreamResponse {
+  string broker_id = 1;
+  string symbol = 2;
+  int64 timestamp = 3;
+  Level ask = 4;
+  Level bid = 5;
+}
+
+message Level {
+  string price = 1;
+  string size = 2;
+}
