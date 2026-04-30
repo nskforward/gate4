@@ -7,7 +7,7 @@ type Peer[T any] struct {
 	channel chan T
 }
 
-func NewPeer[T any](g *Group[T], size int) *Peer[T] {
+func NewPeer[T any](size int, g *Group[T]) *Peer[T] {
 	return &Peer[T]{
 		group:   g,
 		channel: make(chan T, size),

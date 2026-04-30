@@ -15,22 +15,20 @@ func NewPubSub[T any]() *PubSub[T] {
 	}
 }
 
-func (ps *PubSub[T]) LoadOrCreate(key string) (group *Group[T]) {
+func (ps *PubSub[T]) LoadOrCreate(key string) (group *Group[T], loaded bool) {
 	ps.mx.Lock()
 	defer ps.mx.Unlock()
 	g, ok := ps.groups[key]
 	if ok {
-		return g
+		return g, true
 	}
 	g = NewGroup(key, ps)
 	ps.groups[key] = g
-	ps.conf.OnStart(key, g)
-	return g
+	return g, false
 }
 
 func (ps *PubSub[T]) remove(key string) {
 	ps.mx.Lock()
 	defer ps.mx.Unlock()
-	ps.conf.OnStop(key)
 	delete(ps.groups, key)
 }

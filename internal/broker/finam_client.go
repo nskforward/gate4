@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"sync"
-	"sync/atomic"
+	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/finam"
@@ -19,44 +19,36 @@ type FinamClient struct {
 }
 
 func NewFinamClient() *FinamClient {
-	var quoteStreamActive atomic.Bool
-
 	return &FinamClient{
-		clients: make(map[string]*finam.Client),
-		quoteStream: peers.NewPubSub(peers.PubSubConfig[*marketdata.Quote]{
-			OnStart: func(key string, group *peers.Group[*marketdata.Quote]) {
-				slog.Info("start stream", "symbol", key)
-				quoteStreamActive.Store(true)
-				for quoteStreamActive.Load() {
-					group.Send(&marketdata.Quote{
-						Symbol: key,
-					})
-				}
-			},
-			OnStop: func(key string) {
-				slog.Info("stop stream", "symbol", key)
-				quoteStreamActive.Store(false)
-			},
-		}),
+		clients:     make(map[string]*finam.Client),
+		quoteStream: peers.NewPubSub[*marketdata.Quote](),
 	}
 }
 
 func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb.Admin_QuoteStreamServer) error {
+	slog.Debug("client connected from quote stream", "symbol", symbol)
+
 	client, err := c.getClient(account)
 	if err != nil {
 		return err
 	}
-	iterator, err := client.SubscribeQuotes(stream.Context(), []string{symbol})
-	if err != nil {
-		return err
+	group, loaded := c.quoteStream.LoadOrCreate(symbol)
+	if !loaded {
+		go c.subscribeQuotes(symbol, client, group)
 	}
-	for q, err := range iterator {
-		if err != nil {
-			return err
+
+	p := group.NewPeer()
+	defer p.Close()
+
+	for {
+		q, ok := p.Read(stream.Context())
+		if !ok {
+			slog.Debug("client disconnected from quote stream", "symbol", symbol)
+			break // client disconnected
 		}
-		err = stream.Send(&pb.QuoteStreamResponse{
+		err := stream.Send(&pb.QuoteStreamResponse{
 			BrokerId:  "finam",
-			Symbol:    symbol,
+			Symbol:    q.Symbol,
 			Timestamp: q.Timestamp.Seconds,
 			Ask: &pb.Level{
 				Price: q.Ask.Value,
@@ -71,6 +63,7 @@ func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -87,6 +80,42 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 		BrokerId:  "finam",
 		AccountId: resp.AccountId,
 	}, nil
+}
+
+func (c *FinamClient) subscribeQuotes(symbol string, client *finam.Client, group *peers.Group[*marketdata.Quote]) {
+	minSleep := time.Second
+	maxSleep := time.Minute
+	sleep := minSleep
+LOOP:
+	for {
+		stream, err := client.SubscribeQuotes(context.Background(), []string{symbol})
+		if err != nil {
+			slog.Warn("cannot subscribe for quote stream", "symbol", symbol, "error", err.Error())
+			if sleep > maxSleep {
+				slog.Warn("max reconnects reached to quote stream", "symbol", symbol)
+				break LOOP
+			}
+			time.Sleep(sleep)
+			sleep = sleep * 2
+			continue LOOP
+		}
+
+		sleep = minSleep
+
+		for q, err := range stream {
+			if err != nil {
+				slog.Warn("quote stream disconnected", "symbol", symbol, "error", err.Error())
+				break
+			}
+			if !group.Send(q) {
+				slog.Warn("no subscribers for quote stream", "symbol", symbol)
+				break LOOP
+			}
+		}
+	}
+
+	slog.Info("exit quote stream")
+	group.Close()
 }
 
 func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
