@@ -2,20 +2,42 @@ package broker
 
 import (
 	"context"
+	"log/slog"
 	"sync"
+	"sync/atomic"
 
+	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/peers"
 )
 
 type FinamClient struct {
-	clients map[string]*finam.Client
-	mx      sync.Mutex
+	clients     map[string]*finam.Client
+	mx          sync.Mutex
+	quoteStream *peers.PubSub[*marketdata.Quote]
 }
 
 func NewFinamClient() *FinamClient {
+	var quoteStreamActive atomic.Bool
+
 	return &FinamClient{
 		clients: make(map[string]*finam.Client),
+		quoteStream: peers.NewPubSub(peers.PubSubConfig[*marketdata.Quote]{
+			OnStart: func(key string, group *peers.Group[*marketdata.Quote]) {
+				slog.Info("start stream", "symbol", key)
+				quoteStreamActive.Store(true)
+				for quoteStreamActive.Load() {
+					group.Send(&marketdata.Quote{
+						Symbol: key,
+					})
+				}
+			},
+			OnStop: func(key string) {
+				slog.Info("stop stream", "symbol", key)
+				quoteStreamActive.Store(false)
+			},
+		}),
 	}
 }
 

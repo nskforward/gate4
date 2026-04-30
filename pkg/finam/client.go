@@ -13,6 +13,7 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
+	"github.com/nskforward/gate4/pkg/peers"
 )
 
 type Client struct {
@@ -22,6 +23,7 @@ type Client struct {
 	accountService    accounts.AccountsServiceClient
 	authService       auth.AuthServiceClient
 	tokenService      *tokenService
+	quoteStreams      map[string]*peers.Group[*marketdata.Quote]
 }
 
 // NewClient создаёт новый клиент Finam

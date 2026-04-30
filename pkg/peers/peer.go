@@ -15,11 +15,13 @@ func NewPeer[T any](g *Group[T], size int) *Peer[T] {
 }
 
 func (p *Peer[T]) Close() {
-	p.group.remove(p)
+	if p.group != nil {
+		p.group.remove(p)
+	}
 	close(p.channel)
 }
 
-func (p *Peer[T]) Wait(ctx context.Context) (T, bool) {
+func (p *Peer[T]) Read(ctx context.Context) (T, bool) {
 	select {
 	case <-ctx.Done():
 		var def T

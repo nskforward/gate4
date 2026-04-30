@@ -6,21 +6,17 @@ import (
 )
 
 type Group[T any] struct {
-	peers []*Peer[T]
-	mx    sync.RWMutex
+	key    string
+	pubsub *PubSub[T]
+	peers  []*Peer[T]
+	mx     sync.RWMutex
 }
 
-func NewGroup[T any]() *Group[T] {
+func NewGroup[T any](key string, pubsub *PubSub[T]) *Group[T] {
 	return &Group[T]{
-		peers: make([]*Peer[T], 0, 8),
-	}
-}
-
-func (g *Group[T]) Close() {
-	g.mx.Lock()
-	defer g.mx.Unlock()
-	for _, p := range g.peers {
-		p.Close()
+		key:    key,
+		pubsub: pubsub,
+		peers:  make([]*Peer[T], 0, 8),
 	}
 }
 
@@ -40,14 +36,16 @@ func (g *Group[T]) Send(data T) {
 	}
 }
 
-func (g *Group[T]) remove(p *Peer[T]) int {
+func (g *Group[T]) remove(p *Peer[T]) {
 	g.mx.Lock()
 	defer g.mx.Unlock()
 	for i, p1 := range g.peers {
 		if p1 == p {
 			g.peers = slices.Delete(g.peers, i, 1)
-			return len(g.peers)
+			break
 		}
 	}
-	return -1
+	if len(g.peers) == 0 && g.pubsub != nil {
+		g.pubsub.remove(g.key)
+	}
 }
