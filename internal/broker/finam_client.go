@@ -19,6 +19,39 @@ func NewFinamClient() *FinamClient {
 	}
 }
 
+func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb.Admin_QuoteStreamServer) error {
+	client, err := c.getClient(account)
+	if err != nil {
+		return err
+	}
+	iterator, err := client.SubscribeQuotes(stream.Context(), []string{symbol})
+	if err != nil {
+		return err
+	}
+	for q, err := range iterator {
+		if err != nil {
+			return err
+		}
+		err = stream.Send(&pb.QuoteStreamResponse{
+			BrokerId:  "finam",
+			Symbol:    symbol,
+			Timestamp: q.Timestamp.Seconds,
+			Ask: &pb.Level{
+				Price: q.Ask.Value,
+				Size:  q.AskSize.Value,
+			},
+			Bid: &pb.Level{
+				Price: q.Bid.Value,
+				Size:  q.BidSize.Value,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb.AccountResponse, error) {
 	client, err := c.getClient(account)
 	if err != nil {

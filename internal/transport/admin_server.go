@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -57,6 +56,10 @@ func (s *AdminServer) Run(ctx context.Context) error {
 	return s.transport.Run(ctx)
 }
 
+func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
+	return s.broker.SubscribeQuotes(req, stream)
+}
+
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
 	return &pb.ListAccountsResponse{
 		Items: broker.ExportAccounts(s.broker.Accounts()),
@@ -89,10 +92,6 @@ func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.DeleteAccountRequ
 		return nil, err
 	}
 	return &pb.EmptyMessage{}, nil
-}
-
-func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
-	return fmt.Errorf("not implemented")
 }
 
 func (s *AdminServer) watch(ctx context.Context) {

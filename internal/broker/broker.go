@@ -39,6 +39,18 @@ func (b *Broker) DeleteAccount(key string) error {
 	return b.accountStore.Del(key)
 }
 
+func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
+	account, err := b.lookupAccount(req.AccountKey)
+	if err != nil {
+		return err
+	}
+	client, err := b.LookupClient(account)
+	if err != nil {
+		return err
+	}
+	return client.SubscribeQuotes(account, req.Symbol, stream)
+}
+
 func (b *Broker) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
 	account, err := b.lookupAccount(in.AccountKey)
 	if err != nil {
