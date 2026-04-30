@@ -10,6 +10,7 @@ import (
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/peers"
+	"google.golang.org/genproto/googleapis/type/decimal"
 )
 
 type FinamClient struct {
@@ -46,17 +47,18 @@ func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb
 			slog.Debug("client disconnected from quote stream", "symbol", symbol)
 			break // client disconnected
 		}
+
 		err := stream.Send(&pb.QuoteStreamResponse{
 			BrokerId:  "finam",
 			Symbol:    q.Symbol,
 			Timestamp: q.Timestamp.Seconds,
 			Ask: &pb.Level{
-				Price: q.Ask.Value,
-				Size:  q.AskSize.Value,
+				Price: decimalValue(q.Ask),
+				Size:  decimalValue(q.AskSize),
 			},
 			Bid: &pb.Level{
-				Price: q.Bid.Value,
-				Size:  q.BidSize.Value,
+				Price: decimalValue(q.Bid),
+				Size:  decimalValue(q.BidSize),
 			},
 		})
 		if err != nil {
@@ -133,4 +135,11 @@ func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 	}
 
 	return client, nil
+}
+
+func decimalValue(val *decimal.Decimal) string {
+	if val == nil {
+		return "0"
+	}
+	return val.Value
 }

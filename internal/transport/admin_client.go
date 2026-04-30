@@ -31,6 +31,13 @@ func (c *AdminClient) Close() {
 	c.conn.Close()
 }
 
+func (c *AdminClient) SubscribeQuotes(ctx context.Context, accountKey, symbol string) (grpc.ServerStreamingClient[pb.QuoteStreamResponse], error) {
+	return c.client.QuoteStream(ctx, &pb.QuoteStreamRequest{
+		AccountKey: accountKey,
+		Symbol:     symbol,
+	})
+}
+
 func (c *AdminClient) ListAccounts(ctx context.Context) ([]*pb.Account, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
