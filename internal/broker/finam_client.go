@@ -15,13 +15,15 @@ import (
 )
 
 type FinamClient struct {
+	addr        string
 	clients     map[string]*finam.Client
 	mx          sync.Mutex
 	quoteStream *peers.PubSub[*marketdata.Quote]
 }
 
-func NewFinamClient() *FinamClient {
+func NewFinamClient(addr string) *FinamClient {
 	return &FinamClient{
+		addr:        addr,
 		clients:     make(map[string]*finam.Client),
 		quoteStream: peers.NewPubSub[*marketdata.Quote](),
 	}
@@ -140,7 +142,7 @@ func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 
 	client, ok := c.clients[account.ID]
 	if !ok {
-		newClient, err := finam.NewClient("api.finam.ru:443", account.Secret)
+		newClient, err := finam.NewClient(c.addr, account.Secret)
 		if err != nil {
 			return nil, err
 		}

@@ -29,7 +29,7 @@ func NewAdminServer(cfg config.Config, logger *slog.Logger, broker *broker.Broke
 		logger.Info("admin service started", "addr", cfg.Admin.ListenAddr)
 	}
 	s.transport.OnStop = func() {
-		logger.Info("admin service stoppped")
+		logger.Info("admin service stopped")
 	}
 	return s, nil
 }

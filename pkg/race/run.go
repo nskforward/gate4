@@ -11,7 +11,7 @@ func Run(ctx context.Context, funcs ...func(context.Context) error) error {
 	}
 
 	// Создаём дочерний контекст с возможностью отмены.
-	ctx, cancel := context.WithCancel(ctx)
+	runCtx, cancel := context.WithCancel(ctx)
 	defer cancel() // Гарантированно освобождаем ресурсы контекста.
 
 	var wg sync.WaitGroup
@@ -28,7 +28,7 @@ func Run(ctx context.Context, funcs ...func(context.Context) error) error {
 	for _, f := range funcs {
 		go func(fn func(context.Context) error) {
 			defer wg.Done()
-			err := fn(ctx)
+			err := fn(runCtx)
 			once.Do(func() {
 				cancel()
 				resultCh <- err

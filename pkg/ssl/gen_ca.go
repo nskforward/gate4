@@ -47,7 +47,7 @@ func GenCA(dstKey, dstCert string, subject pkix.Name) error {
 		return err
 	}
 
-	err = os.WriteFile(dir.Normalize(dstCert), buf.Bytes(), 0755)
+	err = os.WriteFile(dir.Normalize(dstCert), buf.Bytes(), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("cannot wite cert: %w", err)
 	}

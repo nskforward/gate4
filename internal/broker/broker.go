@@ -19,7 +19,7 @@ func NewBroker() (*Broker, error) {
 	}
 	return &Broker{
 		accountStore: storage,
-		finamClient:  NewFinamClient(),
+		finamClient:  NewFinamClient("api.finam.ru:443"),
 	}, nil
 }
 
@@ -40,7 +40,7 @@ func (b *Broker) DeleteAccount(key string) error {
 }
 
 func (b *Broker) GetPositions(account *Account) error {
-	return b.accountStore.Set(account.Key(), account)
+	return fmt.Errorf("not imlemented")
 }
 
 func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
