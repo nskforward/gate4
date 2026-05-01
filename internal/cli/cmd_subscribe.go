@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (c *Client) cmdSubscribe(ctx context.Context, args []string) error {
@@ -43,8 +46,16 @@ func (c *Client) cmdSubscribeQuotes(ctx context.Context, args []string) error {
 			return nil
 		}
 		if err != nil {
-			return err
+			st, ok := status.FromError(err)
+			if !ok {
+				return err
+			}
+			code := st.Code()
+			if code == codes.Canceled {
+				return nil
+			}
+			return fmt.Errorf("stream closed: %s", st.Message())
 		}
-		fmt.Println("quote", resp.Timestamp, resp.BrokerId, resp.Symbol, resp.Ask.String(), resp.Bid.String())
+		fmt.Println("quote", resp.Timestamp, resp.BrokerId, resp.Symbol, resp.Ask, resp.Bid)
 	}
 }

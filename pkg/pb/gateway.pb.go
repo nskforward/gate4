@@ -174,8 +174,8 @@ type QuoteStreamResponse struct {
 	BrokerId      string                 `protobuf:"bytes,1,opt,name=broker_id,json=brokerId,proto3" json:"broker_id,omitempty"`
 	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	Timestamp     int64                  `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Ask           *Level                 `protobuf:"bytes,4,opt,name=ask,proto3" json:"ask,omitempty"`
-	Bid           *Level                 `protobuf:"bytes,5,opt,name=bid,proto3" json:"bid,omitempty"`
+	Ask           string                 `protobuf:"bytes,4,opt,name=ask,proto3" json:"ask,omitempty"`
+	Bid           string                 `protobuf:"bytes,5,opt,name=bid,proto3" json:"bid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -231,68 +231,16 @@ func (x *QuoteStreamResponse) GetTimestamp() int64 {
 	return 0
 }
 
-func (x *QuoteStreamResponse) GetAsk() *Level {
+func (x *QuoteStreamResponse) GetAsk() string {
 	if x != nil {
 		return x.Ask
-	}
-	return nil
-}
-
-func (x *QuoteStreamResponse) GetBid() *Level {
-	if x != nil {
-		return x.Bid
-	}
-	return nil
-}
-
-type Level struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Price         string                 `protobuf:"bytes,1,opt,name=price,proto3" json:"price,omitempty"`
-	Size          string                 `protobuf:"bytes,2,opt,name=size,proto3" json:"size,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Level) Reset() {
-	*x = Level{}
-	mi := &file_gateway_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Level) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Level) ProtoMessage() {}
-
-func (x *Level) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Level.ProtoReflect.Descriptor instead.
-func (*Level) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *Level) GetPrice() string {
-	if x != nil {
-		return x.Price
 	}
 	return ""
 }
 
-func (x *Level) GetSize() string {
+func (x *QuoteStreamResponse) GetBid() string {
 	if x != nil {
-		return x.Size
+		return x.Bid
 	}
 	return ""
 }
@@ -312,16 +260,13 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12QuoteStreamRequest\x12\x1f\n" +
 	"\vaccount_key\x18\x01 \x01(\tR\n" +
 	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\xa8\x01\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\x8c\x01\n" +
 	"\x13QuoteStreamResponse\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x16\n" +
 	"\x06symbol\x18\x02 \x01(\tR\x06symbol\x12\x1c\n" +
-	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\x12\x1e\n" +
-	"\x03ask\x18\x04 \x01(\v2\f.proto.LevelR\x03ask\x12\x1e\n" +
-	"\x03bid\x18\x05 \x01(\v2\f.proto.LevelR\x03bid\"1\n" +
-	"\x05Level\x12\x14\n" +
-	"\x05price\x18\x01 \x01(\tR\x05price\x12\x12\n" +
-	"\x04size\x18\x02 \x01(\tR\x04sizeB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\x12\x10\n" +
+	"\x03ask\x18\x04 \x01(\tR\x03ask\x12\x10\n" +
+	"\x03bid\x18\x05 \x01(\tR\x03bidB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -335,22 +280,19 @@ func file_gateway_proto_rawDescGZIP() []byte {
 	return file_gateway_proto_rawDescData
 }
 
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_gateway_proto_goTypes = []any{
 	(*AccountRequest)(nil),      // 0: proto.AccountRequest
 	(*AccountResponse)(nil),     // 1: proto.AccountResponse
 	(*QuoteStreamRequest)(nil),  // 2: proto.QuoteStreamRequest
 	(*QuoteStreamResponse)(nil), // 3: proto.QuoteStreamResponse
-	(*Level)(nil),               // 4: proto.Level
 }
 var file_gateway_proto_depIdxs = []int32{
-	4, // 0: proto.QuoteStreamResponse.ask:type_name -> proto.Level
-	4, // 1: proto.QuoteStreamResponse.bid:type_name -> proto.Level
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_gateway_proto_init() }
@@ -364,7 +306,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

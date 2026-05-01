@@ -1,10 +1,14 @@
 package peers
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 type Peer[T any] struct {
 	group   *Group[T]
 	channel chan T
+	mx      sync.Mutex
 }
 
 func NewPeer[T any](size int, g *Group[T]) *Peer[T] {
@@ -15,9 +19,13 @@ func NewPeer[T any](size int, g *Group[T]) *Peer[T] {
 }
 
 func (p *Peer[T]) Close() {
+	p.mx.Lock()
+	defer p.mx.Unlock()
+
 	if p.group != nil {
 		p.group.remove(p)
 	}
+
 	close(p.channel)
 }
 
@@ -32,6 +40,9 @@ func (p *Peer[T]) Read(ctx context.Context) (T, bool) {
 }
 
 func (p *Peer[T]) send(data T) {
+	p.mx.Lock()
+	defer p.mx.Unlock()
+
 	for {
 		select {
 		case p.channel <- data:

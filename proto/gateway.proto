@@ -22,11 +22,6 @@ message QuoteStreamResponse {
   string broker_id = 1;
   string symbol = 2;
   int64 timestamp = 3;
-  Level ask = 4;
-  Level bid = 5;
-}
-
-message Level {
-  string price = 1;
-  string size = 2;
+  string ask = 4;
+  string bid = 5;
 }
