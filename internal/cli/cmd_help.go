@@ -20,5 +20,6 @@ func (c *Client) cmdHelp(context.Context) error {
 	commandInfo("account add", "add a new account", "gate4 account add")
 	commandInfo("account del <key>", "delete a account", "gate4 account del <key>")
 	commandInfo("subscribe quotes <symbol> <account_key>", "subscribe for quote stream", "gate4 subscribe quotes <symbol> <account_key>")
+	commandInfo("positions <account_key>", "show list of account positions", "gate4 positions <account_key>")
 	return nil
 }

@@ -4,6 +4,8 @@ package proto;
 
 option go_package = "gate4/pkg/pb";
 
+import "gateway.proto";
+
 message Account {
   string broker_id = 1;
   string id = 2;
@@ -23,6 +25,6 @@ message AddAccountRequest {
   Account account = 1;
 }
 
-message DeleteAccountRequest {
-  string key = 1;
+message GetPositionsResponse {
+  repeated Position positions = 1;
 }

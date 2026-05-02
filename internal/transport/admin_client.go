@@ -65,8 +65,20 @@ func (c *AdminClient) AddAccount(ctx context.Context, brokerID, id, secret strin
 func (c *AdminClient) DeleteAccount(ctx context.Context, key string) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	_, err := c.client.DeleteAccount(reqCtx, &pb.DeleteAccountRequest{
-		Key: key,
+	_, err := c.client.DeleteAccount(reqCtx, &pb.AccountRequest{
+		AccountKey: key,
 	})
 	return err
+}
+
+func (c *AdminClient) Positions(ctx context.Context, key string) ([]*pb.Position, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	resp, err := c.client.GetPositions(reqCtx, &pb.AccountRequest{
+		AccountKey: key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Positions, nil
 }

@@ -124,6 +124,7 @@ const (
 	Admin_ListAccounts_FullMethodName  = "/proto.Admin/ListAccounts"
 	Admin_AddAccount_FullMethodName    = "/proto.Admin/AddAccount"
 	Admin_DeleteAccount_FullMethodName = "/proto.Admin/DeleteAccount"
+	Admin_GetPositions_FullMethodName  = "/proto.Admin/GetPositions"
 	Admin_QuoteStream_FullMethodName   = "/proto.Admin/QuoteStream"
 )
 
@@ -133,7 +134,8 @@ const (
 type AdminClient interface {
 	ListAccounts(ctx context.Context, in *EmptyMessage, opts ...grpc.CallOption) (*ListAccountsResponse, error)
 	AddAccount(ctx context.Context, in *AddAccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
-	DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
+	DeleteAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
+	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
 	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 }
 
@@ -165,10 +167,20 @@ func (c *adminClient) AddAccount(ctx context.Context, in *AddAccountRequest, opt
 	return out, nil
 }
 
-func (c *adminClient) DeleteAccount(ctx context.Context, in *DeleteAccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error) {
+func (c *adminClient) DeleteAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyMessage)
 	err := c.cc.Invoke(ctx, Admin_DeleteAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminClient) GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPositionsResponse)
+	err := c.cc.Invoke(ctx, Admin_GetPositions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +212,8 @@ type Admin_QuoteStreamClient = grpc.ServerStreamingClient[QuoteStreamResponse]
 type AdminServer interface {
 	ListAccounts(context.Context, *EmptyMessage) (*ListAccountsResponse, error)
 	AddAccount(context.Context, *AddAccountRequest) (*EmptyMessage, error)
-	DeleteAccount(context.Context, *DeleteAccountRequest) (*EmptyMessage, error)
+	DeleteAccount(context.Context, *AccountRequest) (*EmptyMessage, error)
+	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
 	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	mustEmbedUnimplementedAdminServer()
 }
@@ -218,8 +231,11 @@ func (UnimplementedAdminServer) ListAccounts(context.Context, *EmptyMessage) (*L
 func (UnimplementedAdminServer) AddAccount(context.Context, *AddAccountRequest) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddAccount not implemented")
 }
-func (UnimplementedAdminServer) DeleteAccount(context.Context, *DeleteAccountRequest) (*EmptyMessage, error) {
+func (UnimplementedAdminServer) DeleteAccount(context.Context, *AccountRequest) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAccount not implemented")
+}
+func (UnimplementedAdminServer) GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPositions not implemented")
 }
 func (UnimplementedAdminServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method QuoteStream not implemented")
@@ -282,7 +298,7 @@ func _Admin_AddAccount_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Admin_DeleteAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteAccountRequest)
+	in := new(AccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -294,7 +310,25 @@ func _Admin_DeleteAccount_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: Admin_DeleteAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServer).DeleteAccount(ctx, req.(*DeleteAccountRequest))
+		return srv.(AdminServer).DeleteAccount(ctx, req.(*AccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Admin_GetPositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetPositions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_GetPositions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetPositions(ctx, req.(*AccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -328,6 +362,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAccount",
 			Handler:    _Admin_DeleteAccount_Handler,
+		},
+		{
+			MethodName: "GetPositions",
+			Handler:    _Admin_GetPositions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -213,27 +213,27 @@ func (x *AddAccountRequest) GetAccount() *Account {
 	return nil
 }
 
-type DeleteAccountRequest struct {
+type GetPositionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Positions     []*Position            `protobuf:"bytes,1,rep,name=positions,proto3" json:"positions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteAccountRequest) Reset() {
-	*x = DeleteAccountRequest{}
+func (x *GetPositionsResponse) Reset() {
+	*x = GetPositionsResponse{}
 	mi := &file_admin_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteAccountRequest) String() string {
+func (x *GetPositionsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteAccountRequest) ProtoMessage() {}
+func (*GetPositionsResponse) ProtoMessage() {}
 
-func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
+func (x *GetPositionsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -245,23 +245,23 @@ func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteAccountRequest.ProtoReflect.Descriptor instead.
-func (*DeleteAccountRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetPositionsResponse.ProtoReflect.Descriptor instead.
+func (*GetPositionsResponse) Descriptor() ([]byte, []int) {
 	return file_admin_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *DeleteAccountRequest) GetKey() string {
+func (x *GetPositionsResponse) GetPositions() []*Position {
 	if x != nil {
-		return x.Key
+		return x.Positions
 	}
-	return ""
+	return nil
 }
 
 var File_admin_proto protoreflect.FileDescriptor
 
 const file_admin_proto_rawDesc = "" +
 	"\n" +
-	"\vadmin.proto\x12\x05proto\"o\n" +
+	"\vadmin.proto\x12\x05proto\x1a\rgateway.proto\"o\n" +
 	"\aAccount\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x16\n" +
@@ -272,9 +272,9 @@ const file_admin_proto_rawDesc = "" +
 	"\x14ListAccountsResponse\x12$\n" +
 	"\x05items\x18\x01 \x03(\v2\x0e.proto.AccountR\x05items\"=\n" +
 	"\x11AddAccountRequest\x12(\n" +
-	"\aaccount\x18\x01 \x01(\v2\x0e.proto.AccountR\aaccount\"(\n" +
-	"\x14DeleteAccountRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03keyB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\aaccount\x18\x01 \x01(\v2\x0e.proto.AccountR\aaccount\"E\n" +
+	"\x14GetPositionsResponse\x12-\n" +
+	"\tpositions\x18\x01 \x03(\v2\x0f.proto.PositionR\tpositionsB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_admin_proto_rawDescOnce sync.Once
@@ -294,16 +294,18 @@ var file_admin_proto_goTypes = []any{
 	(*EmptyMessage)(nil),         // 1: proto.EmptyMessage
 	(*ListAccountsResponse)(nil), // 2: proto.ListAccountsResponse
 	(*AddAccountRequest)(nil),    // 3: proto.AddAccountRequest
-	(*DeleteAccountRequest)(nil), // 4: proto.DeleteAccountRequest
+	(*GetPositionsResponse)(nil), // 4: proto.GetPositionsResponse
+	(*Position)(nil),             // 5: proto.Position
 }
 var file_admin_proto_depIdxs = []int32{
 	0, // 0: proto.ListAccountsResponse.items:type_name -> proto.Account
 	0, // 1: proto.AddAccountRequest.account:type_name -> proto.Account
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 2: proto.GetPositionsResponse.positions:type_name -> proto.Position
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_admin_proto_init() }
@@ -311,6 +313,7 @@ func file_admin_proto_init() {
 	if File_admin_proto != nil {
 		return
 	}
+	file_gateway_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

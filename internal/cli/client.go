@@ -46,6 +46,8 @@ func (c *Client) execCmd(ctx context.Context, command string, args []string) err
 		return c.cmdAccount(ctx, args)
 	case "subscribe":
 		return c.cmdSubscribe(ctx, args)
+	case "positions":
+		return c.cmdPositions(ctx, args)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}

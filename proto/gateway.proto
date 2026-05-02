@@ -11,6 +11,13 @@ message AccountRequest {
 message AccountResponse {
   string broker_id = 1;
   string account_id = 2;
+  repeated Position positions = 3;
+}
+
+message Position {
+  string symbol = 1;
+  string average_price = 2;
+  string size = 3; // size sign is direction (+ long / - short)
 }
 
 message QuoteStreamRequest {

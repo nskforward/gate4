@@ -14,6 +14,7 @@ service Gateway {
 service Admin {
   rpc ListAccounts(EmptyMessage) returns (ListAccountsResponse) {}
   rpc AddAccount(AddAccountRequest) returns (EmptyMessage) {}
-  rpc DeleteAccount(DeleteAccountRequest) returns (EmptyMessage) {}
+  rpc DeleteAccount(AccountRequest) returns (EmptyMessage) {}
+  rpc GetPositions(AccountRequest) returns (GetPositionsResponse) {}
   rpc QuoteStream(QuoteStreamRequest) returns (stream QuoteStreamResponse);
 }

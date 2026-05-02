@@ -8,8 +8,9 @@ import (
 )
 
 type Broker struct {
-	accountStore *AccountStore
-	finamClient  *FinamClient
+	accountStore  *AccountStore
+	positionStore *PositionStore
+	finamClient   *FinamClient
 }
 
 func NewBroker() (*Broker, error) {
@@ -17,10 +18,16 @@ func NewBroker() (*Broker, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Broker{
-		accountStore: storage,
-		finamClient:  NewFinamClient("api.finam.ru:443"),
-	}, nil
+	b := &Broker{
+		accountStore:  storage,
+		positionStore: NewPositionStore(),
+		finamClient:   NewFinamClient("api.finam.ru:443"),
+	}
+	err = b.importPositions()
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 func (b *Broker) AccountKeys() []string {
@@ -39,8 +46,8 @@ func (b *Broker) DeleteAccount(key string) error {
 	return b.accountStore.Del(key)
 }
 
-func (b *Broker) GetPositions(account *Account) error {
-	return fmt.Errorf("not imlemented")
+func (b *Broker) GetPositions(account *Account) []*pb.Position {
+	return b.positionStore.Get(account)
 }
 
 func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
@@ -75,6 +82,14 @@ func (b *Broker) lookupAccount(key string) (*Account, error) {
 	return account, nil
 }
 
+func (b *Broker) LookupAccount(key string) *Account {
+	account, ok := b.accountStore.Lookup(key)
+	if !ok {
+		return nil
+	}
+	return account
+}
+
 func (b *Broker) LookupClient(account *Account) (Client, error) {
 	switch account.Broker {
 	case "finam":
@@ -83,4 +98,24 @@ func (b *Broker) LookupClient(account *Account) (Client, error) {
 	default:
 		return nil, fmt.Errorf("unknown broker: %s", account.Broker)
 	}
+}
+
+func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
+	b.positionStore.Update(account, positions)
+}
+
+func (b *Broker) importPositions() error {
+	accounts := b.accountStore.Accounts()
+	for _, account := range accounts {
+		client, err := b.LookupClient(account)
+		if err != nil {
+			return err
+		}
+		resp, err := client.GetAccountInfo(context.Background(), account)
+		if err != nil {
+			return err
+		}
+		b.UpdatePositions(account, resp.Positions)
+	}
+	return nil
 }

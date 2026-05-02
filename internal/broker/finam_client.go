@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
@@ -78,6 +79,7 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 	return &pb.AccountResponse{
 		BrokerId:  "finam",
 		AccountId: resp.AccountId,
+		Positions: getPositions(resp.Positions),
 	}, nil
 }
 
@@ -151,4 +153,16 @@ func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 	}
 
 	return client, nil
+}
+
+func getPositions(in []*accounts.Position) []*pb.Position {
+	items := make([]*pb.Position, 0, len(in))
+	for _, item := range in {
+		items = append(items, &pb.Position{
+			Symbol:       item.Symbol,
+			AveragePrice: item.AveragePrice.Value,
+			Size:         item.Quantity.Value,
+		})
+	}
+	return items
 }
