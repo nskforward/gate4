@@ -53,6 +53,16 @@ func (s *GatewayServer) Run(ctx context.Context) error {
 	return s.transport.Run(ctx)
 }
 
-func (s *GatewayServer) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb.AccountResponse, error) {
-	return s.broker.GetAccountInfo(ctx, in)
+func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
+	account := s.broker.LookupAccount(req.AccountKey)
+	if account == nil {
+		return &pb.GetPositionsResponse{}, nil
+	}
+	return &pb.GetPositionsResponse{
+		Positions: s.broker.GetPositions(account),
+	}, nil
+}
+
+func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, stream pb.Gateway_QuoteStreamServer) error {
+	return s.broker.SubscribeQuotes(req, stream)
 }

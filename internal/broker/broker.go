@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nskforward/gate4/pkg/pb"
+	"google.golang.org/grpc"
 )
 
 type Broker struct {
@@ -50,7 +51,7 @@ func (b *Broker) GetPositions(account *Account) []*pb.Position {
 	return b.positionStore.Get(account)
 }
 
-func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream pb.Admin_QuoteStreamServer) error {
+func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream grpc.ServerStreamingServer[pb.QuoteStreamResponse]) error {
 	account, err := b.lookupAccount(req.AccountKey)
 	if err != nil {
 		return err

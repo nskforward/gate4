@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Gateway_GetAccountInfo_FullMethodName = "/proto.Gateway/GetAccountInfo"
+	Gateway_GetPositions_FullMethodName = "/proto.Gateway/GetPositions"
+	Gateway_QuoteStream_FullMethodName  = "/proto.Gateway/QuoteStream"
 )
 
 // GatewayClient is the client API for Gateway service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GatewayClient interface {
-	GetAccountInfo(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error)
+	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
+	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 }
 
 type gatewayClient struct {
@@ -37,21 +39,41 @@ func NewGatewayClient(cc grpc.ClientConnInterface) GatewayClient {
 	return &gatewayClient{cc}
 }
 
-func (c *gatewayClient) GetAccountInfo(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*AccountResponse, error) {
+func (c *gatewayClient) GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AccountResponse)
-	err := c.cc.Invoke(ctx, Gateway_GetAccountInfo_FullMethodName, in, out, cOpts...)
+	out := new(GetPositionsResponse)
+	err := c.cc.Invoke(ctx, Gateway_GetPositions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
+func (c *gatewayClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Gateway_ServiceDesc.Streams[0], Gateway_QuoteStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[QuoteStreamRequest, QuoteStreamResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Gateway_QuoteStreamClient = grpc.ServerStreamingClient[QuoteStreamResponse]
+
 // GatewayServer is the server API for Gateway service.
 // All implementations must embed UnimplementedGatewayServer
 // for forward compatibility.
 type GatewayServer interface {
-	GetAccountInfo(context.Context, *AccountRequest) (*AccountResponse, error)
+	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
+	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	mustEmbedUnimplementedGatewayServer()
 }
 
@@ -62,8 +84,11 @@ type GatewayServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGatewayServer struct{}
 
-func (UnimplementedGatewayServer) GetAccountInfo(context.Context, *AccountRequest) (*AccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetAccountInfo not implemented")
+func (UnimplementedGatewayServer) GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPositions not implemented")
+}
+func (UnimplementedGatewayServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method QuoteStream not implemented")
 }
 func (UnimplementedGatewayServer) mustEmbedUnimplementedGatewayServer() {}
 func (UnimplementedGatewayServer) testEmbeddedByValue()                 {}
@@ -86,23 +111,34 @@ func RegisterGatewayServer(s grpc.ServiceRegistrar, srv GatewayServer) {
 	s.RegisterService(&Gateway_ServiceDesc, srv)
 }
 
-func _Gateway_GetAccountInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Gateway_GetPositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServer).GetAccountInfo(ctx, in)
+		return srv.(GatewayServer).GetPositions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Gateway_GetAccountInfo_FullMethodName,
+		FullMethod: Gateway_GetPositions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServer).GetAccountInfo(ctx, req.(*AccountRequest))
+		return srv.(GatewayServer).GetPositions(ctx, req.(*AccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
+
+func _Gateway_QuoteStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(QuoteStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GatewayServer).QuoteStream(m, &grpc.GenericServerStream[QuoteStreamRequest, QuoteStreamResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Gateway_QuoteStreamServer = grpc.ServerStreamingServer[QuoteStreamResponse]
 
 // Gateway_ServiceDesc is the grpc.ServiceDesc for Gateway service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -112,11 +148,17 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GatewayServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetAccountInfo",
-			Handler:    _Gateway_GetAccountInfo_Handler,
+			MethodName: "GetPositions",
+			Handler:    _Gateway_GetPositions_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "QuoteStream",
+			Handler:       _Gateway_QuoteStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "service.proto",
 }
 
