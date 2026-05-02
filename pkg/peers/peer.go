@@ -55,3 +55,9 @@ func (p *Peer[T]) send(data T) {
 		}
 	}
 }
+
+func (p *Peer[T]) close() {
+	p.mx.Lock()
+	defer p.mx.Unlock()
+	close(p.channel)
+}

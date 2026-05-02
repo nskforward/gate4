@@ -44,11 +44,15 @@ func NewGroup[T any](key string, pubsub *PubSub[T]) *Group[T] {
 func (g *Group[T]) Close() {
 	g.mx.Lock()
 	defer g.mx.Unlock()
+
+	for _, p := range g.peers {
+		p.close()
+	}
+
+	g.peers = g.peers[:0]
+
 	if g.pubsub != nil {
 		g.pubsub.remove(g.key)
-	}
-	for _, p := range g.peers {
-		p.Close()
 	}
 }
 
