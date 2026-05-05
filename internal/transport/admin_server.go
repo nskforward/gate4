@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -93,6 +94,20 @@ func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) 
 	}
 	return &pb.GetPositionsResponse{
 		Positions: s.broker.GetPositions(account),
+	}, nil
+}
+
+func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
+	account := s.broker.LookupAccount(req.AccountKey)
+	if account == nil {
+		return nil, fmt.Errorf("unknown account")
+	}
+	sessions, err := s.broker.GetSchedule(ctx, account, req.Symbol)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetScheduleResponse{
+		Sessions: sessions,
 	}, nil
 }
 

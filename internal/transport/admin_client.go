@@ -71,10 +71,22 @@ func (c *AdminClient) DeleteAccount(ctx context.Context, key string) error {
 	return err
 }
 
-func (c *AdminClient) Positions(ctx context.Context, key string) ([]*pb.Position, error) {
+func (c *AdminClient) GetPositions(ctx context.Context, key string) ([]*pb.Position, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.GetPositions(reqCtx, &pb.AccountRequest{
+		AccountKey: key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp.Positions, nil
+}
+
+func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*pb.Position, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	resp, err := c.client.GetSchedule(reqCtx, &pb.GetScheduleRequest{
 		AccountKey: key,
 	})
 	if err != nil {

@@ -83,6 +83,26 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 	}, nil
 }
 
+func (c *FinamClient) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
+	client, err := c.getClient(account)
+	if err != nil {
+		return nil, err
+	}
+	sessions, err := client.GetSchedule(ctx, symbol)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*pb.ScheduleSession, 0, len(sessions))
+	for _, sess := range sessions {
+		result = append(result, &pb.ScheduleSession{
+			Type:  sess.Type,
+			Start: sess.Interval.StartTime.Seconds,
+			End:   sess.Interval.EndTime.Seconds,
+		})
+	}
+	return result, nil
+}
+
 func (c *FinamClient) subscribeQuotes(symbol string, client *finam.Client, group *peers.Group[*marketdata.Quote]) {
 
 	slog.Debug("start external quote stream", "symbol", symbol)
@@ -127,6 +147,7 @@ MAIN_LOOP:
 			}
 			q.Ask = ask
 			q.Bid = bid
+
 			if !group.Send(q) {
 				slog.Warn("no subscribers for quote stream", "symbol", symbol)
 				break MAIN_LOOP

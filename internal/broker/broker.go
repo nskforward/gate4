@@ -75,14 +75,6 @@ func (b *Broker) GetAccountInfo(ctx context.Context, in *pb.AccountRequest) (*pb
 	return client.GetAccountInfo(ctx, account)
 }
 
-func (b *Broker) lookupAccount(key string) (*Account, error) {
-	account, ok := b.accountStore.Lookup(key)
-	if !ok {
-		return account, fmt.Errorf("unknown account key: %s", key)
-	}
-	return account, nil
-}
-
 func (b *Broker) LookupAccount(key string) *Account {
 	account, ok := b.accountStore.Lookup(key)
 	if !ok {
@@ -103,6 +95,18 @@ func (b *Broker) LookupClient(account *Account) (Client, error) {
 
 func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
 	b.positionStore.Update(account, positions)
+}
+
+func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
+	return b.finamClient.GetSchedule(ctx, account, symbol)
+}
+
+func (b *Broker) lookupAccount(key string) (*Account, error) {
+	account, ok := b.accountStore.Lookup(key)
+	if !ok {
+		return account, fmt.Errorf("unknown account key: %s", key)
+	}
+	return account, nil
 }
 
 func (b *Broker) importPositions() error {

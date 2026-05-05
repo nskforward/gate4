@@ -27,23 +27,26 @@ const file_service_proto_rawDesc = "" +
 	"\rservice.proto\x12\x05proto\x1a\rgateway.proto\x1a\vadmin.proto2\x97\x01\n" +
 	"\aGateway\x12D\n" +
 	"\fGetPositions\x12\x15.proto.AccountRequest\x1a\x1b.proto.GetPositionsResponse\"\x00\x12F\n" +
-	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\xd7\x02\n" +
+	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\x9f\x03\n" +
 	"\x05Admin\x12B\n" +
 	"\fListAccounts\x12\x13.proto.EmptyMessage\x1a\x1b.proto.ListAccountsResponse\"\x00\x12=\n" +
 	"\n" +
 	"AddAccount\x12\x18.proto.AddAccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x12=\n" +
 	"\rDeleteAccount\x12\x15.proto.AccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x12D\n" +
 	"\fGetPositions\x12\x15.proto.AccountRequest\x1a\x1b.proto.GetPositionsResponse\"\x00\x12F\n" +
-	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x01B\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x01\x12F\n" +
+	"\vGetSchedule\x12\x19.proto.GetScheduleRequest\x1a\x1a.proto.GetScheduleResponse\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var file_service_proto_goTypes = []any{
 	(*AccountRequest)(nil),       // 0: proto.AccountRequest
 	(*QuoteStreamRequest)(nil),   // 1: proto.QuoteStreamRequest
 	(*EmptyMessage)(nil),         // 2: proto.EmptyMessage
 	(*AddAccountRequest)(nil),    // 3: proto.AddAccountRequest
-	(*GetPositionsResponse)(nil), // 4: proto.GetPositionsResponse
-	(*QuoteStreamResponse)(nil),  // 5: proto.QuoteStreamResponse
-	(*ListAccountsResponse)(nil), // 6: proto.ListAccountsResponse
+	(*GetScheduleRequest)(nil),   // 4: proto.GetScheduleRequest
+	(*GetPositionsResponse)(nil), // 5: proto.GetPositionsResponse
+	(*QuoteStreamResponse)(nil),  // 6: proto.QuoteStreamResponse
+	(*ListAccountsResponse)(nil), // 7: proto.ListAccountsResponse
+	(*GetScheduleResponse)(nil),  // 8: proto.GetScheduleResponse
 }
 var file_service_proto_depIdxs = []int32{
 	0, // 0: proto.Gateway.GetPositions:input_type -> proto.AccountRequest
@@ -53,15 +56,17 @@ var file_service_proto_depIdxs = []int32{
 	0, // 4: proto.Admin.DeleteAccount:input_type -> proto.AccountRequest
 	0, // 5: proto.Admin.GetPositions:input_type -> proto.AccountRequest
 	1, // 6: proto.Admin.QuoteStream:input_type -> proto.QuoteStreamRequest
-	4, // 7: proto.Gateway.GetPositions:output_type -> proto.GetPositionsResponse
-	5, // 8: proto.Gateway.QuoteStream:output_type -> proto.QuoteStreamResponse
-	6, // 9: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
-	2, // 10: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
-	2, // 11: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
-	4, // 12: proto.Admin.GetPositions:output_type -> proto.GetPositionsResponse
-	5, // 13: proto.Admin.QuoteStream:output_type -> proto.QuoteStreamResponse
-	7, // [7:14] is the sub-list for method output_type
-	0, // [0:7] is the sub-list for method input_type
+	4, // 7: proto.Admin.GetSchedule:input_type -> proto.GetScheduleRequest
+	5, // 8: proto.Gateway.GetPositions:output_type -> proto.GetPositionsResponse
+	6, // 9: proto.Gateway.QuoteStream:output_type -> proto.QuoteStreamResponse
+	7, // 10: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
+	2, // 11: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
+	2, // 12: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
+	5, // 13: proto.Admin.GetPositions:output_type -> proto.GetPositionsResponse
+	6, // 14: proto.Admin.QuoteStream:output_type -> proto.QuoteStreamResponse
+	8, // 15: proto.Admin.GetSchedule:output_type -> proto.GetScheduleResponse
+	8, // [8:16] is the sub-list for method output_type
+	0, // [0:8] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

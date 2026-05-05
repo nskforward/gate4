@@ -168,6 +168,7 @@ const (
 	Admin_DeleteAccount_FullMethodName = "/proto.Admin/DeleteAccount"
 	Admin_GetPositions_FullMethodName  = "/proto.Admin/GetPositions"
 	Admin_QuoteStream_FullMethodName   = "/proto.Admin/QuoteStream"
+	Admin_GetSchedule_FullMethodName   = "/proto.Admin/GetSchedule"
 )
 
 // AdminClient is the client API for Admin service.
@@ -179,6 +180,7 @@ type AdminClient interface {
 	DeleteAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
 	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
 	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
+	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error)
 }
 
 type adminClient struct {
@@ -248,6 +250,16 @@ func (c *adminClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest, o
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Admin_QuoteStreamClient = grpc.ServerStreamingClient[QuoteStreamResponse]
 
+func (c *adminClient) GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetScheduleResponse)
+	err := c.cc.Invoke(ctx, Admin_GetSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility.
@@ -257,6 +269,7 @@ type AdminServer interface {
 	DeleteAccount(context.Context, *AccountRequest) (*EmptyMessage, error)
 	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
 	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
+	GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -281,6 +294,9 @@ func (UnimplementedAdminServer) GetPositions(context.Context, *AccountRequest) (
 }
 func (UnimplementedAdminServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
 	return status.Error(codes.Unimplemented, "method QuoteStream not implemented")
+}
+func (UnimplementedAdminServer) GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSchedule not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 func (UnimplementedAdminServer) testEmbeddedByValue()               {}
@@ -386,6 +402,24 @@ func _Admin_QuoteStream_Handler(srv interface{}, stream grpc.ServerStream) error
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Admin_QuoteStreamServer = grpc.ServerStreamingServer[QuoteStreamResponse]
 
+func _Admin_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_GetSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetSchedule(ctx, req.(*GetScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -408,6 +442,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPositions",
 			Handler:    _Admin_GetPositions_Handler,
+		},
+		{
+			MethodName: "GetSchedule",
+			Handler:    _Admin_GetSchedule_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
