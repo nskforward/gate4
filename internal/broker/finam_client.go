@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"iter"
 	"log/slog"
-	"sync"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
@@ -18,24 +17,26 @@ import (
 )
 
 type FinamClient struct {
-	addr          string
-	clients       map[string]*finam.Client
-	mx            sync.Mutex
+	clients       *finam.MultiClient
 	quoteStream   *peers.PubSub[*marketdata.Quote]
 	scheduleStore *ScheduleStore
 }
 
-func NewFinamClient(addr string) *FinamClient {
+func NewFinamClient() *FinamClient {
 	return &FinamClient{
-		addr:          addr,
-		clients:       make(map[string]*finam.Client),
+		clients:       finam.NewMultiClient(),
 		quoteStream:   peers.NewPubSub[*marketdata.Quote](),
 		scheduleStore: NewScheduleStore(),
 	}
 }
 
-func (c *FinamClient) CurrentSession(ctx context.Context, account *Account, symbol string) (types.Session, error) {
-	return c.scheduleStore.CurrentSession(ctx, account, symbol, c.Schedule)
+func (c *FinamClient) Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, types.Session, error) {
+	client, err := c.clients.Get(account.ID, account.Secret)
+	if err != nil {
+		return nil, types.Session{}, err
+	}
+
+	return c.scheduleStore.Sessions(ctx, client, symbol)
 }
 
 func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb.Admin_QuoteStreamServer) error {
@@ -89,30 +90,6 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 		AccountId: resp.AccountId,
 		Positions: getPositions(resp.Positions),
 	}, nil
-}
-
-func (c *FinamClient) Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, error) {
-	client, err := c.getClient(account)
-	if err != nil {
-		return nil, err
-	}
-	items, err := client.GetSchedule(ctx, symbol)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]types.Session, 0, len(items))
-	for _, item := range items {
-		sessType, err := sessionTypeCast(item.Type)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, types.Session{
-			Type:  sessType,
-			Start: item.Interval.StartTime.Seconds,
-			End:   item.Interval.EndTime.Seconds,
-		})
-	}
-	return result, nil
 }
 
 func (c *FinamClient) subscribeQuotes(symbol string, client *finam.Client, group *peers.Group[*marketdata.Quote]) {
@@ -172,18 +149,7 @@ MAIN_LOOP:
 }
 
 func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
-	c.mx.Lock()
-	defer c.mx.Unlock()
-	client, ok := c.clients[account.ID]
-	if !ok {
-		newClient, err := finam.NewClient(c.addr, account.Secret)
-		if err != nil {
-			return nil, err
-		}
-		c.clients[account.ID] = newClient
-		client = newClient
-	}
-	return client, nil
+	return c.clients.Get(account.ID, account.Secret)
 }
 
 func getPositions(in []*accounts.Position) []*pb.Position {

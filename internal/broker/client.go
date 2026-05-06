@@ -10,6 +10,5 @@ import (
 type Client interface {
 	GetAccountInfo(ctx context.Context, account *Account) (*pb.AccountResponse, error)
 	SubscribeQuotes(account *Account, symbol string, stream pb.Admin_QuoteStreamServer) error
-	CurrentSession(ctx context.Context, account *Account, symbol string) (types.Session, error)
-	Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, error)
+	Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, types.Session, error)
 }

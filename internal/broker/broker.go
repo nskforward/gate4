@@ -22,7 +22,7 @@ func NewBroker() (*Broker, error) {
 	b := &Broker{
 		accountStore:  storage,
 		positionStore: NewPositionStore(),
-		finamClient:   NewFinamClient("api.finam.ru:443"),
+		finamClient:   NewFinamClient(),
 	}
 	err = b.importPositions()
 	if err != nil {
@@ -98,7 +98,7 @@ func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
 }
 
 func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
-	sessions, err := b.finamClient.Schedule(ctx, account, symbol)
+	sessions, _, err := b.finamClient.Schedule(ctx, account, symbol)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol strin
 }
 
 func (b *Broker) GetCurrentSession(ctx context.Context, account *Account, symbol string) (*pb.ScheduleSession, error) {
-	sess, err := b.finamClient.CurrentSession(ctx, account, symbol)
+	_, sess, err := b.finamClient.Schedule(ctx, account, symbol)
 	if err != nil {
 		return nil, err
 	}

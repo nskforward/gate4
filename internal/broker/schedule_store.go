@@ -3,11 +3,13 @@ package broker
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/nskforward/gate4/internal/broker/types"
+	"github.com/nskforward/gate4/pkg/finam"
 )
 
 type ScheduleStore struct {
@@ -23,49 +25,61 @@ func NewScheduleStore() *ScheduleStore {
 	}
 }
 
-func (store *ScheduleStore) CurrentSession(ctx context.Context, account *Account, symbol string, fetch FetchFunc) (types.Session, error) {
-	refreshed := false
-	sessions, ok := store.get(symbol)
-	if !ok {
-		newSessions, err := store.refresh(ctx, account, symbol, fetch)
-		if err != nil {
-			return types.Session{}, fmt.Errorf("cannot fetch remote schedule sessions for symbol %s: %w", symbol, err)
+func (store *ScheduleStore) Sessions(ctx context.Context, client *finam.Client, symbol string) ([]types.Session, types.Session, error) {
+	cache := "hit"
+	var sessions []types.Session
+	var ok bool
+	var err error
+	defer func() {
+		slog.Debug("get sessions request", "broker", "finam", "symbol", symbol, "cache", cache, "sessions", len(sessions))
+	}()
+
+	sessions, ok = store.get(symbol)
+	if ok {
+		sess, ok := searchSession(sessions)
+		if ok {
+			return sessions, sess, nil
 		}
-		sessions = newSessions
-		refreshed = true
+	}
+
+	cache = "miss"
+	sessions, err = store.refresh(ctx, client, symbol)
+	if err != nil {
+		return nil, types.Session{}, fmt.Errorf("cannot fetch remote schedule sessions for symbol %s: %w", symbol, err)
 	}
 
 	sess, ok := searchSession(sessions)
 	if !ok {
-		if refreshed {
-			return types.Session{}, fmt.Errorf("cannot find the current session for symbol %s", symbol)
-		}
-		newSessions, err := store.refresh(ctx, account, symbol, fetch)
-		if err != nil {
-			return types.Session{}, fmt.Errorf("cannot fetch remote schedule sessions for symbol %s: %w", symbol, err)
-		}
-		sessions = newSessions
-		refreshed = true
+		return nil, types.Session{}, fmt.Errorf("cannot find the current session after refresh for symbol %s", symbol)
 	}
 
-	sess, ok = searchSession(sessions)
-	if !ok {
-		return types.Session{}, fmt.Errorf("cannot find the current session for symbol %s", symbol)
-	}
-
-	return sess, nil
+	return sessions, sess, nil
 }
 
-func (store *ScheduleStore) refresh(ctx context.Context, account *Account, symbol string, fetch FetchFunc) ([]types.Session, error) {
-	newSessions, err := fetch(ctx, account, symbol)
+func (store *ScheduleStore) refresh(ctx context.Context, client *finam.Client, symbol string) ([]types.Session, error) {
+	result, err := client.GetSchedule(ctx, symbol)
 	if err != nil {
-		return nil, fmt.Errorf("cannot fetch remote schedule sessions for symbol %s: %w", symbol, err)
+		return nil, err
 	}
-	sort.Slice(newSessions, func(i, j int) bool {
-		return newSessions[i].Start < newSessions[j].Start && newSessions[i].End < newSessions[j].End
+
+	sessions := make([]types.Session, 0, len(result))
+	for _, item := range result {
+		sessType, err := sessionTypeCast(item.Type)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, types.Session{
+			Type:  sessType,
+			Start: item.Interval.StartTime.Seconds,
+			End:   item.Interval.EndTime.Seconds,
+		})
+	}
+
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
 	})
-	store.save(symbol, newSessions)
-	return newSessions, nil
+	store.save(symbol, sessions)
+	return sessions, nil
 }
 
 func (store *ScheduleStore) get(key string) ([]types.Session, bool) {
@@ -83,8 +97,9 @@ func (store *ScheduleStore) save(key string, items []types.Session) {
 
 func searchSession(sessions []types.Session) (types.Session, bool) {
 	now := time.Now().Unix()
+
 	for _, sess := range sessions {
-		if sess.Start >= now && sess.End <= now {
+		if now >= sess.Start && now <= sess.End {
 			return sess, true
 		}
 	}

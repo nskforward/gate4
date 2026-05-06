@@ -4,30 +4,16 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
+	"github.com/shopspring/decimal"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (c *Client) cmdSubscribe(ctx context.Context, args []string) error {
-	if len(args) == 0 {
-		return fmt.Errorf("requres at least 1 argument")
-	}
-
-	command := args[0]
-	args = args[1:]
-
-	switch command {
-	case "quotes":
-		return c.cmdSubscribeQuotes(ctx, args)
-	default:
-		return fmt.Errorf("unknown command: %s", command)
-	}
-}
-
-func (c *Client) cmdSubscribeQuotes(ctx context.Context, args []string) error {
+func (c *Client) cmdQuotes(ctx context.Context, args []string) error {
 	if len(args) < 2 {
-		return fmt.Errorf("requres <symbol> <account_key> arguments")
+		return fmt.Errorf("requres <symbol> <key> arguments")
 	}
 
 	symbol := args[0]
@@ -38,6 +24,8 @@ func (c *Client) cmdSubscribeQuotes(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("gate4 server grpc error: %w", err)
 	}
+
+	fmt.Println("time \t\t\t symbol \t ask \t\t bid")
 
 	for {
 		resp, err := stream.Recv()
@@ -56,6 +44,19 @@ func (c *Client) cmdSubscribeQuotes(ctx context.Context, args []string) error {
 			}
 			return fmt.Errorf("stream closed: %s", st.Message())
 		}
-		fmt.Println("quote", resp.Timestamp, resp.BrokerId, resp.Symbol, resp.Ask, resp.Bid)
+
+		ask, err := decimal.NewFromString(resp.Ask)
+		if err != nil {
+			fmt.Println("error: bad ask format:", err)
+			continue
+		}
+
+		bid, err := decimal.NewFromString(resp.Bid)
+		if err != nil {
+			fmt.Println("error: bad bid format:", err)
+			continue
+		}
+
+		fmt.Println(time.Unix(resp.Timestamp, 0).Format("2006-01-02 15:04"), "\t", resp.Symbol, "\t", ask.StringFixed(2), "\t", bid.StringFixed(2))
 	}
 }

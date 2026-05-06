@@ -16,6 +16,10 @@ import (
 	"github.com/nskforward/gate4/pkg/peers"
 )
 
+const (
+	APIHost = "api.finam.ru:443"
+)
+
 type Client struct {
 	markedDataService marketdata.MarketDataServiceClient
 	orderService      orders.OrdersServiceClient
