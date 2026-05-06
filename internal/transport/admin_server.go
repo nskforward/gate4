@@ -111,6 +111,14 @@ func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReques
 	}, nil
 }
 
+func (s *AdminServer) GetCurrentSession(ctx context.Context, req *pb.GetScheduleRequest) (*pb.ScheduleSession, error) {
+	account := s.broker.LookupAccount(req.AccountKey)
+	if account == nil {
+		return nil, fmt.Errorf("unknown account")
+	}
+	return s.broker.GetCurrentSession(ctx, account, req.Symbol)
+}
+
 func (s *AdminServer) watch(ctx context.Context) {
 	for {
 		sleep := getSleep()

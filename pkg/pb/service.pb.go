@@ -27,7 +27,7 @@ const file_service_proto_rawDesc = "" +
 	"\rservice.proto\x12\x05proto\x1a\rgateway.proto\x1a\vadmin.proto2\x97\x01\n" +
 	"\aGateway\x12D\n" +
 	"\fGetPositions\x12\x15.proto.AccountRequest\x1a\x1b.proto.GetPositionsResponse\"\x00\x12F\n" +
-	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\x9f\x03\n" +
+	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\xe9\x03\n" +
 	"\x05Admin\x12B\n" +
 	"\fListAccounts\x12\x13.proto.EmptyMessage\x1a\x1b.proto.ListAccountsResponse\"\x00\x12=\n" +
 	"\n" +
@@ -35,7 +35,8 @@ const file_service_proto_rawDesc = "" +
 	"\rDeleteAccount\x12\x15.proto.AccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x12D\n" +
 	"\fGetPositions\x12\x15.proto.AccountRequest\x1a\x1b.proto.GetPositionsResponse\"\x00\x12F\n" +
 	"\vQuoteStream\x12\x19.proto.QuoteStreamRequest\x1a\x1a.proto.QuoteStreamResponse0\x01\x12F\n" +
-	"\vGetSchedule\x12\x19.proto.GetScheduleRequest\x1a\x1a.proto.GetScheduleResponse\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\vGetSchedule\x12\x19.proto.GetScheduleRequest\x1a\x1a.proto.GetScheduleResponse\"\x00\x12H\n" +
+	"\x11GetCurrentSession\x12\x19.proto.GetScheduleRequest\x1a\x16.proto.ScheduleSession\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var file_service_proto_goTypes = []any{
 	(*AccountRequest)(nil),       // 0: proto.AccountRequest
@@ -47,6 +48,7 @@ var file_service_proto_goTypes = []any{
 	(*QuoteStreamResponse)(nil),  // 6: proto.QuoteStreamResponse
 	(*ListAccountsResponse)(nil), // 7: proto.ListAccountsResponse
 	(*GetScheduleResponse)(nil),  // 8: proto.GetScheduleResponse
+	(*ScheduleSession)(nil),      // 9: proto.ScheduleSession
 }
 var file_service_proto_depIdxs = []int32{
 	0, // 0: proto.Gateway.GetPositions:input_type -> proto.AccountRequest
@@ -57,16 +59,18 @@ var file_service_proto_depIdxs = []int32{
 	0, // 5: proto.Admin.GetPositions:input_type -> proto.AccountRequest
 	1, // 6: proto.Admin.QuoteStream:input_type -> proto.QuoteStreamRequest
 	4, // 7: proto.Admin.GetSchedule:input_type -> proto.GetScheduleRequest
-	5, // 8: proto.Gateway.GetPositions:output_type -> proto.GetPositionsResponse
-	6, // 9: proto.Gateway.QuoteStream:output_type -> proto.QuoteStreamResponse
-	7, // 10: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
-	2, // 11: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
-	2, // 12: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
-	5, // 13: proto.Admin.GetPositions:output_type -> proto.GetPositionsResponse
-	6, // 14: proto.Admin.QuoteStream:output_type -> proto.QuoteStreamResponse
-	8, // 15: proto.Admin.GetSchedule:output_type -> proto.GetScheduleResponse
-	8, // [8:16] is the sub-list for method output_type
-	0, // [0:8] is the sub-list for method input_type
+	4, // 8: proto.Admin.GetCurrentSession:input_type -> proto.GetScheduleRequest
+	5, // 9: proto.Gateway.GetPositions:output_type -> proto.GetPositionsResponse
+	6, // 10: proto.Gateway.QuoteStream:output_type -> proto.QuoteStreamResponse
+	7, // 11: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
+	2, // 12: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
+	2, // 13: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
+	5, // 14: proto.Admin.GetPositions:output_type -> proto.GetPositionsResponse
+	6, // 15: proto.Admin.QuoteStream:output_type -> proto.QuoteStreamResponse
+	8, // 16: proto.Admin.GetSchedule:output_type -> proto.GetScheduleResponse
+	9, // 17: proto.Admin.GetCurrentSession:output_type -> proto.ScheduleSession
+	9, // [9:18] is the sub-list for method output_type
+	0, // [0:9] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

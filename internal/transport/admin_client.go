@@ -95,3 +95,16 @@ func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*p
 	}
 	return resp.Sessions, nil
 }
+
+func (c *AdminClient) GetCurrentSession(ctx context.Context, key, symbol string) (*pb.ScheduleSession, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	resp, err := c.client.GetCurrentSession(reqCtx, &pb.GetScheduleRequest{
+		AccountKey: key,
+		Symbol:     symbol,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}

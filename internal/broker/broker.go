@@ -98,7 +98,31 @@ func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
 }
 
 func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
-	return b.finamClient.GetSchedule(ctx, account, symbol)
+	sessions, err := b.finamClient.Schedule(ctx, account, symbol)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*pb.ScheduleSession, 0, len(sessions))
+	for _, sess := range sessions {
+		result = append(result, &pb.ScheduleSession{
+			Type:  string(sess.Type),
+			Start: sess.Start,
+			End:   sess.End,
+		})
+	}
+	return result, nil
+}
+
+func (b *Broker) GetCurrentSession(ctx context.Context, account *Account, symbol string) (*pb.ScheduleSession, error) {
+	sess, err := b.finamClient.CurrentSession(ctx, account, symbol)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ScheduleSession{
+		Type:  string(sess.Type),
+		Start: sess.Start,
+		End:   sess.End,
+	}, nil
 }
 
 func (b *Broker) lookupAccount(key string) (*Account, error) {

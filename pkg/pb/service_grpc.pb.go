@@ -163,12 +163,13 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Admin_ListAccounts_FullMethodName  = "/proto.Admin/ListAccounts"
-	Admin_AddAccount_FullMethodName    = "/proto.Admin/AddAccount"
-	Admin_DeleteAccount_FullMethodName = "/proto.Admin/DeleteAccount"
-	Admin_GetPositions_FullMethodName  = "/proto.Admin/GetPositions"
-	Admin_QuoteStream_FullMethodName   = "/proto.Admin/QuoteStream"
-	Admin_GetSchedule_FullMethodName   = "/proto.Admin/GetSchedule"
+	Admin_ListAccounts_FullMethodName      = "/proto.Admin/ListAccounts"
+	Admin_AddAccount_FullMethodName        = "/proto.Admin/AddAccount"
+	Admin_DeleteAccount_FullMethodName     = "/proto.Admin/DeleteAccount"
+	Admin_GetPositions_FullMethodName      = "/proto.Admin/GetPositions"
+	Admin_QuoteStream_FullMethodName       = "/proto.Admin/QuoteStream"
+	Admin_GetSchedule_FullMethodName       = "/proto.Admin/GetSchedule"
+	Admin_GetCurrentSession_FullMethodName = "/proto.Admin/GetCurrentSession"
 )
 
 // AdminClient is the client API for Admin service.
@@ -181,6 +182,7 @@ type AdminClient interface {
 	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
 	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error)
+	GetCurrentSession(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*ScheduleSession, error)
 }
 
 type adminClient struct {
@@ -260,6 +262,16 @@ func (c *adminClient) GetSchedule(ctx context.Context, in *GetScheduleRequest, o
 	return out, nil
 }
 
+func (c *adminClient) GetCurrentSession(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*ScheduleSession, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ScheduleSession)
+	err := c.cc.Invoke(ctx, Admin_GetCurrentSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility.
@@ -270,6 +282,7 @@ type AdminServer interface {
 	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
 	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error)
+	GetCurrentSession(context.Context, *GetScheduleRequest) (*ScheduleSession, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -297,6 +310,9 @@ func (UnimplementedAdminServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStre
 }
 func (UnimplementedAdminServer) GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSchedule not implemented")
+}
+func (UnimplementedAdminServer) GetCurrentSession(context.Context, *GetScheduleRequest) (*ScheduleSession, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCurrentSession not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 func (UnimplementedAdminServer) testEmbeddedByValue()               {}
@@ -420,6 +436,24 @@ func _Admin_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Admin_GetCurrentSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetCurrentSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_GetCurrentSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetCurrentSession(ctx, req.(*GetScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -446,6 +480,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSchedule",
 			Handler:    _Admin_GetSchedule_Handler,
+		},
+		{
+			MethodName: "GetCurrentSession",
+			Handler:    _Admin_GetCurrentSession_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

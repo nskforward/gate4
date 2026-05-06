@@ -2,12 +2,14 @@ package broker
 
 import (
 	"context"
+	"fmt"
 	"iter"
 	"log/slog"
 	"sync"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
+	"github.com/nskforward/gate4/internal/broker/types"
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/peers"
@@ -16,18 +18,24 @@ import (
 )
 
 type FinamClient struct {
-	addr        string
-	clients     map[string]*finam.Client
-	mx          sync.Mutex
-	quoteStream *peers.PubSub[*marketdata.Quote]
+	addr          string
+	clients       map[string]*finam.Client
+	mx            sync.Mutex
+	quoteStream   *peers.PubSub[*marketdata.Quote]
+	scheduleStore *ScheduleStore
 }
 
 func NewFinamClient(addr string) *FinamClient {
 	return &FinamClient{
-		addr:        addr,
-		clients:     make(map[string]*finam.Client),
-		quoteStream: peers.NewPubSub[*marketdata.Quote](),
+		addr:          addr,
+		clients:       make(map[string]*finam.Client),
+		quoteStream:   peers.NewPubSub[*marketdata.Quote](),
+		scheduleStore: NewScheduleStore(),
 	}
+}
+
+func (c *FinamClient) CurrentSession(ctx context.Context, account *Account, symbol string) (types.Session, error) {
+	return c.scheduleStore.CurrentSession(ctx, account, symbol, c.Schedule)
 }
 
 func (c *FinamClient) SubscribeQuotes(account *Account, symbol string, stream pb.Admin_QuoteStreamServer) error {
@@ -83,21 +91,25 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 	}, nil
 }
 
-func (c *FinamClient) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
+func (c *FinamClient) Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, error) {
 	client, err := c.getClient(account)
 	if err != nil {
 		return nil, err
 	}
-	sessions, err := client.GetSchedule(ctx, symbol)
+	items, err := client.GetSchedule(ctx, symbol)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*pb.ScheduleSession, 0, len(sessions))
-	for _, sess := range sessions {
-		result = append(result, &pb.ScheduleSession{
-			Type:  sess.Type,
-			Start: sess.Interval.StartTime.Seconds,
-			End:   sess.Interval.EndTime.Seconds,
+	result := make([]types.Session, 0, len(items))
+	for _, item := range items {
+		sessType, err := sessionTypeCast(item.Type)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, types.Session{
+			Type:  sessType,
+			Start: item.Interval.StartTime.Seconds,
+			End:   item.Interval.EndTime.Seconds,
 		})
 	}
 	return result, nil
@@ -162,7 +174,6 @@ MAIN_LOOP:
 func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 	c.mx.Lock()
 	defer c.mx.Unlock()
-
 	client, ok := c.clients[account.ID]
 	if !ok {
 		newClient, err := finam.NewClient(c.addr, account.Secret)
@@ -172,7 +183,6 @@ func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 		c.clients[account.ID] = newClient
 		client = newClient
 	}
-
 	return client, nil
 }
 
@@ -186,4 +196,29 @@ func getPositions(in []*accounts.Position) []*pb.Position {
 		})
 	}
 	return items
+}
+
+func sessionTypeCast(in string) (types.SessionType, error) {
+	sessionType, err := finam.NewSessionType(in)
+	if err != nil {
+		return types.SessionClosed, fmt.Errorf("cannot recognize the input session type '%s': %w", in, err)
+	}
+
+	switch sessionType {
+
+	case finam.SessionClosed:
+		return types.SessionClosed, nil
+
+	case finam.SessionCoreTrading:
+		return types.SessionMain, nil
+
+	case finam.SessionOpeningAuction, finam.SessionEarlyTrading:
+		return types.SessionPremarket, nil
+
+	case finam.SessionClosingAuction, finam.SessionLateTrading:
+		return types.SessionPostmarket, nil
+
+	default:
+		return types.SessionClosed, fmt.Errorf("cannot recognize the finam session type: %v", sessionType)
+	}
 }
