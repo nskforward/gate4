@@ -1,45 +1,67 @@
 package broker
 
 import (
+	"context"
 	"log/slog"
 	"sync"
+	"time"
 
-	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/internal/broker/types"
+	"github.com/nskforward/gate4/pkg/finam"
 )
 
 type PositionStore struct {
-	items map[string][]*pb.Position
-	mx    sync.RWMutex
+	accounts map[string]positionStoreLeaf
+	mx       sync.Mutex
+}
+
+type positionStoreLeaf struct {
+	Timestamp int64
+	Positions []types.Position
 }
 
 func NewPositionStore() *PositionStore {
 	return &PositionStore{
-		items: make(map[string][]*pb.Position),
+		accounts: make(map[string]positionStoreLeaf),
 	}
 }
 
-func (s *PositionStore) Update(account *Account, positions []*pb.Position) {
-	for _, pos := range positions {
-		slog.Debug("save position", "symbol", pos.Symbol, "price", pos.AveragePrice, "size", pos.Size)
-	}
-
+func (s *PositionStore) Get(ctx context.Context, client *finam.Client, accountID string) ([]types.Position, error) {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 
-	if positions == nil {
-		delete(s.items, account.Key())
-		return
+	leaf, ok := s.accounts[accountID]
+
+	cache := "hit"
+	defer func() {
+		slog.Debug("get positions", "broker", "finam", "account", accountID, "cache", cache)
+	}()
+
+	if ok && time.Now().Unix()-leaf.Timestamp < 5 {
+		return leaf.Positions, nil
 	}
 
-	s.items[account.Key()] = positions
-}
+	cache = "miss"
 
-func (s *PositionStore) Get(account *Account) []*pb.Position {
-	s.mx.RLock()
-	defer s.mx.RUnlock()
-	positions, ok := s.items[account.Key()]
-	if !ok {
-		return []*pb.Position{}
+	resp, err := client.GetAccountInfo(ctx, accountID)
+	if err != nil {
+		return nil, err
 	}
-	return positions
+
+	positions := make([]types.Position, 0, len(resp.Positions))
+	for _, pos := range resp.Positions {
+		positions = append(positions, types.Position{
+			Symbol: pos.Symbol,
+			Price:  pos.AveragePrice.Value,
+			Size:   pos.Quantity.Value,
+			Profit: pos.UnrealizedPnl.Value,
+		})
+	}
+
+	leaf.Timestamp = time.Now().Unix()
+	leaf.Positions = positions
+
+	s.accounts[accountID] = leaf
+
+	return positions, nil
 }

@@ -2,6 +2,7 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/nskforward/gate4/internal/broker"
@@ -56,10 +57,16 @@ func (s *GatewayServer) Run(ctx context.Context) error {
 func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
 	account := s.broker.LookupAccount(req.AccountKey)
 	if account == nil {
-		return &pb.GetPositionsResponse{}, nil
+		return &pb.GetPositionsResponse{}, fmt.Errorf("unknown account")
 	}
+
+	positions, err := s.broker.GetPositions(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+
 	return &pb.GetPositionsResponse{
-		Positions: s.broker.GetPositions(account),
+		Positions: positions,
 	}, nil
 }
 

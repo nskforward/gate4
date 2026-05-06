@@ -6,7 +6,6 @@ import (
 	"iter"
 	"log/slog"
 
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/internal/broker/types"
 	"github.com/nskforward/gate4/pkg/finam"
@@ -20,6 +19,7 @@ type FinamClient struct {
 	clients       *finam.MultiClient
 	quoteStream   *peers.PubSub[*marketdata.Quote]
 	scheduleStore *ScheduleStore
+	positionStore *PositionStore
 }
 
 func NewFinamClient() *FinamClient {
@@ -27,11 +27,33 @@ func NewFinamClient() *FinamClient {
 		clients:       finam.NewMultiClient(),
 		quoteStream:   peers.NewPubSub[*marketdata.Quote](),
 		scheduleStore: NewScheduleStore(),
+		positionStore: NewPositionStore(),
 	}
 }
 
+func (c *FinamClient) Positions(ctx context.Context, account *Account) ([]*pb.Position, error) {
+	client, err := c.getClient(account)
+	if err != nil {
+		return nil, err
+	}
+	positions, err := c.positionStore.Get(ctx, client, account.ID)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*pb.Position, 0, len(positions))
+	for _, pos := range positions {
+		result = append(result, &pb.Position{
+			Symbol: pos.Symbol,
+			Price:  pos.Price,
+			Size:   pos.Size,
+			Profit: pos.Profit,
+		})
+	}
+	return result, nil
+}
+
 func (c *FinamClient) Schedule(ctx context.Context, account *Account, symbol string) ([]types.Session, types.Session, error) {
-	client, err := c.clients.Get(account.ID, account.Secret)
+	client, err := c.getClient(account)
 	if err != nil {
 		return nil, types.Session{}, err
 	}
@@ -88,7 +110,6 @@ func (c *FinamClient) GetAccountInfo(ctx context.Context, account *Account) (*pb
 	return &pb.AccountResponse{
 		BrokerId:  "finam",
 		AccountId: resp.AccountId,
-		Positions: getPositions(resp.Positions),
 	}, nil
 }
 
@@ -152,6 +173,7 @@ func (c *FinamClient) getClient(account *Account) (*finam.Client, error) {
 	return c.clients.Get(account.ID, account.Secret)
 }
 
+/*
 func getPositions(in []*accounts.Position) []*pb.Position {
 	items := make([]*pb.Position, 0, len(in))
 	for _, item := range in {
@@ -163,6 +185,7 @@ func getPositions(in []*accounts.Position) []*pb.Position {
 	}
 	return items
 }
+*/
 
 func sessionTypeCast(in string) (types.SessionType, error) {
 	sessionType, err := finam.NewSessionType(in)

@@ -3,6 +3,8 @@ package cli
 import (
 	"context"
 	"fmt"
+
+	"github.com/shopspring/decimal"
 )
 
 func (c *Client) cmdPositions(ctx context.Context, args []string) error {
@@ -23,8 +25,17 @@ func (c *Client) cmdPositions(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	for i, pos := range positions {
-		fmt.Printf("%d. %s at %s (%s)\n", i+1, pos.Symbol, pos.AveragePrice, pos.Size)
+	for _, pos := range positions {
+		size, err := decimal.NewFromString(pos.Size)
+		if err != nil {
+			fmt.Println("error: bad format of size:", size)
+			continue
+		}
+		direction := "long"
+		if size.IsNegative() {
+			direction = "short"
+		}
+		fmt.Println("-", pos.Symbol, direction, "| price", pos.Price, "| size", size.StringFixed(2), "| profit", pos.Profit)
 	}
 
 	return nil

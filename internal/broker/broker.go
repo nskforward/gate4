@@ -9,9 +9,8 @@ import (
 )
 
 type Broker struct {
-	accountStore  *AccountStore
-	positionStore *PositionStore
-	finamClient   *FinamClient
+	accountStore *AccountStore
+	finamClient  *FinamClient
 }
 
 func NewBroker() (*Broker, error) {
@@ -20,13 +19,8 @@ func NewBroker() (*Broker, error) {
 		return nil, err
 	}
 	b := &Broker{
-		accountStore:  storage,
-		positionStore: NewPositionStore(),
-		finamClient:   NewFinamClient(),
-	}
-	err = b.importPositions()
-	if err != nil {
-		return nil, err
+		accountStore: storage,
+		finamClient:  NewFinamClient(),
 	}
 	return b, nil
 }
@@ -47,8 +41,12 @@ func (b *Broker) DeleteAccount(key string) error {
 	return b.accountStore.Del(key)
 }
 
-func (b *Broker) GetPositions(account *Account) []*pb.Position {
-	return b.positionStore.Get(account)
+func (b *Broker) GetPositions(ctx context.Context, account *Account) ([]*pb.Position, error) {
+	client, err := b.LookupClient(account)
+	if err != nil {
+		return nil, err
+	}
+	return client.Positions(ctx, account)
 }
 
 func (b *Broker) SubscribeQuotes(req *pb.QuoteStreamRequest, stream grpc.ServerStreamingServer[pb.QuoteStreamResponse]) error {
@@ -93,10 +91,6 @@ func (b *Broker) LookupClient(account *Account) (Client, error) {
 	}
 }
 
-func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
-	b.positionStore.Update(account, positions)
-}
-
 func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, *pb.ScheduleSession, error) {
 	sessions, current, err := b.finamClient.Schedule(ctx, account, symbol)
 	if err != nil {
@@ -123,20 +117,4 @@ func (b *Broker) lookupAccount(key string) (*Account, error) {
 		return account, fmt.Errorf("unknown account key: %s", key)
 	}
 	return account, nil
-}
-
-func (b *Broker) importPositions() error {
-	accounts := b.accountStore.Accounts()
-	for _, account := range accounts {
-		client, err := b.LookupClient(account)
-		if err != nil {
-			return err
-		}
-		resp, err := client.GetAccountInfo(context.Background(), account)
-		if err != nil {
-			return err
-		}
-		b.UpdatePositions(account, resp.Positions)
-	}
-	return nil
 }

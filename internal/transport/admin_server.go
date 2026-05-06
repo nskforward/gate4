@@ -58,7 +58,7 @@ func (s *AdminServer) AddAccount(ctx context.Context, req *pb.AddAccountRequest)
 		return nil, err
 	}
 
-	resp, err := client.GetAccountInfo(ctx, account)
+	_, err = client.GetAccountInfo(ctx, account)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +68,6 @@ func (s *AdminServer) AddAccount(ctx context.Context, req *pb.AddAccountRequest)
 		return nil, err
 	}
 
-	s.broker.UpdatePositions(account, resp.Positions)
-
 	return &pb.EmptyMessage{}, nil
 }
 
@@ -78,22 +76,20 @@ func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.AccountRequest) (
 	if err != nil {
 		return nil, err
 	}
-
-	account := s.broker.LookupAccount(req.AccountKey)
-	if account != nil {
-		s.broker.UpdatePositions(account, nil)
-	}
-
 	return &pb.EmptyMessage{}, nil
 }
 
 func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
 	account := s.broker.LookupAccount(req.AccountKey)
 	if account == nil {
-		return &pb.GetPositionsResponse{}, nil
+		return &pb.GetPositionsResponse{}, fmt.Errorf("unknown account")
+	}
+	positions, err := s.broker.GetPositions(ctx, account)
+	if err != nil {
+		return nil, err
 	}
 	return &pb.GetPositionsResponse{
-		Positions: s.broker.GetPositions(account),
+		Positions: positions,
 	}, nil
 }
 

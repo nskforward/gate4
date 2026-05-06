@@ -1,10 +1,11 @@
 package types
 
 type Order struct {
-	Type   OrderType
-	Symbol string
-	Size   string // sign is direction (+ long / - short)
-	Price  string // for Limit orders
+	Type      OrderType
+	Timestamp int64
+	Symbol    string
+	Size      string // sign is direction (+ long / - short)
+	Price     string // for Limit orders
 }
 
 func (order Order) IsShort() bool {
