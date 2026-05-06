@@ -35,7 +35,8 @@ message GetScheduleRequest {
 }
 
 message GetScheduleResponse {
-  repeated ScheduleSession sessions = 1;
+  ScheduleSession current_session = 1;
+  repeated ScheduleSession sessions = 2;
 }
 
 message ScheduleSession {

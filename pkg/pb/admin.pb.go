@@ -310,10 +310,11 @@ func (x *GetScheduleRequest) GetSymbol() string {
 }
 
 type GetScheduleResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sessions      []*ScheduleSession     `protobuf:"bytes,1,rep,name=sessions,proto3" json:"sessions,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	CurrentSession *ScheduleSession       `protobuf:"bytes,1,opt,name=current_session,json=currentSession,proto3" json:"current_session,omitempty"`
+	Sessions       []*ScheduleSession     `protobuf:"bytes,2,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetScheduleResponse) Reset() {
@@ -344,6 +345,13 @@ func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetScheduleResponse.ProtoReflect.Descriptor instead.
 func (*GetScheduleResponse) Descriptor() ([]byte, []int) {
 	return file_admin_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetScheduleResponse) GetCurrentSession() *ScheduleSession {
+	if x != nil {
+		return x.CurrentSession
+	}
+	return nil
 }
 
 func (x *GetScheduleResponse) GetSessions() []*ScheduleSession {
@@ -434,9 +442,10 @@ const file_admin_proto_rawDesc = "" +
 	"\x12GetScheduleRequest\x12\x1f\n" +
 	"\vaccount_key\x18\x01 \x01(\tR\n" +
 	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"I\n" +
-	"\x13GetScheduleResponse\x122\n" +
-	"\bsessions\x18\x01 \x03(\v2\x16.proto.ScheduleSessionR\bsessions\"M\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\x8a\x01\n" +
+	"\x13GetScheduleResponse\x12?\n" +
+	"\x0fcurrent_session\x18\x01 \x01(\v2\x16.proto.ScheduleSessionR\x0ecurrentSession\x122\n" +
+	"\bsessions\x18\x02 \x03(\v2\x16.proto.ScheduleSessionR\bsessions\"M\n" +
 	"\x0fScheduleSession\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x14\n" +
 	"\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n" +
@@ -470,12 +479,13 @@ var file_admin_proto_depIdxs = []int32{
 	0, // 0: proto.ListAccountsResponse.items:type_name -> proto.Account
 	0, // 1: proto.AddAccountRequest.account:type_name -> proto.Account
 	8, // 2: proto.GetPositionsResponse.positions:type_name -> proto.Position
-	7, // 3: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	7, // 3: proto.GetScheduleResponse.current_session:type_name -> proto.ScheduleSession
+	7, // 4: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_admin_proto_init() }

@@ -19,5 +19,4 @@ service Admin {
   rpc GetPositions(AccountRequest) returns (GetPositionsResponse) {}
   rpc QuoteStream(QuoteStreamRequest) returns (stream QuoteStreamResponse);
   rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {}
-  rpc GetCurrentSession(GetScheduleRequest) returns (ScheduleSession) {}
 }

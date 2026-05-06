@@ -22,6 +22,5 @@ func (c *Client) cmdHelp(context.Context) error {
 	commandInfo("quotes <symbol> <key>", "subscribe for quote stream", "gate4 quotes <symbol> <key>")
 	commandInfo("positions <key>", "show list of account positions", "gate4 positions <key>")
 	commandInfo("schedule <symbol> <key>", "show the symbol trading schedule", "gate4 schedule <symbol> <key>")
-	commandInfo("session <symbol> <key>", "show the current symbol schedule session", "gate4 session <symbol> <key>")
 	return nil
 }

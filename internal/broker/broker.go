@@ -97,10 +97,10 @@ func (b *Broker) UpdatePositions(account *Account, positions []*pb.Position) {
 	b.positionStore.Update(account, positions)
 }
 
-func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, error) {
-	sessions, _, err := b.finamClient.Schedule(ctx, account, symbol)
+func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol string) ([]*pb.ScheduleSession, *pb.ScheduleSession, error) {
+	sessions, current, err := b.finamClient.Schedule(ctx, account, symbol)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	result := make([]*pb.ScheduleSession, 0, len(sessions))
 	for _, sess := range sessions {
@@ -110,18 +110,10 @@ func (b *Broker) GetSchedule(ctx context.Context, account *Account, symbol strin
 			End:   sess.End,
 		})
 	}
-	return result, nil
-}
-
-func (b *Broker) GetCurrentSession(ctx context.Context, account *Account, symbol string) (*pb.ScheduleSession, error) {
-	_, sess, err := b.finamClient.Schedule(ctx, account, symbol)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.ScheduleSession{
-		Type:  string(sess.Type),
-		Start: sess.Start,
-		End:   sess.End,
+	return result, &pb.ScheduleSession{
+		Type:  string(current.Type),
+		Start: current.Start,
+		End:   current.End,
 	}, nil
 }
 

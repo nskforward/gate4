@@ -102,21 +102,14 @@ func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReques
 	if account == nil {
 		return nil, fmt.Errorf("unknown account")
 	}
-	sessions, err := s.broker.GetSchedule(ctx, account, req.Symbol)
+	sessions, current, err := s.broker.GetSchedule(ctx, account, req.Symbol)
 	if err != nil {
 		return nil, err
 	}
 	return &pb.GetScheduleResponse{
-		Sessions: sessions,
+		CurrentSession: current,
+		Sessions:       sessions,
 	}, nil
-}
-
-func (s *AdminServer) GetCurrentSession(ctx context.Context, req *pb.GetScheduleRequest) (*pb.ScheduleSession, error) {
-	account := s.broker.LookupAccount(req.AccountKey)
-	if account == nil {
-		return nil, fmt.Errorf("unknown account")
-	}
-	return s.broker.GetCurrentSession(ctx, account, req.Symbol)
 }
 
 func (s *AdminServer) watch(ctx context.Context) {

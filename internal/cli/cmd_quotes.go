@@ -25,8 +25,6 @@ func (c *Client) cmdQuotes(ctx context.Context, args []string) error {
 		return fmt.Errorf("gate4 server grpc error: %w", err)
 	}
 
-	fmt.Println("time \t\t\t symbol \t ask \t\t bid")
-
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -57,6 +55,8 @@ func (c *Client) cmdQuotes(ctx context.Context, args []string) error {
 			continue
 		}
 
-		fmt.Println(time.Unix(resp.Timestamp, 0).Format("2006-01-02 15:04"), "\t", resp.Symbol, "\t", ask.StringFixed(2), "\t", bid.StringFixed(2))
+		spread := ask.Sub(bid)
+
+		fmt.Println(time.Unix(resp.Timestamp, 0).Format("2006-01-02 15:04"), resp.Symbol, "| ask", ask.StringFixed(2), "| bid", bid.StringFixed(2), "| spread", spread.StringFixed(2))
 	}
 }

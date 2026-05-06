@@ -50,8 +50,6 @@ func (c *Client) execCmd(ctx context.Context, command string, args []string) err
 		return c.cmdPositions(ctx, args)
 	case "schedule":
 		return c.cmdSchedule(ctx, args)
-	case "session":
-		return c.cmdCurrentSession(ctx, args)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
