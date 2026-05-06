@@ -13,7 +13,7 @@ func (c *Client) cmdPositions(ctx context.Context, args []string) error {
 	key := args[0]
 	args = args[1:]
 
-	positions, err := c.adminClient.Positions(ctx, key)
+	positions, err := c.adminClient.GetPositions(ctx, key)
 	if err != nil {
 		return err
 	}
