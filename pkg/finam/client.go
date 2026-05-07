@@ -7,13 +7,13 @@ import (
 	"iter"
 	"time"
 
-	v1 "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/assets"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
 	"github.com/nskforward/gate4/pkg/peers"
+	"github.com/nskforward/gate4/pkg/types"
 )
 
 const (
@@ -58,8 +58,8 @@ func (c *Client) UpdateSecret(secret string) error {
 }
 
 // GetAccountInfo возвращает информацию о счёте
-func (c *Client) GetAccountInfo(ctx context.Context, accountID string) (*accounts.GetAccountResponse, error) {
-	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
+func (c *Client) GetAccount(ctx context.Context, accountID string) (*types.AccountInfo, error) {
+	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -70,12 +70,15 @@ func (c *Client) GetAccountInfo(ctx context.Context, accountID string) (*account
 	if err != nil {
 		return nil, fmt.Errorf("get account info failed: %w", err)
 	}
-	return resp, nil
+	return &types.AccountInfo{
+		AccountID: resp.AccountId,
+		Positions: convertPositions(resp.Positions),
+	}, nil
 }
 
 // GetAssetInfo возвращает информацию об активе
-func (c *Client) GetAssetInfo(ctx context.Context, accountID, symbol string) (*assets.GetAssetResponse, error) {
-	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
+func (c *Client) GetAsset(ctx context.Context, accountID, symbol string) (*types.AssetInfo, error) {
+	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +90,11 @@ func (c *Client) GetAssetInfo(ctx context.Context, accountID, symbol string) (*a
 	if err != nil {
 		return nil, fmt.Errorf("get asset info failed: %w", err)
 	}
-	return resp, nil
+	result := convertAsset(resp)
+	return &result, nil
 }
 
+/*
 // CancelOrder отменяет ордер
 func (c *Client) CancelOrder(ctx context.Context, accountID, orderID string) (*orders.OrderState, error) {
 	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
@@ -106,7 +111,9 @@ func (c *Client) CancelOrder(ctx context.Context, accountID, orderID string) (*o
 	}
 	return state, nil
 }
+*/
 
+/*
 // GetOrders возвращает список ордеров
 func (c *Client) GetOrders(ctx context.Context, accountID string) ([]*orders.OrderState, error) {
 	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
@@ -122,10 +129,11 @@ func (c *Client) GetOrders(ctx context.Context, accountID string) ([]*orders.Ord
 	}
 	return state.GetOrders(), nil
 }
+*/
 
 // GetSchedule возвращает расписание торгов
-func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]*assets.ScheduleResponse_Sessions, error) {
-	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
+func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {
+	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -137,9 +145,10 @@ func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]*assets.Sche
 	if err != nil {
 		return nil, fmt.Errorf("get schedule failed: %w", err)
 	}
-	return resp.Sessions, nil
+	return convertSessions(resp.Sessions), nil
 }
 
+/*
 // PlaceOrder размещает ордер
 func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.OrderState, error) {
 	reqCtx, cancel, err := c.ContextWithTimeout(ctx, 30*time.Second)
@@ -153,10 +162,11 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 	}
 	return state, nil
 }
+*/
 
 // SubscribeQuotes подписывается на котировки
-func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (iter.Seq2[*marketdata.Quote, error], error) {
-	reqCtx, err := c.Context(ctx)
+func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (iter.Seq2[types.Quote, error], error) {
+	reqCtx, err := c.authContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -166,18 +176,18 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (iter.Se
 	if err != nil {
 		return nil, err
 	}
-	return func(yield func(*marketdata.Quote, error) bool) {
+	return func(yield func(types.Quote, error) bool) {
 		for {
 			resp, err := stream.Recv()
 			if err == io.EOF {
 				return
 			}
 			if err != nil {
-				yield(nil, err)
+				yield(types.Quote{}, err)
 				return
 			}
-			for _, order := range resp.Quote {
-				if !yield(order, nil) {
+			for _, quote := range resp.Quote {
+				if !yield(convertQuote(quote), nil) {
 					return
 				}
 			}
@@ -185,6 +195,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (iter.Se
 	}, nil
 }
 
+/*
 // SubscribeAccountTrades подписывается на сделки аккаунта
 func (c *Client) SubscribeAccountTrades(ctx context.Context, accountID string) (iter.Seq2[*v1.AccountTrade, error], error) {
 	reqCtx, err := c.Context(ctx)
@@ -215,15 +226,16 @@ func (c *Client) SubscribeAccountTrades(ctx context.Context, accountID string) (
 		}
 	}, nil
 }
+*/
 
 // ContextWithTimeout создаёт контекст с таймаутом
-func (c *Client) ContextWithTimeout(ctx context.Context, timeout time.Duration) (reqCtx context.Context, cancel context.CancelFunc, err error) {
+func (c *Client) authContextWithTimeout(ctx context.Context, timeout time.Duration) (reqCtx context.Context, cancel context.CancelFunc, err error) {
 	reqCtx, cancel = context.WithTimeout(ctx, timeout)
-	reqCtx, err = c.Context(reqCtx)
+	reqCtx, err = c.authContext(reqCtx)
 	return
 }
 
 // Context добавляет токен авторизации к контексту
-func (c *Client) Context(ctx context.Context) (reqCtx context.Context, err error) {
+func (c *Client) authContext(ctx context.Context) (reqCtx context.Context, err error) {
 	return c.tokenService.Context(ctx)
 }
