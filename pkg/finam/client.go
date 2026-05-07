@@ -3,8 +3,6 @@ package finam
 import (
 	"context"
 	"fmt"
-	"io"
-	"iter"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
@@ -13,6 +11,7 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
 	"github.com/nskforward/gate4/pkg/peers"
+	"github.com/nskforward/gate4/pkg/stream"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
@@ -165,34 +164,25 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 */
 
 // SubscribeQuotes подписывается на котировки
-func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (iter.Seq2[types.Quote, error], error) {
+func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (*stream.Stream[types.Quote], error) {
 	reqCtx, err := c.authContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	stream, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
+	streamClient, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
 		Symbols: symbols,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return func(yield func(types.Quote, error) bool) {
-		for {
-			resp, err := stream.Recv()
-			if err == io.EOF {
-				return
-			}
-			if err != nil {
-				yield(types.Quote{}, err)
-				return
-			}
-			for _, quote := range resp.Quote {
-				if !yield(convertQuote(quote), nil) {
-					return
-				}
-			}
+	return stream.NewStream(ctx, 4, func() ([]types.Quote, error) {
+		resp, err := streamClient.Recv()
+		if err != nil {
+			return nil, err
 		}
-	}, nil
+		return convertQuotes(resp.Quote), nil
+
+	}), nil
 }
 
 /*

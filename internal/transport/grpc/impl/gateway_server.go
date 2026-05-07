@@ -1,4 +1,4 @@
-package transport
+package impl
 
 import (
 	"context"
@@ -15,12 +15,11 @@ import (
 
 type GatewayServer struct {
 	pb.UnimplementedGatewayServer
-	transport *grpcserv.GRPCServer
-	broker    *broker.Broker
-	logger    *slog.Logger
+	serv   *grpcserv.GRPCServer
+	broker *broker.Broker
 }
 
-func NewGatewayServer(cfg config.Config, logger *slog.Logger, broker *broker.Broker) (*GatewayServer, error) {
+func NewGatewayServer(cfg config.Config, broker *broker.Broker) (*GatewayServer, error) {
 	var server *grpcserv.GRPCServer
 
 	if cfg.SSL.CA.CertPath != "" && cfg.SSL.Server.CertPath != "" && cfg.SSL.Server.KeyPath != "" {
@@ -29,31 +28,31 @@ func NewGatewayServer(cfg config.Config, logger *slog.Logger, broker *broker.Bro
 			return nil, err
 		}
 		server = grpcserv.New(cfg.Gateway.ListenAddr, grpc.Creds(credentials.NewTLS(tlsConfig)))
-		logger.Info("gateway mTLS enabled")
+		slog.Info("gateway mTLS enabled")
 	} else {
 		server = grpcserv.New(cfg.Gateway.ListenAddr)
-		logger.Warn("gateway mTLS disabled")
+		slog.Warn("gateway mTLS disabled")
 	}
 
 	s := &GatewayServer{
-		transport: server,
-		broker:    broker,
-		logger:    logger,
+		serv:   server,
+		broker: broker,
 	}
-	pb.RegisterGatewayServer(s.transport, s)
-	s.transport.OnListen = func() {
-		logger.Info("gateway service started", "addr", cfg.Gateway.ListenAddr)
+	pb.RegisterGatewayServer(s.serv, s)
+	s.serv.OnListen = func() {
+		slog.Info("gateway service started", "addr", cfg.Gateway.ListenAddr)
 	}
-	s.transport.OnStop = func() {
-		logger.Info("gateway service stoppped")
+	s.serv.OnStop = func() {
+		slog.Info("gateway service stoppped")
 	}
 	return s, nil
 }
 
 func (s *GatewayServer) Run(ctx context.Context) error {
-	return s.transport.Run(ctx)
+	return s.serv.Run(ctx)
 }
 
+/*
 func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
 	account := s.broker.LookupAccount(req.AccountKey)
 	if account == nil {
@@ -69,7 +68,27 @@ func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest
 		Positions: positions,
 	}, nil
 }
+*/
 
-func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, stream pb.Gateway_QuoteStreamServer) error {
-	return s.broker.SubscribeQuotes(req, stream)
+func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Gateway_QuoteStreamServer) error {
+	client, err := s.broker.Client(req.AccountKey)
+	if err != nil {
+		return err
+	}
+	stream, err := client.SubscribeQuotes(serverStream.Context(), []string{req.Symbol})
+	if err != nil {
+		return err
+	}
+	for q := range stream.Range() {
+		err := serverStream.Send(&pb.QuoteStreamResponse{
+			Symbol:    q.Symbol,
+			Timestamp: q.Timestamp,
+			Ask:       q.Ask.Price,
+			Bid:       q.Bid.Price,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return fmt.Errorf("client disconnected")
 }

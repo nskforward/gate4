@@ -239,11 +239,10 @@ func (x *QuoteStreamRequest) GetSymbol() string {
 
 type QuoteStreamResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	BrokerId      string                 `protobuf:"bytes,1,opt,name=broker_id,json=brokerId,proto3" json:"broker_id,omitempty"`
-	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	Timestamp     int64                  `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Ask           string                 `protobuf:"bytes,4,opt,name=ask,proto3" json:"ask,omitempty"`
-	Bid           string                 `protobuf:"bytes,5,opt,name=bid,proto3" json:"bid,omitempty"`
+	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Ask           string                 `protobuf:"bytes,3,opt,name=ask,proto3" json:"ask,omitempty"`
+	Bid           string                 `protobuf:"bytes,4,opt,name=bid,proto3" json:"bid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -276,13 +275,6 @@ func (x *QuoteStreamResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use QuoteStreamResponse.ProtoReflect.Descriptor instead.
 func (*QuoteStreamResponse) Descriptor() ([]byte, []int) {
 	return file_gateway_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *QuoteStreamResponse) GetBrokerId() string {
-	if x != nil {
-		return x.BrokerId
-	}
-	return ""
 }
 
 func (x *QuoteStreamResponse) GetSymbol() string {
@@ -333,13 +325,12 @@ const file_gateway_proto_rawDesc = "" +
 	"\x12QuoteStreamRequest\x12\x1f\n" +
 	"\vaccount_key\x18\x01 \x01(\tR\n" +
 	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\x8c\x01\n" +
-	"\x13QuoteStreamResponse\x12\x1b\n" +
-	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\x12\x1c\n" +
-	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\x12\x10\n" +
-	"\x03ask\x18\x04 \x01(\tR\x03ask\x12\x10\n" +
-	"\x03bid\x18\x05 \x01(\tR\x03bidB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"o\n" +
+	"\x13QuoteStreamResponse\x12\x16\n" +
+	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
+	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x10\n" +
+	"\x03ask\x18\x03 \x01(\tR\x03ask\x12\x10\n" +
+	"\x03bid\x18\x04 \x01(\tR\x03bidB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once

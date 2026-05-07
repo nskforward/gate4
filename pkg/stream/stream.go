@@ -10,11 +10,11 @@ type Stream[T any] struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 	items     chan T
-	err       error
+	err       AtomicError
 	closeOnce sync.Once
 }
 
-type SourceFunc[T any] func() (T, error)
+type SourceFunc[T any] func() ([]T, error)
 
 func NewStream[T any](ctx context.Context, size int, getter SourceFunc[T]) *Stream[T] {
 	streamCtx, cancel := context.WithCancel(ctx)
@@ -50,7 +50,7 @@ func (s *Stream[T]) Range() iter.Seq[T] {
 }
 
 func (s *Stream[T]) Err() error {
-	return s.err
+	return s.err.Load()
 }
 
 func (s *Stream[T]) watch(getter SourceFunc[T]) {
@@ -60,15 +60,17 @@ func (s *Stream[T]) watch(getter SourceFunc[T]) {
 		case <-s.ctx.Done():
 			return
 		default:
-			item, err := getter()
+			items, err := getter()
 			if err != nil {
-				s.err = err
+				s.err.Store(err)
 				return
 			}
-			select {
-			case <-s.ctx.Done():
-				return
-			case s.items <- item:
+			for _, item := range items {
+				select {
+				case <-s.ctx.Done():
+					return
+				case s.items <- item:
+				}
 			}
 		}
 	}

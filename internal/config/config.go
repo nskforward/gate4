@@ -57,7 +57,7 @@ func Load() (Config, error) {
 	return cfg, nil
 }
 
-func (cfg Config) LogParams(logger *slog.Logger) {
+func (cfg Config) LogParams() {
 	slog.Info("config initialized", "gateway-addr", cfg.Gateway.ListenAddr, "admin-addr", cfg.Admin.ListenAddr, "finam-addr", cfg.FinamAddr, "store-dir", cfg.StoreDir)
 }
 

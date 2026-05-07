@@ -26,9 +26,8 @@ message QuoteStreamRequest {
 }
 
 message QuoteStreamResponse {
-  string broker_id = 1;
-  string symbol = 2;
-  int64 timestamp = 3;
-  string ask = 4;
-  string bid = 5;
+  string symbol = 1;
+  int64 timestamp = 2;
+  string ask = 3;
+  string bid = 4;
 }

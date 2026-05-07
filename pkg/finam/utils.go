@@ -78,6 +78,14 @@ func convertSessionType(sessionType string) types.SessionType {
 	}
 }
 
+func convertQuotes(in []*marketdata.Quote) []types.Quote {
+	result := make([]types.Quote, 0, len(in))
+	for _, q := range in {
+		result = append(result, convertQuote(q))
+	}
+	return result
+}
+
 func convertQuote(in *marketdata.Quote) types.Quote {
 	return types.Quote{
 		Timestamp: in.Timestamp.Seconds,
