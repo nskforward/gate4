@@ -1,16 +1,22 @@
 package streams
 
-import "iter"
+import (
+	"iter"
+	"sync"
+)
 
 type Stream[T any] struct {
 	c           chan T
-	unsubscribe func()
+	unsubscribe func(*Stream[T])
 	err         *AtomicError
+	once        sync.Once
 }
 
 func (s *Stream[T]) Close() {
-	s.unsubscribe()
-	close(s.c)
+	s.once.Do(func() {
+		s.unsubscribe(s)
+		close(s.c)
+	})
 }
 
 func (s *Stream[T]) Range() iter.Seq[T] {
@@ -27,6 +33,14 @@ func (s *Stream[T]) Err() error {
 	return s.err.Load()
 }
 
+func newStream[T any](unsubscribe func(*Stream[T])) *Stream[T] {
+	return &Stream[T]{
+		c:           make(chan T, 16),
+		err:         &AtomicError{},
+		unsubscribe: unsubscribe,
+	}
+}
+
 func (s *Stream[T]) notify(data T) {
 	for {
 		select {
@@ -39,8 +53,4 @@ func (s *Stream[T]) notify(data T) {
 			}
 		}
 	}
-}
-
-func (s *Stream[T]) onUnsubscribe(f func()) {
-	s.unsubscribe = f
 }

@@ -27,24 +27,13 @@ func newTopic[T any](key string, publishFunc Publish[T]) *topic[T] {
 }
 
 func (t *topic[T]) Subscribe() *Stream[T] {
-	stream := t.createStream()
-	if t.producerActive.CompareAndSwap(false, true) {
-		go t.startProducer()
-	}
-	return stream
-}
-
-func (t *topic[T]) createStream() *Stream[T] {
-	stream := &Stream[T]{
-		c:   make(chan T, 32),
-		err: &AtomicError{},
-	}
-	stream.unsubscribe = func() {
-		t.unsubscibe(stream)
-	}
+	stream := newStream(t.unsubscibe)
 	t.mx.Lock()
 	t.subscribers = append(t.subscribers, stream)
 	t.mx.Unlock()
+	if t.producerActive.CompareAndSwap(false, true) {
+		go t.startProducer()
+	}
 	return stream
 }
 
@@ -59,7 +48,7 @@ func (t *topic[T]) unsubscibe(subscriber *Stream[T]) {
 	}
 }
 
-func (t *topic[T]) fail(err error) {
+func (t *topic[T]) close(err error) {
 	t.mx.Lock()
 	subscribers := make([]*Stream[T], 0, len(t.subscribers))
 	for _, s := range t.subscribers {
@@ -68,7 +57,9 @@ func (t *topic[T]) fail(err error) {
 	t.mx.Unlock()
 
 	for _, s := range subscribers {
-		s.err.Store(err)
+		if err != nil {
+			s.err.Store(err)
+		}
 		s.Close()
 	}
 }
@@ -83,13 +74,14 @@ func (t *topic[T]) startProducer() {
 			slog.Error("stream producer error", "topic", t.key, "error", err.Error(), "attempts", attempts)
 			if attempts > 5 {
 				slog.Warn("close stream topic due to max attempts reaching", "topic", t.key, "attempts", attempts)
-				t.fail(err)
+				t.close(err)
 				break
 			}
 			time.Sleep(time.Duration(attempts) * time.Second)
 			continue
 		}
-		slog.Info("stream producer stopped due to no subscribers", "topic", t.key)
+		slog.Debug("stream producer stopped due to no subscribers", "topic", t.key)
+		t.close(nil)
 		break
 	}
 	slog.Debug("stopped stream producer", "key", t.key)
