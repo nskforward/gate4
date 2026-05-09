@@ -84,7 +84,6 @@ func (t *topic[T]) startProducer() {
 		t.close(nil)
 		break
 	}
-	slog.Debug("stopped stream producer", "key", t.key)
 }
 
 func (t *topic[T]) notify(data T) bool {
