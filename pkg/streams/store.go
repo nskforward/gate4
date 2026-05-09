@@ -8,23 +8,25 @@ import (
 type Store[T any] struct {
 	topics map[string]*topic[T]
 	mx     sync.Mutex
+	opts   *Opts
 }
 
-type Publish[T any] func(context.Context, func(data T) bool) error
+type Publisher[T any] func(context.Context, func(data T) bool) error
 
-func NewStore[T any]() *Store[T] {
+func NewStore[T any](opts *Opts) *Store[T] {
 	return &Store[T]{
 		topics: make(map[string]*topic[T]),
+		opts:   initOpts(opts),
 	}
 }
 
-func (s *Store[T]) Subscribe(key string, publish Publish[T]) *Stream[T] {
+func (s *Store[T]) Subscribe(ctx context.Context, key string, publisher Publisher[T]) *Stream[T] {
 	s.mx.Lock()
 	topic, ok := s.topics[key]
 	if !ok {
-		topic = newTopic(key, publish)
+		topic = newTopic(s.opts, key, publisher)
 		s.topics[key] = topic
 	}
 	s.mx.Unlock()
-	return topic.Subscribe()
+	return topic.Subscribe(ctx)
 }

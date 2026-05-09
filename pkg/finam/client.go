@@ -42,7 +42,7 @@ func NewClient(secret string) (*Client, error) {
 	markedDataService := marketdata.NewMarketDataServiceClient(conn)
 
 	return &Client{
-		quoteStreams:      streams.NewStore[types.Quote](),
+		quoteStreams:      streams.NewStore[types.Quote](nil),
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,
@@ -161,7 +161,7 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 
 // SubscribeQuotes подписывается на котировки
 func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.Stream[types.Quote] {
-	return c.quoteStreams.Subscribe(symbol, func(ctx context.Context, notify func(data types.Quote) bool) error {
+	return c.quoteStreams.Subscribe(ctx, symbol, func(ctx context.Context, publish func(data types.Quote) bool) error {
 		reqCtx, err := c.authContext(ctx)
 		if err != nil {
 			return err
@@ -179,7 +179,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 			}
 			quotes := convertQuotes(resp.Quote)
 			for _, q := range quotes {
-				if !notify(q) {
+				if !publish(q) {
 					// normal closure
 					return nil
 				}

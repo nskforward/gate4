@@ -2,7 +2,6 @@ package streams
 
 import (
 	"context"
-	"log/slog"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -11,23 +10,25 @@ import (
 
 type topic[T any] struct {
 	key            string
-	publishing     Publish[T]
+	publisher      Publisher[T]
 	subscribers    []*Stream[T]
 	mx             sync.Mutex
 	producerActive atomic.Bool
 	attempts       atomic.Int32
+	opts           *Opts
 }
 
-func newTopic[T any](key string, publishFunc Publish[T]) *topic[T] {
+func newTopic[T any](opts *Opts, key string, publisher Publisher[T]) *topic[T] {
 	return &topic[T]{
 		key:         key,
 		subscribers: make([]*Stream[T], 0, 32),
-		publishing:  publishFunc,
+		publisher:   publisher,
+		opts:        opts,
 	}
 }
 
-func (t *topic[T]) Subscribe() *Stream[T] {
-	stream := newStream(t.unsubscibe)
+func (t *topic[T]) Subscribe(ctx context.Context) *Stream[T] {
+	stream := newStream(ctx, t.unsubscibe)
 	t.mx.Lock()
 	t.subscribers = append(t.subscribers, stream)
 	t.mx.Unlock()
@@ -66,21 +67,22 @@ func (t *topic[T]) close(err error) {
 
 func (t *topic[T]) startProducer() {
 	defer t.producerActive.Store(false)
-	slog.Debug("started stream producer", "key", t.key)
+	//slog.Debug("started stream producer", "key", t.key)
+
 	for {
 		attempts := t.attempts.Add(1)
-		err := t.publishing(context.Background(), t.notify)
+
+		err := t.publisher(context.Background(), t.notify)
 		if err != nil {
-			slog.Error("stream producer error", "topic", t.key, "error", err.Error(), "attempts", attempts)
-			if attempts > 5 {
-				slog.Warn("close stream topic due to max attempts reaching", "topic", t.key, "attempts", attempts)
+			// slog.Error("stream producer error", "topic", t.key, "error", err.Error(), "attempts", attempts)
+			if attempts >= t.opts.MaxRetryAttempts {
 				t.close(err)
 				break
 			}
-			time.Sleep(time.Duration(attempts) * time.Second)
+			time.Sleep(t.opts.RetryWait(attempts))
 			continue
 		}
-		slog.Debug("stream producer stopped due to no subscribers", "topic", t.key)
+		//slog.Debug("stream producer stopped due to no subscribers", "topic", t.key)
 		t.close(nil)
 		break
 	}
