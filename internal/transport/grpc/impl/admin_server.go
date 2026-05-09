@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -43,10 +42,7 @@ func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Ad
 	if err != nil {
 		return err
 	}
-	stream, err := client.SubscribeQuotes(serverStream.Context(), []string{req.Symbol})
-	if err != nil {
-		return err
-	}
+	stream := client.SubscribeQuotes(serverStream.Context(), req.Symbol)
 	for q := range stream.Range() {
 		err := serverStream.Send(&pb.QuoteStreamResponse{
 			Symbol:    q.Symbol,
@@ -58,7 +54,7 @@ func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Ad
 			return err
 		}
 	}
-	return fmt.Errorf("client disconnected")
+	return stream.Err()
 }
 
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {

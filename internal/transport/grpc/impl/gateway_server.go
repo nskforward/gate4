@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/nskforward/gate4/internal/broker"
@@ -75,10 +74,7 @@ func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.
 	if err != nil {
 		return err
 	}
-	stream, err := client.SubscribeQuotes(serverStream.Context(), []string{req.Symbol})
-	if err != nil {
-		return err
-	}
+	stream := client.SubscribeQuotes(serverStream.Context(), req.Symbol)
 	for q := range stream.Range() {
 		err := serverStream.Send(&pb.QuoteStreamResponse{
 			Symbol:    q.Symbol,
@@ -90,5 +86,5 @@ func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.
 			return err
 		}
 	}
-	return fmt.Errorf("client disconnected")
+	return stream.Err()
 }

@@ -10,8 +10,7 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
-	"github.com/nskforward/gate4/pkg/peers"
-	"github.com/nskforward/gate4/pkg/stream"
+	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
@@ -20,18 +19,18 @@ const (
 )
 
 type Client struct {
+	quoteStreams      *streams.Store[types.Quote]
 	markedDataService marketdata.MarketDataServiceClient
 	orderService      orders.OrdersServiceClient
 	assetsService     assets.AssetsServiceClient
 	accountService    accounts.AccountsServiceClient
 	authService       auth.AuthServiceClient
 	tokenService      *tokenService
-	quoteStreams      map[string]*peers.Group[*marketdata.Quote]
 }
 
 // NewClient создаёт новый клиент Finam
-func NewClient(addr, secret string) (*Client, error) {
-	conn, err := connect(addr)
+func NewClient(secret string) (*Client, error) {
+	conn, err := connect(APIHost)
 	if err != nil {
 		return nil, fmt.Errorf("dial failed: %w", err)
 	}
@@ -43,6 +42,7 @@ func NewClient(addr, secret string) (*Client, error) {
 	markedDataService := marketdata.NewMarketDataServiceClient(conn)
 
 	return &Client{
+		quoteStreams:      streams.NewStore[types.Quote](),
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,
@@ -50,10 +50,6 @@ func NewClient(addr, secret string) (*Client, error) {
 		authService:       authService,
 		tokenService:      newTokenService(authService, secret),
 	}, nil
-}
-
-func (c *Client) UpdateSecret(secret string) error {
-	return c.tokenService.updateSecret(secret)
 }
 
 // GetAccountInfo возвращает информацию о счёте
@@ -164,25 +160,32 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 */
 
 // SubscribeQuotes подписывается на котировки
-func (c *Client) SubscribeQuotes(ctx context.Context, symbols []string) (*stream.Stream[types.Quote], error) {
-	reqCtx, err := c.authContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	streamClient, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
-		Symbols: symbols,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return stream.NewStream(ctx, 4, func() ([]types.Quote, error) {
-		resp, err := streamClient.Recv()
+func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.Stream[types.Quote] {
+	return c.quoteStreams.Subscribe(symbol, func(ctx context.Context, notify func(data types.Quote) bool) error {
+		reqCtx, err := c.authContext(ctx)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return convertQuotes(resp.Quote), nil
-
-	}), nil
+		streamClient, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
+			Symbols: []string{symbol},
+		})
+		if err != nil {
+			return err
+		}
+		for {
+			resp, err := streamClient.Recv()
+			if err != nil {
+				return err
+			}
+			quotes := convertQuotes(resp.Quote)
+			for _, q := range quotes {
+				if !notify(q) {
+					// normal closure
+					return nil
+				}
+			}
+		}
+	})
 }
 
 /*
