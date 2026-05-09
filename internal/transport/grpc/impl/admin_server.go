@@ -42,7 +42,10 @@ func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Ad
 	if err != nil {
 		return err
 	}
+
 	stream := client.SubscribeQuotes(serverStream.Context(), req.Symbol)
+	defer stream.Close()
+
 	for q := range stream.Range() {
 		err := serverStream.Send(&pb.QuoteStreamResponse{
 			Symbol:    q.Symbol,

@@ -14,7 +14,7 @@ type topic[T any] struct {
 	publishing     Publish[T]
 	subscribers    []*Stream[T]
 	mx             sync.Mutex
-	producerActive bool
+	producerActive atomic.Bool
 	attempts       atomic.Int32
 }
 
@@ -27,20 +27,24 @@ func newTopic[T any](key string, publishFunc Publish[T]) *topic[T] {
 }
 
 func (t *topic[T]) Subscribe() *Stream[T] {
-	stream := newStream[T]()
-
-	t.mx.Lock()
-	t.subscribers = append(t.subscribers, stream)
-	if !t.producerActive {
-		t.producerActive = true
+	stream := t.createStream()
+	if t.producerActive.CompareAndSwap(false, true) {
 		go t.startProducer()
 	}
-	t.mx.Unlock()
+	return stream
+}
 
-	stream.registerUnsubscribe(func() {
+func (t *topic[T]) createStream() *Stream[T] {
+	stream := &Stream[T]{
+		c:   make(chan T, 32),
+		err: &AtomicError{},
+	}
+	stream.unsubscribe = func() {
 		t.unsubscibe(stream)
-	})
-
+	}
+	t.mx.Lock()
+	t.subscribers = append(t.subscribers, stream)
+	t.mx.Unlock()
 	return stream
 }
 
@@ -70,12 +74,8 @@ func (t *topic[T]) fail(err error) {
 }
 
 func (t *topic[T]) startProducer() {
-	defer func() {
-		t.mx.Lock()
-		t.producerActive = false
-		t.mx.Unlock()
-	}()
-
+	defer t.producerActive.Store(false)
+	slog.Debug("started stream producer", "key", t.key)
 	for {
 		attempts := t.attempts.Add(1)
 		err := t.publishing(context.Background(), t.notify)
@@ -92,6 +92,7 @@ func (t *topic[T]) startProducer() {
 		slog.Info("stream producer stopped due to no subscribers", "topic", t.key)
 		break
 	}
+	slog.Debug("stopped stream producer", "key", t.key)
 }
 
 func (t *topic[T]) notify(data T) bool {

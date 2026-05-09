@@ -8,13 +8,6 @@ type Stream[T any] struct {
 	err         *AtomicError
 }
 
-func newStream[T any]() *Stream[T] {
-	return &Stream[T]{
-		c:   make(chan T, 32),
-		err: &AtomicError{},
-	}
-}
-
 func (s *Stream[T]) Close() {
 	s.unsubscribe()
 	close(s.c)
@@ -48,6 +41,6 @@ func (s *Stream[T]) notify(data T) {
 	}
 }
 
-func (s *Stream[T]) registerUnsubscribe(f func()) {
+func (s *Stream[T]) onUnsubscribe(f func()) {
 	s.unsubscribe = f
 }
