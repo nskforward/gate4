@@ -11,7 +11,7 @@ import (
 type topic[T any] struct {
 	key            string
 	publisher      PublishFunc[T]
-	subscribers    []*Stream[T]
+	streams        []*Stream[T]
 	mx             sync.Mutex
 	producerActive atomic.Bool
 	attempts       atomic.Int32
@@ -20,30 +20,30 @@ type topic[T any] struct {
 
 func newTopic[T any](opts *Opts, key string, publisher PublishFunc[T]) *topic[T] {
 	return &topic[T]{
-		key:         key,
-		subscribers: make([]*Stream[T], 0, 32),
-		publisher:   publisher,
-		opts:        opts,
+		key:       key,
+		streams:   make([]*Stream[T], 0, 32),
+		publisher: publisher,
+		opts:      opts,
 	}
 }
 
 func (t *topic[T]) Subscribe(ctx context.Context) *Stream[T] {
-	stream := newStream(ctx, t.opts.BufferSize, t.unsubscibe)
+	s := newStream(ctx, t.opts.BufferSize, t.unsubscibe)
 	t.mx.Lock()
-	t.subscribers = append(t.subscribers, stream)
+	t.streams = append(t.streams, s)
 	t.mx.Unlock()
 	if t.producerActive.CompareAndSwap(false, true) {
 		go t.startProducer()
 	}
-	return stream
+	return s
 }
 
-func (t *topic[T]) unsubscibe(subscriber *Stream[T]) {
+func (t *topic[T]) unsubscibe(stream *Stream[T]) {
 	t.mx.Lock()
 	defer t.mx.Unlock()
-	for i, sub := range t.subscribers {
-		if sub == subscriber {
-			t.subscribers = slices.Delete(t.subscribers, i, i+1)
+	for i, s := range t.streams {
+		if s == stream {
+			t.streams = slices.Delete(t.streams, i, i+1)
 			break
 		}
 	}
@@ -51,13 +51,12 @@ func (t *topic[T]) unsubscibe(subscriber *Stream[T]) {
 
 func (t *topic[T]) close(err error) {
 	t.mx.Lock()
-	subscribers := make([]*Stream[T], 0, len(t.subscribers))
-	for _, s := range t.subscribers {
-		subscribers = append(subscribers, s)
+	streams := make([]*Stream[T], 0, len(t.streams))
+	for _, s := range t.streams {
+		streams = append(streams, s)
 	}
 	t.mx.Unlock()
-
-	for _, s := range subscribers {
+	for _, s := range streams {
 		if err != nil {
 			s.err.Store(err)
 		}
@@ -67,14 +66,10 @@ func (t *topic[T]) close(err error) {
 
 func (t *topic[T]) startProducer() {
 	defer t.producerActive.Store(false)
-	//slog.Debug("started stream producer", "key", t.key)
-
 	for {
 		attempts := t.attempts.Add(1)
-
 		err := t.publisher(context.Background(), t.notify)
 		if err != nil {
-			// slog.Error("stream producer error", "topic", t.key, "error", err.Error(), "attempts", attempts)
 			if attempts >= t.opts.MaxRetryAttempts {
 				t.close(err)
 				break
@@ -82,7 +77,6 @@ func (t *topic[T]) startProducer() {
 			time.Sleep(t.opts.RetryWait(attempts))
 			continue
 		}
-		//slog.Debug("stream producer stopped due to no subscribers", "topic", t.key)
 		t.close(nil)
 		break
 	}
@@ -92,10 +86,8 @@ func (t *topic[T]) notify(data T) bool {
 	t.attempts.Store(0)
 	t.mx.Lock()
 	defer t.mx.Unlock()
-
-	for _, subscriber := range t.subscribers {
-		subscriber.notify(data)
+	for _, s := range t.streams {
+		s.notify(data)
 	}
-
-	return len(t.subscribers) > 0
+	return len(t.streams) > 0
 }
