@@ -11,9 +11,6 @@ func TestStream(t *testing.T) {
 	s := newStream(context.Background(), 1, func(s *Stream[int]) {
 		fmt.Println("[info] stream destroyed")
 	})
-	defer s.Close()
-
-	fmt.Println("[info] stream created")
 
 	go generator(s)
 
@@ -35,7 +32,6 @@ func TestStreamTimeout(t *testing.T) {
 	s := newStream(ctx, 1, func(s *Stream[int]) {
 		fmt.Println("[info] stream destroyed")
 	})
-	defer s.Close()
 
 	fmt.Println("[info] stream created")
 

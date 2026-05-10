@@ -42,7 +42,7 @@ func NewClient(secret string) (*Client, error) {
 	markedDataService := marketdata.NewMarketDataServiceClient(conn)
 
 	return &Client{
-		quoteStreams:      streams.NewStore[types.Quote](nil),
+		quoteStreams:      streams.NewStore[types.Quote](context.Background(), nil),
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,

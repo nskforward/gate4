@@ -16,7 +16,7 @@ func TestTopicSimple(t *testing.T) {
 		Level: slog.LevelDebug,
 	})))
 
-	toptic := newTopic(initOpts(nil), "test", func(ctx context.Context, publish func(data int) bool) error {
+	toptic := newTopic(context.Background(), initOpts(nil), "test", func(*topic[int]) {}, func(ctx context.Context, publish func(data int) bool) error {
 		defer fmt.Println("publisher stopped")
 
 		time.Sleep(10 * time.Millisecond)
@@ -38,8 +38,6 @@ func TestTopicSimple(t *testing.T) {
 
 	s1 := toptic.Subscribe(context.Background())
 	s2 := toptic.Subscribe(context.Background())
-	defer s1.Close()
-	defer s2.Close()
 
 	go func() {
 		defer wg.Done()
@@ -67,14 +65,14 @@ func TestTopicRetry(t *testing.T) {
 
 	atttempt := 0
 
-	toptic := newTopic(initOpts(nil), "test", func(ctx context.Context, publish func(data int) bool) error {
+	toptic := newTopic(context.Background(), initOpts(nil), "test", func(*topic[int]) {}, func(ctx context.Context, publish func(data int) bool) error {
 		defer fmt.Println("publisher stopped")
 
 		time.Sleep(100 * time.Millisecond)
 		fmt.Println("start publisher")
 
 		for i := range 5 {
-			if i == 0 && atttempt < 3 {
+			if i == 0 && atttempt < 6 {
 				atttempt++
 				return fmt.Errorf("publisher test disconnection")
 			}
@@ -92,8 +90,6 @@ func TestTopicRetry(t *testing.T) {
 
 	s1 := toptic.Subscribe(context.Background())
 	s2 := toptic.Subscribe(context.Background())
-	defer s1.Close()
-	defer s2.Close()
 
 	go func() {
 		defer wg.Done()
@@ -119,7 +115,7 @@ func TestTopicOneStreamCancel(t *testing.T) {
 		Level: slog.LevelDebug,
 	})))
 
-	toptic := newTopic(initOpts(nil), "test", func(ctx context.Context, publish func(data int) bool) error {
+	toptic := newTopic(context.Background(), initOpts(nil), "test", func(*topic[int]) {}, func(ctx context.Context, publish func(data int) bool) error {
 		defer fmt.Println("publisher stopped")
 
 		time.Sleep(100 * time.Millisecond)

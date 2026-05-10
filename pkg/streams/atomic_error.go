@@ -3,21 +3,22 @@ package streams
 import "sync/atomic"
 
 type AtomicError struct {
-	v atomic.Value
+	p atomic.Pointer[error]
 }
 
-func (e *AtomicError) Store(err error) {
+func (a *AtomicError) Store(err error) {
 	if err == nil {
-		e.v.Store(nil)
+		a.p.Store(nil)
 		return
 	}
-	e.v.Store(struct{ err error }{err}) // Wrap non-nil errors
+	// Копируем, чтобы избежать алиасинга
+	e := err
+	a.p.Store(&e)
 }
-
-func (e *AtomicError) Load() error {
-	v := e.v.Load()
-	if v == nil {
+func (a *AtomicError) Load() error {
+	ep := a.p.Load()
+	if ep == nil {
 		return nil
 	}
-	return v.(struct{ err error }).err
+	return *ep
 }

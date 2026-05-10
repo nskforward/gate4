@@ -26,7 +26,6 @@ func (s *Stream[T]) Range() iter.Seq[T] {
 		for {
 			select {
 			case <-s.ctx.Done():
-				s.err.Store(s.ctx.Err())
 				return
 			case data, ok := <-s.queue:
 				if !ok {
@@ -45,12 +44,17 @@ func (s *Stream[T]) Err() error {
 }
 
 func newStream[T any](ctx context.Context, bufferSize int, unsubscribe func(*Stream[T])) *Stream[T] {
-	return &Stream[T]{
+	s := &Stream[T]{
 		ctx:         ctx,
 		queue:       make(chan T, bufferSize),
 		err:         &AtomicError{},
 		unsubscribe: unsubscribe,
 	}
+	go func() {
+		<-ctx.Done()
+		s.Close()
+	}()
+	return s
 }
 
 func (s *Stream[T]) notify(data T) {
