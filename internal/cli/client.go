@@ -7,14 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/nskforward/gate4/internal/transport/grpc/impl"
+	"github.com/nskforward/gate4/internal/transport"
 )
 
 type Client struct {
-	adminClient *impl.AdminClient
+	adminClient *transport.AdminClient
 }
 
-func NewClient(adminClient *impl.AdminClient) *Client {
+func NewClient(adminClient *transport.AdminClient) *Client {
 	return &Client{
 		adminClient: adminClient,
 	}

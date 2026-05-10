@@ -8,7 +8,7 @@ import (
 
 	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/transport/grpc/impl"
+	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/race"
 )
 
@@ -37,11 +37,11 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	adminServer, err := impl.NewAdminServer(cfg, b)
+	adminServer, err := transport.NewAdminServer(cfg, b)
 	if err != nil {
 		return err
 	}
-	gatewayServer, err := impl.NewGatewayServer(cfg, b)
+	gatewayServer, err := transport.NewGatewayServer(cfg, b)
 	if err != nil {
 		return err
 	}

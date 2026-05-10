@@ -7,7 +7,7 @@ import (
 
 	"github.com/nskforward/gate4/internal/cli"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/transport/grpc/impl"
+	"github.com/nskforward/gate4/internal/transport"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	adminClient, err := impl.NewAdminClient(cfg.Admin.ListenAddr)
+	adminClient, err := transport.NewAdminClient(cfg.Admin.ListenAddr)
 	if err != nil {
 		return err
 	}
