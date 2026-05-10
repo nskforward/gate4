@@ -8,7 +8,7 @@ import (
 
 type Stream[T any] struct {
 	ctx         context.Context
-	c           chan T
+	queue       chan T
 	unsubscribe func(*Stream[T])
 	err         *AtomicError
 	once        sync.Once
@@ -17,7 +17,7 @@ type Stream[T any] struct {
 func (s *Stream[T]) Close() {
 	s.once.Do(func() {
 		s.unsubscribe(s)
-		close(s.c)
+		close(s.queue)
 	})
 }
 
@@ -28,7 +28,7 @@ func (s *Stream[T]) Range() iter.Seq[T] {
 			case <-s.ctx.Done():
 				s.err.Store(s.ctx.Err())
 				return
-			case data, ok := <-s.c:
+			case data, ok := <-s.queue:
 				if !ok {
 					return
 				}
@@ -44,10 +44,10 @@ func (s *Stream[T]) Err() error {
 	return s.err.Load()
 }
 
-func newStream[T any](ctx context.Context, unsubscribe func(*Stream[T])) *Stream[T] {
+func newStream[T any](ctx context.Context, bufferSize int, unsubscribe func(*Stream[T])) *Stream[T] {
 	return &Stream[T]{
 		ctx:         ctx,
-		c:           make(chan T, 16),
+		queue:       make(chan T, bufferSize),
 		err:         &AtomicError{},
 		unsubscribe: unsubscribe,
 	}
@@ -58,13 +58,13 @@ func (s *Stream[T]) notify(data T) {
 		select {
 		case <-s.ctx.Done():
 			return
-		case s.c <- data:
+		case s.queue <- data:
 			return
 		default:
 			select {
 			case <-s.ctx.Done():
 				return
-			case <-s.c:
+			case <-s.queue:
 			default:
 			}
 		}

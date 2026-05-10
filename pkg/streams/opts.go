@@ -6,12 +6,14 @@ import (
 )
 
 type Opts struct {
+	BufferSize       int
 	MaxRetryAttempts int32
 	RetryWait        func(attempt int32) time.Duration
 }
 
 var (
 	defaultOpt = Opts{
+		BufferSize:       1,
 		MaxRetryAttempts: 5,
 		RetryWait: func(attempt int32) time.Duration {
 			jitter := int32(rand.Intn(1000))
@@ -24,6 +26,9 @@ var (
 func initOpts(in *Opts) *Opts {
 	if in == nil {
 		return &defaultOpt
+	}
+	if in.BufferSize < 1 {
+		in.BufferSize = defaultOpt.BufferSize
 	}
 	if in.MaxRetryAttempts < 0 {
 		in.MaxRetryAttempts = 0

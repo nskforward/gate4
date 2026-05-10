@@ -8,7 +8,7 @@ import (
 )
 
 func TestStream(t *testing.T) {
-	s := newStream(context.Background(), func(s *Stream[int]) {
+	s := newStream(context.Background(), 1, func(s *Stream[int]) {
 		fmt.Println("[info] stream destroyed")
 	})
 	defer s.Close()
@@ -32,7 +32,7 @@ func TestStreamTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	s := newStream(ctx, func(s *Stream[int]) {
+	s := newStream(ctx, 1, func(s *Stream[int]) {
 		fmt.Println("[info] stream destroyed")
 	})
 	defer s.Close()

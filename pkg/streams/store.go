@@ -11,7 +11,7 @@ type Store[T any] struct {
 	opts   *Opts
 }
 
-type Publisher[T any] func(context.Context, func(data T) bool) error
+type PublishFunc[T any] func(context.Context, func(data T) bool) error
 
 func NewStore[T any](opts *Opts) *Store[T] {
 	return &Store[T]{
@@ -20,7 +20,7 @@ func NewStore[T any](opts *Opts) *Store[T] {
 	}
 }
 
-func (s *Store[T]) Subscribe(ctx context.Context, key string, publisher Publisher[T]) *Stream[T] {
+func (s *Store[T]) Subscribe(ctx context.Context, key string, publisher PublishFunc[T]) *Stream[T] {
 	s.mx.Lock()
 	topic, ok := s.topics[key]
 	if !ok {

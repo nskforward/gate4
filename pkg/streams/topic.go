@@ -10,7 +10,7 @@ import (
 
 type topic[T any] struct {
 	key            string
-	publisher      Publisher[T]
+	publisher      PublishFunc[T]
 	subscribers    []*Stream[T]
 	mx             sync.Mutex
 	producerActive atomic.Bool
@@ -18,7 +18,7 @@ type topic[T any] struct {
 	opts           *Opts
 }
 
-func newTopic[T any](opts *Opts, key string, publisher Publisher[T]) *topic[T] {
+func newTopic[T any](opts *Opts, key string, publisher PublishFunc[T]) *topic[T] {
 	return &topic[T]{
 		key:         key,
 		subscribers: make([]*Stream[T], 0, 32),
@@ -28,7 +28,7 @@ func newTopic[T any](opts *Opts, key string, publisher Publisher[T]) *topic[T] {
 }
 
 func (t *topic[T]) Subscribe(ctx context.Context) *Stream[T] {
-	stream := newStream(ctx, t.unsubscibe)
+	stream := newStream(ctx, t.opts.BufferSize, t.unsubscibe)
 	t.mx.Lock()
 	t.subscribers = append(t.subscribers, stream)
 	t.mx.Unlock()
