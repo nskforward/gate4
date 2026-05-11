@@ -7,7 +7,7 @@ import (
 )
 
 type BrokerClient interface {
-	GetAccount(ctx context.Context, accountID string) (*AccountInfo, error)
+	GetAccount(ctx context.Context) (*AccountInfo, error)
 	GetAsset(ctx context.Context, accountID, symbol string) (*AssetInfo, error)
 	GetSchedule(ctx context.Context, symbol string) ([]Session, error)
 	SubscribeQuotes(context.Context, string) *streams.Stream[Quote]

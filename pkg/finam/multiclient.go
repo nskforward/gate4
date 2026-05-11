@@ -20,7 +20,7 @@ func (mc *MultiClient) Get(accountID, secret string) (*Client, error) {
 	defer mc.mx.Unlock()
 	client, ok := mc.accounts[accountID]
 	if !ok {
-		newClient, err := NewClient(secret)
+		newClient, err := NewClient(accountID, secret)
 		if err != nil {
 			return nil, err
 		}

@@ -83,21 +83,30 @@ func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.AccountRequest) (
 	return &pb.EmptyMessage{}, nil
 }
 
-/*
-	func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
-		account := s.broker.LookupAccount(req.AccountKey)
-		if account == nil {
-			return &pb.GetPositionsResponse{}, fmt.Errorf("unknown account")
-		}
-		positions, err := s.broker.GetPositions(ctx, account)
-		if err != nil {
-			return nil, err
-		}
-		return &pb.GetPositionsResponse{
-			Positions: positions,
-		}, nil
+func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
+	client, err := s.broker.Client(req.AccountKey)
+	if err != nil {
+		return nil, err
 	}
+	info, err := client.GetAccount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	positions := make([]*pb.Position, 0, len(info.Positions))
+	for _, pos := range info.Positions {
+		positions = append(positions, &pb.Position{
+			Symbol: pos.Symbol,
+			Price:  pos.Price,
+			Size:   pos.Size,
+			Profit: pos.Profit,
+		})
+	}
+	return &pb.GetPositionsResponse{
+		Positions: positions,
+	}, nil
+}
 
+/*
 	func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
 		account := s.broker.LookupAccount(req.AccountKey)
 		if account == nil {

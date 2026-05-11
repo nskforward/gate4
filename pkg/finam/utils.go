@@ -6,6 +6,7 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/types"
 	"github.com/shopspring/decimal"
+	protodecimal "google.golang.org/genproto/googleapis/type/decimal"
 )
 
 func convertPositions(in []*accounts.Position) []types.Position {
@@ -91,14 +92,21 @@ func convertQuote(in *marketdata.Quote) types.Quote {
 		Timestamp: in.Timestamp.Seconds,
 		Symbol:    in.Symbol,
 		Ask: types.QuoteLevel{
-			Price: in.Ask.Value,
-			Size:  in.AskSize.Value,
+			Price: getNullableDecimal(in.Ask),
+			Size:  getNullableDecimal(in.AskSize),
 		},
 		Bid: types.QuoteLevel{
-			Price: in.Bid.Value,
-			Size:  in.BidSize.Value,
+			Price: getNullableDecimal(in.Bid),
+			Size:  getNullableDecimal(in.BidSize),
 		},
 	}
+}
+
+func getNullableDecimal(v *protodecimal.Decimal) string {
+	if v == nil {
+		return "0"
+	}
+	return v.Value
 }
 
 func calcMinStep(minStep int64, decimals int32) string {
@@ -108,4 +116,30 @@ func calcMinStep(minStep int64, decimals int32) string {
 	exp := decimal.NewFromInt32(decimals)
 	divisor := base.Pow(exp)
 	return minStepDec.Div(divisor).StringFixed(decimals)
+}
+
+func changedQuote(cache map[string]*types.Quote, q types.Quote) *types.Quote {
+	cached, ok := cache[q.Symbol]
+	if !ok {
+		cache[q.Symbol] = &q
+		return &q
+	}
+
+	updated := false
+
+	if q.Ask.Price != "0" && q.Ask.Price != cached.Ask.Price {
+		cached.Ask.Price = q.Ask.Price
+		updated = true
+	}
+
+	if q.Bid.Price != "0" && q.Bid.Price != cached.Bid.Price {
+		cached.Bid.Price = q.Bid.Price
+		updated = true
+	}
+
+	if !updated {
+		return nil
+	}
+
+	return cached
 }

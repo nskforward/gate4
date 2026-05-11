@@ -19,6 +19,7 @@ type topic[T any] struct {
 	attempts       atomic.Int32
 	opts           *Opts
 	unregister     func(*topic[T])
+	last           *T
 }
 
 func newTopic[T any](ctx context.Context, opts *Opts, key string, unregister func(*topic[T]), publisher PublishFunc[T]) *topic[T] {
@@ -41,6 +42,9 @@ func (t *topic[T]) Subscribe(ctx context.Context) *Stream[T] {
 	t.mx.Unlock()
 	if t.producerActive.CompareAndSwap(false, true) {
 		go t.startProducer()
+	}
+	if t.last != nil {
+		s.notify(*t.last)
 	}
 	return s
 }
@@ -101,5 +105,6 @@ func (t *topic[T]) notifyData(data T) bool {
 			s.notify(data)
 		}
 	}
+	t.last = &data
 	return len(t.streams) > 0
 }

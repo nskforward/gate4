@@ -25,7 +25,12 @@ func (c *Client) cmdPositions(ctx context.Context, args []string) error {
 		return nil
 	}
 
-	for _, pos := range positions {
+	posMask := "%d."
+	if len(positions) > 9 {
+		posMask = "%02d"
+	}
+
+	for i, pos := range positions {
 		size, err := decimal.NewFromString(pos.Size)
 		if err != nil {
 			fmt.Println("error: bad format of size:", size)
@@ -35,7 +40,7 @@ func (c *Client) cmdPositions(ctx context.Context, args []string) error {
 		if size.IsNegative() {
 			direction = "short"
 		}
-		fmt.Println("-", pos.Symbol, direction, "| price", pos.Price, "| size", size.StringFixed(2), "| profit", pos.Profit)
+		fmt.Println(fmt.Sprintf(posMask, i+1), pos.Symbol, direction, "| price", pos.Price, "| size", size.StringFixed(2), "| profit", pos.Profit)
 	}
 
 	return nil

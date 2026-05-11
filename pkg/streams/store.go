@@ -22,19 +22,19 @@ func NewStore[T any](ctx context.Context, opts *Opts) *Store[T] {
 	}
 }
 
-func (s *Store[T]) Subscribe(ctx context.Context, key string, publisher PublishFunc[T]) *Stream[T] {
-	s.mx.Lock()
-	topic, ok := s.topics[key]
+func (store *Store[T]) Subscribe(ctx context.Context, key string, publisher PublishFunc[T]) *Stream[T] {
+	store.mx.Lock()
+	topic, ok := store.topics[key]
 	if !ok {
-		topic = newTopic(s.ctx, s.opts, key, s.remove, publisher)
-		s.topics[key] = topic
+		topic = newTopic(store.ctx, store.opts, key, store.remove, publisher)
+		store.topics[key] = topic
 	}
-	s.mx.Unlock()
+	store.mx.Unlock()
 	return topic.Subscribe(ctx)
 }
 
-func (s *Store[T]) remove(t *topic[T]) {
-	s.mx.Lock()
-	defer s.mx.Unlock()
-	delete(s.topics, t.key)
+func (store *Store[T]) remove(t *topic[T]) {
+	store.mx.Lock()
+	defer store.mx.Unlock()
+	delete(store.topics, t.key)
 }

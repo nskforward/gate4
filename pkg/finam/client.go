@@ -19,6 +19,7 @@ const (
 )
 
 type Client struct {
+	accountID         string
 	quoteStreams      *streams.Store[types.Quote]
 	markedDataService marketdata.MarketDataServiceClient
 	orderService      orders.OrdersServiceClient
@@ -29,7 +30,7 @@ type Client struct {
 }
 
 // NewClient создаёт новый клиент Finam
-func NewClient(secret string) (*Client, error) {
+func NewClient(accountID, secret string) (*Client, error) {
 	conn, err := connect(APIHost)
 	if err != nil {
 		return nil, fmt.Errorf("dial failed: %w", err)
@@ -42,6 +43,7 @@ func NewClient(secret string) (*Client, error) {
 	markedDataService := marketdata.NewMarketDataServiceClient(conn)
 
 	return &Client{
+		accountID:         accountID,
 		quoteStreams:      streams.NewStore[types.Quote](context.Background(), nil),
 		markedDataService: markedDataService,
 		orderService:      orderService,
@@ -53,14 +55,14 @@ func NewClient(secret string) (*Client, error) {
 }
 
 // GetAccountInfo возвращает информацию о счёте
-func (c *Client) GetAccount(ctx context.Context, accountID string) (*types.AccountInfo, error) {
+func (c *Client) GetAccount(ctx context.Context) (*types.AccountInfo, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
 	defer cancel()
 	resp, err := c.accountService.GetAccount(reqCtx, &accounts.GetAccountRequest{
-		AccountId: accountID,
+		AccountId: c.accountID,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get account info failed: %w", err)
@@ -172,6 +174,9 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 		if err != nil {
 			return err
 		}
+
+		cache := make(map[string]*types.Quote)
+
 		for {
 			resp, err := streamClient.Recv()
 			if err != nil {
@@ -179,9 +184,12 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 			}
 			quotes := convertQuotes(resp.Quote)
 			for _, q := range quotes {
-				if !publish(q) {
-					// normal closure
-					return nil
+				changed := changedQuote(cache, q)
+				if changed != nil {
+					if !publish(*changed) {
+						// normal closure
+						return nil
+					}
 				}
 			}
 		}
