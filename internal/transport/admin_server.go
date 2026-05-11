@@ -9,6 +9,7 @@ import (
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/types"
 )
 
 type AdminServer struct {
@@ -106,22 +107,20 @@ func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) 
 	}, nil
 }
 
-/*
-	func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
-		account := s.broker.LookupAccount(req.AccountKey)
-		if account == nil {
-			return nil, fmt.Errorf("unknown account")
-		}
-		sessions, current, err := s.broker.GetSchedule(ctx, account, req.Symbol)
-		if err != nil {
-			return nil, err
-		}
-		return &pb.GetScheduleResponse{
-			CurrentSession: current,
-			Sessions:       sessions,
-		}, nil
+func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
+	client, err := s.broker.Client(req.AccountKey)
+	if err != nil {
+		return nil, err
 	}
-*/
+	sessions, current, err := client.GetSchedule(ctx, req.Symbol)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.GetScheduleResponse{
+		CurrentSession: toPbSession(current),
+		Sessions:       toPbSessions(sessions),
+	}, nil
+}
 
 func (s *AdminServer) watch(ctx context.Context) {
 	for {
@@ -163,4 +162,23 @@ func getSleep() time.Duration {
 	}
 	targetDate := time.Date(now.Year(), now.Month(), now.Day()+1, 9, 0, 0, 0, time.Local)
 	return targetDate.Sub(now)
+}
+
+func toPbSessions(in []types.Session) []*pb.ScheduleSession {
+	result := make([]*pb.ScheduleSession, 0, len(in))
+	for _, sess := range in {
+		result = append(result, toPbSession(&sess))
+	}
+	return result
+}
+
+func toPbSession(in *types.Session) *pb.ScheduleSession {
+	if in == nil {
+		return nil
+	}
+	return &pb.ScheduleSession{
+		Type:  string(in.Type),
+		Start: in.Start,
+		End:   in.End,
+	}
 }

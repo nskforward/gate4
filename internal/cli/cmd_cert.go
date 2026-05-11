@@ -22,7 +22,7 @@ func (c *Client) cmdCert(ctx context.Context, args []string) error {
 		return c.cmdCertInitCA(ctx, args)
 	case "issue":
 		return c.cmdCertIssue(ctx, args)
-	case "list-active":
+	case "list":
 		return c.cmdCertListActive(ctx, args)
 	default:
 		return fmt.Errorf("unknown command: %s", command)

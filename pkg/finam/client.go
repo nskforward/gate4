@@ -129,10 +129,10 @@ func (c *Client) GetOrders(ctx context.Context, accountID string) ([]*orders.Ord
 */
 
 // GetSchedule возвращает расписание торгов
-func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {
+func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, *types.Session, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer cancel()
 	req := &assets.ScheduleRequest{
@@ -140,9 +140,10 @@ func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Sessio
 	}
 	resp, err := c.assetsService.Schedule(reqCtx, req)
 	if err != nil {
-		return nil, fmt.Errorf("get schedule failed: %w", err)
+		return nil, nil, fmt.Errorf("get schedule failed: %w", err)
 	}
-	return convertSessions(resp.Sessions), nil
+	sessions, current := convertSessions(resp.Sessions)
+	return sessions, current, nil
 }
 
 /*

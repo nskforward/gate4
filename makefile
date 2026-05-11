@@ -6,7 +6,7 @@ export
 protoc:
 	protoc --proto_path=proto --go_out=pkg/pb --go_opt=paths=source_relative --go-grpc_out=pkg/pb --go-grpc_opt=paths=source_relative proto/*.proto
 
-run_server:
+run:
 	go run cmd/server/* \
 	 --store-dir=data \
 	 --ssl-ca-key=data/ssl/ca.key \
@@ -17,5 +17,5 @@ run_server:
 test:
 	go test ./test/... -v
 
-build_client:
+client:
 	go build -o build/gate4 cmd/cli/*
