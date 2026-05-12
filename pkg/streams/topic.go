@@ -5,38 +5,34 @@ import (
 	"slices"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type topic[T any] struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
 	key            string
-	publisher      PublishFunc[T]
+	publish        PublishFunc[T]
 	streams        []*Stream[T]
 	mx             sync.Mutex
 	producerActive atomic.Bool
-	attempts       atomic.Int32
-	opts           *Opts
 	unregister     func(*topic[T])
 	last           *T
 }
 
-func newTopic[T any](ctx context.Context, opts *Opts, key string, unregister func(*topic[T]), publisher PublishFunc[T]) *topic[T] {
+func newTopic[T any](ctx context.Context, key string, unregister func(*topic[T]), publish PublishFunc[T]) *topic[T] {
 	topicCtx, cancel := context.WithCancel(ctx)
 	return &topic[T]{
 		ctx:        topicCtx,
 		cancel:     cancel,
 		key:        key,
 		streams:    make([]*Stream[T], 0, 32),
-		publisher:  publisher,
-		opts:       opts,
+		publish:    publish,
 		unregister: unregister,
 	}
 }
 
-func (t *topic[T]) Subscribe(ctx context.Context) *Stream[T] {
-	s := newStream(MergedContext(ctx, t.ctx), t.opts.BufferSize, t.unsubscibe)
+func (t *topic[T]) Subscribe(ctx context.Context, size int) *Stream[T] {
+	s := newStream(MergedContext(ctx, t.ctx), size, t.unsubscibe)
 	t.mx.Lock()
 	t.streams = append(t.streams, s)
 	t.mx.Unlock()
@@ -67,21 +63,23 @@ func (t *topic[T]) close() {
 
 func (t *topic[T]) startProducer() {
 	defer t.producerActive.Store(false)
-	for {
-		attempts := t.attempts.Add(1)
-		err := t.publisher(t.ctx, t.notifyData)
-		if err != nil {
-			if attempts >= t.opts.MaxRetryAttempts {
-				t.notifyErr(err)
-				t.close()
-				break
-			}
-			time.Sleep(t.opts.RetryWait(attempts))
-			continue
-		}
-		t.close()
-		break
+	err := t.publish(t.ctx, t.notify)
+	if err != nil {
+		t.notifyErr(err)
 	}
+	t.close()
+}
+
+func (t *topic[T]) notify(data T) bool {
+	t.mx.Lock()
+	defer t.mx.Unlock()
+	for _, s := range t.streams {
+		if s.ctx.Err() == nil {
+			s.notify(data)
+		}
+	}
+	t.last = &data
+	return len(t.streams) > 0
 }
 
 func (t *topic[T]) notifyErr(err error) {
@@ -92,19 +90,4 @@ func (t *topic[T]) notifyErr(err error) {
 			s.err.Store(err)
 		}
 	}
-}
-
-func (t *topic[T]) notifyData(data T) bool {
-	if t.attempts.Load() > 0 {
-		t.attempts.Store(0)
-	}
-	t.mx.Lock()
-	defer t.mx.Unlock()
-	for _, s := range t.streams {
-		if s.ctx.Err() == nil {
-			s.notify(data)
-		}
-	}
-	t.last = &data
-	return len(t.streams) > 0
 }

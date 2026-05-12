@@ -9,28 +9,28 @@ type Store[T any] struct {
 	ctx    context.Context
 	topics map[string]*topic[T]
 	mx     sync.Mutex
-	opts   *Opts
+	size   int
 }
 
 type PublishFunc[T any] func(context.Context, func(data T) bool) error
 
-func NewStore[T any](ctx context.Context, opts *Opts) *Store[T] {
+func NewStore[T any](ctx context.Context, size int) *Store[T] {
 	return &Store[T]{
 		ctx:    ctx,
 		topics: make(map[string]*topic[T]),
-		opts:   initOpts(opts),
+		size:   size,
 	}
 }
 
-func (store *Store[T]) Subscribe(ctx context.Context, key string, publisher PublishFunc[T]) *Stream[T] {
+func (store *Store[T]) Subscribe(ctx context.Context, key string, publish PublishFunc[T]) *Stream[T] {
 	store.mx.Lock()
 	topic, ok := store.topics[key]
 	if !ok {
-		topic = newTopic(store.ctx, store.opts, key, store.remove, publisher)
+		topic = newTopic(store.ctx, key, store.remove, publish)
 		store.topics[key] = topic
 	}
 	store.mx.Unlock()
-	return topic.Subscribe(ctx)
+	return topic.Subscribe(ctx, store.size)
 }
 
 func (store *Store[T]) remove(t *topic[T]) {

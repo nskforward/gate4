@@ -10,6 +10,7 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
+	"github.com/nskforward/gate4/pkg/retries"
 	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
 )
@@ -44,7 +45,7 @@ func NewClient(accountID, secret string) (*Client, error) {
 
 	return &Client{
 		accountID:         accountID,
-		quoteStreams:      streams.NewStore[types.Quote](context.Background(), nil),
+		quoteStreams:      streams.NewStore[types.Quote](context.Background(), 1),
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,
@@ -164,36 +165,49 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 
 // SubscribeQuotes подписывается на котировки
 func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.Stream[types.Quote] {
+
 	return c.quoteStreams.Subscribe(ctx, symbol, func(ctx context.Context, publish func(data types.Quote) bool) error {
-		reqCtx, err := c.authContext(ctx)
-		if err != nil {
-			return err
-		}
-		streamClient, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
-			Symbols: []string{symbol},
+
+		retry := retries.New(retries.Config{
+			InitialDelay:  500 * time.Millisecond,
+			MaxDelay:      30 * time.Second,
+			BackoffFactor: 2.0,
+			MaxAttempts:   10,
+			MaxJitter:     time.Second,
 		})
-		if err != nil {
-			return err
-		}
 
-		cache := make(map[string]*types.Quote)
-
-		for {
-			resp, err := streamClient.Recv()
+		return retry.Do(ctx, func() error {
+			reqCtx, err := c.authContext(ctx)
 			if err != nil {
 				return err
 			}
-			quotes := convertQuotes(resp.Quote)
-			for _, q := range quotes {
-				changed := changedQuote(cache, q)
-				if changed != nil {
-					if !publish(*changed) {
-						// normal closure
-						return nil
+
+			finamStream, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
+				Symbols: []string{symbol},
+			})
+			if err != nil {
+				return err
+			}
+
+			cache := make(map[string]*types.Quote)
+
+			for {
+				resp, err := finamStream.Recv()
+				if err != nil {
+					return err
+				}
+				quotes := convertQuotes(resp.Quote)
+				for _, q := range quotes {
+					changed := changedQuote(cache, q)
+					if changed != nil {
+						if !publish(*changed) {
+							// normal closure
+							return nil
+						}
 					}
 				}
 			}
-		}
+		})
 	})
 }
 

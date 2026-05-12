@@ -7,65 +7,54 @@ import (
 	"time"
 )
 
-type Retry[T any] struct {
-	cfg     Config
-	connect func() (T, error)
+type Retry struct {
+	cfg Config
 }
 
-func NewRetry[T any](cfg Config, connect func() (T, error)) *Retry[T] {
-	return &Retry[T]{
-		cfg:     cfg,
-		connect: connect,
+func New(cfg Config) *Retry {
+	return &Retry{
+		cfg: cfg,
 	}
 }
 
-func (retry *Retry[T]) Do(ctx context.Context) (T, error) {
-	var attempt int
-	var lastErr error
+func (retry *Retry) Do(ctx context.Context, attempt func() error) error {
+	attempts := 0
+	lastAttempt := time.Now()
 
 	for {
 		select {
 		case <-ctx.Done():
-			var zero T
-			return zero, ctx.Err()
+			return ctx.Err()
 		default:
 		}
 
-		result, err := retry.connect()
+		if time.Since(lastAttempt) > retry.cfg.MaxDelay+time.Minute {
+			attempts = 1
+		} else {
+			attempts++
+		}
+
+		err := attempt()
 		if err == nil {
-			return result, nil
-		}
-		lastErr = err
-
-		attempt++
-		if retry.cfg.MaxAttempts > 0 && attempt >= retry.cfg.MaxAttempts {
-			var zero T
-			return zero, lastErr
+			return nil
 		}
 
-		delayNano := float64(retry.cfg.InitialDelay) * math.Pow(retry.cfg.BackoffFactor, float64(attempt))
-		if delayNano > float64(retry.cfg.MaxDelay) {
-			delayNano = float64(retry.cfg.MaxDelay)
+		if attempts >= retry.cfg.MaxAttempts {
+			return err
 		}
 
-		delay := time.Duration(delayNano)
+		delay := retry.backoff(attempts)
 
-		if retry.cfg.JitterFactor > 0 {
-			maxJitter := float64(delay) * retry.cfg.JitterFactor
-			jitter := rand.Float64() * maxJitter
-			delay = time.Duration(float64(delay) + jitter)
-			if delay > retry.cfg.MaxDelay {
-				delay = retry.cfg.MaxDelay
-			}
-		}
-
-		timer := time.NewTimer(delay)
 		select {
 		case <-ctx.Done():
-			timer.Stop()
-			var zero T
-			return zero, ctx.Err()
-		case <-timer.C:
+			return nil
+		case <-time.After(delay):
 		}
 	}
+}
+
+func (retry *Retry) backoff(attempts int) time.Duration {
+	delayNano := float64(retry.cfg.InitialDelay) * math.Pow(retry.cfg.BackoffFactor, float64(attempts))
+	delay := time.Duration(delayNano) + time.Duration(rand.Int64N(int64(retry.cfg.MaxJitter)))
+	return min(delay, retry.cfg.MaxDelay)
 }
