@@ -39,6 +39,9 @@ func (s *AdminServer) Run(ctx context.Context) error {
 }
 
 func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Admin_QuoteStreamServer) error {
+
+	slog.Debug("call subscribe quote", "symbol", req.Symbol)
+
 	client, err := s.broker.Client(req.AccountKey)
 	if err != nil {
 		return err

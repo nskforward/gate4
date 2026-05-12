@@ -17,8 +17,8 @@ func New(cfg Config) *Retry {
 	}
 }
 
-func (retry *Retry) Do(ctx context.Context, attempt func() error) error {
-	attempts := 0
+func (retry *Retry) Do(ctx context.Context, callback func(attempt int) error) error {
+	attempt := 0
 	lastAttempt := time.Now()
 
 	for {
@@ -29,21 +29,28 @@ func (retry *Retry) Do(ctx context.Context, attempt func() error) error {
 		}
 
 		if time.Since(lastAttempt) > retry.cfg.MaxDelay+time.Minute {
-			attempts = 1
+			attempt = 1
 		} else {
-			attempts++
+			attempt++
 		}
 
-		err := attempt()
+		if retry.cfg.OnBefore != nil {
+			retry.cfg.OnBefore(attempt)
+		}
+
+		err := callback(attempt)
+		if retry.cfg.OnAfter != nil {
+			retry.cfg.OnAfter(err)
+		}
 		if err == nil {
 			return nil
 		}
 
-		if attempts >= retry.cfg.MaxAttempts {
+		if attempt >= retry.cfg.MaxAttempts {
 			return err
 		}
 
-		delay := retry.backoff(attempts)
+		delay := retry.backoff(attempt)
 
 		select {
 		case <-ctx.Done():
@@ -53,8 +60,8 @@ func (retry *Retry) Do(ctx context.Context, attempt func() error) error {
 	}
 }
 
-func (retry *Retry) backoff(attempts int) time.Duration {
-	delayNano := float64(retry.cfg.InitialDelay) * math.Pow(retry.cfg.BackoffFactor, float64(attempts))
+func (retry *Retry) backoff(attempt int) time.Duration {
+	delayNano := float64(retry.cfg.InitialDelay) * math.Pow(retry.cfg.BackoffFactor, float64(attempt))
 	delay := time.Duration(delayNano) + time.Duration(rand.Int64N(int64(retry.cfg.MaxJitter)))
 	return min(delay, retry.cfg.MaxDelay)
 }

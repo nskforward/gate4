@@ -10,6 +10,8 @@ type Config struct {
 	BackoffFactor float64       // множитель для экспоненциального роста (обычно 1.5–2.0)
 	MaxAttempts   int           // максимальное количество попыток (0 = бесконечно)
 	MaxJitter     time.Duration // random addition to backoff
+	OnBefore      func(int)
+	OnAfter       func(error)
 }
 
 func DefaultConfig() Config {

@@ -3,6 +3,7 @@ package finam
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
@@ -13,6 +14,8 @@ import (
 	"github.com/nskforward/gate4/pkg/retries"
 	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -174,9 +177,16 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 			BackoffFactor: 2.0,
 			MaxAttempts:   10,
 			MaxJitter:     time.Second,
+			OnBefore: func(attempt int) {
+				slog.Debug("subscribe for finam remote quote stream", "symbol", symbol, "attempt", attempt)
+			},
+			OnAfter: func(err error) {
+				slog.Debug("finam remote quote stream exited", "symbol", symbol, "error", err)
+			},
 		})
 
-		return retry.Do(ctx, func() error {
+		return retry.Do(ctx, func(attempt int) error {
+
 			reqCtx, err := c.authContext(ctx)
 			if err != nil {
 				return err
@@ -194,6 +204,12 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 			for {
 				resp, err := finamStream.Recv()
 				if err != nil {
+					st, ok := status.FromError(err)
+					if ok {
+						if st.Code() == codes.Canceled {
+							return nil
+						}
+					}
 					return err
 				}
 				quotes := convertQuotes(resp.Quote)
@@ -201,7 +217,6 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 					changed := changedQuote(cache, q)
 					if changed != nil {
 						if !publish(*changed) {
-							// normal closure
 							return nil
 						}
 					}

@@ -17,6 +17,7 @@ type topic[T any] struct {
 	producerActive atomic.Bool
 	unregister     func(*topic[T])
 	last           *T
+	once           sync.Once
 }
 
 func newTopic[T any](ctx context.Context, key string, unregister func(*topic[T]), publish PublishFunc[T]) *topic[T] {
@@ -54,11 +55,16 @@ func (t *topic[T]) unsubscibe(stream *Stream[T]) {
 			break
 		}
 	}
+	if len(t.streams) == 0 {
+		t.close()
+	}
 }
 
 func (t *topic[T]) close() {
-	t.unregister(t)
-	t.cancel()
+	t.once.Do(func() {
+		t.unregister(t)
+		t.cancel()
+	})
 }
 
 func (t *topic[T]) startProducer() {
