@@ -9,7 +9,7 @@ import "admin.proto";
 
 service Gateway {
   rpc GetPositions(AccountRequest) returns (GetPositionsResponse) {}
-  rpc QuoteStream(QuoteStreamRequest) returns (stream QuoteStreamResponse);
+  rpc SubscribeQuoutes(QuoteStreamRequest) returns (stream QuoteStreamResponse);
 }
 
 service Admin {
@@ -17,6 +17,6 @@ service Admin {
   rpc AddAccount(AddAccountRequest) returns (EmptyMessage) {}
   rpc DeleteAccount(AccountRequest) returns (EmptyMessage) {}
   rpc GetPositions(AccountRequest) returns (GetPositionsResponse) {}
-  rpc QuoteStream(QuoteStreamRequest) returns (stream QuoteStreamResponse);
+  rpc SubscribeQuoutes(QuoteStreamRequest) returns (stream QuoteStreamResponse);
   rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {}
 }

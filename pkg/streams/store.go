@@ -31,11 +31,6 @@ func (store *Store[T]) Subscribe(ctx context.Context, key string, publish Publis
 		store.topics[key] = topic
 	}
 	store.mx.Unlock()
-	if !ok {
-		slog.Debug("created a new stream topic", "key", key)
-	} else {
-		slog.Debug("reuse an existing stream topic", "key", key)
-	}
 	return topic.Subscribe(ctx, store.size)
 }
 

@@ -32,7 +32,7 @@ func (c *AdminClient) Close() {
 }
 
 func (c *AdminClient) SubscribeQuotes(ctx context.Context, accountKey, symbol string) (grpc.ServerStreamingClient[pb.QuoteStreamResponse], error) {
-	return c.client.QuoteStream(ctx, &pb.QuoteStreamRequest{
+	return c.client.SubscribeQuoutes(ctx, &pb.QuoteStreamRequest{
 		AccountKey: accountKey,
 		Symbol:     symbol,
 	})

@@ -178,7 +178,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 			MaxAttempts:   10,
 			MaxJitter:     time.Second,
 			OnBefore: func(attempt int) {
-				slog.Debug("subscribe for finam remote quote stream", "symbol", symbol, "attempt", attempt)
+				slog.Debug("create a new outgoing finam quote stream", "symbol", symbol, "attempt", attempt)
 			},
 			OnAfter: func(err error) {
 				slog.Debug("finam remote quote stream exited", "symbol", symbol, "error", err)

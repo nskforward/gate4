@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
-	"github.com/nskforward/gate4/pkg/types"
 )
 
 type AdminServer struct {
@@ -38,91 +38,107 @@ func (s *AdminServer) Run(ctx context.Context) error {
 	return s.serv.Run(ctx)
 }
 
-func (s *AdminServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Admin_QuoteStreamServer) error {
-
-	slog.Debug("call subscribe quote", "symbol", req.Symbol)
-
-	client, err := s.broker.Client(req.AccountKey)
-	if err != nil {
-		return err
-	}
-
-	stream := client.SubscribeQuotes(serverStream.Context(), req.Symbol)
-	defer stream.Close()
-
-	for q := range stream.Range() {
-		err := serverStream.Send(&pb.QuoteStreamResponse{
-			Symbol:    q.Symbol,
-			Timestamp: q.Timestamp,
-			Ask:       q.Ask.Price,
-			Bid:       q.Bid.Price,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return stream.Err()
-}
-
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
-	return &pb.ListAccountsResponse{
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin list acounts",
+		"id", id,
+	)
+	t1 := time.Now()
+	result := &pb.ListAccountsResponse{
 		Items: broker.ExportAccounts(s.broker.Accounts()),
-	}, nil
+	}
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+	)
+	return result, nil
 }
 
 func (s *AdminServer) AddAccount(ctx context.Context, req *pb.AddAccountRequest) (*pb.EmptyMessage, error) {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin add acount",
+		"id", id,
+		"broker", req.Account.BrokerId,
+		"account_id", req.Account.Id,
+		"valid_until", req.Account.ValidUntil,
+	)
+	t1 := time.Now()
 	account := broker.ImportAccount(req.Account)
 	err := s.broker.AddAccount(account)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.EmptyMessage{}, nil
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+	)
+	return &pb.EmptyMessage{}, err
 }
 
 func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.AccountRequest) (*pb.EmptyMessage, error) {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin del acount",
+		"id", id,
+		"input", req.String(),
+	)
+	t1 := time.Now()
 	err := s.broker.DelAccount(req.AccountKey)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.EmptyMessage{}, nil
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+	)
+	return &pb.EmptyMessage{}, err
+}
+
+func (s *AdminServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream pb.Admin_SubscribeQuoutesServer) error {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin subscribe quote stream",
+		"id", id,
+		"input", req.String(),
+	)
+	t1 := time.Now()
+	err := s.broker.SubscribeQuoutes(serverStream.Context(), req, serverStream.Send)
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return err
 }
 
 func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
-	client, err := s.broker.Client(req.AccountKey)
-	if err != nil {
-		return nil, err
-	}
-	info, err := client.GetAccount(ctx)
-	if err != nil {
-		return nil, err
-	}
-	positions := make([]*pb.Position, 0, len(info.Positions))
-	for _, pos := range info.Positions {
-		positions = append(positions, &pb.Position{
-			Symbol: pos.Symbol,
-			Price:  pos.Price,
-			Size:   pos.Size,
-			Profit: pos.Profit,
-		})
-	}
-	return &pb.GetPositionsResponse{
-		Positions: positions,
-	}, nil
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin get positions",
+		"id", id,
+		"input", req.String(),
+	)
+	result, err := s.broker.GetPositions(ctx, req)
+	t1 := time.Now()
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return result, err
 }
 
 func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
-	client, err := s.broker.Client(req.AccountKey)
-	if err != nil {
-		return nil, err
-	}
-	sessions, current, err := client.GetSchedule(ctx, req.Symbol)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.GetScheduleResponse{
-		CurrentSession: toPbSession(current),
-		Sessions:       toPbSessions(sessions),
-	}, nil
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin get shedule",
+		"id", id,
+		"input", req.String(),
+	)
+	result, err := s.broker.GetSchedule(ctx, req)
+	t1 := time.Now()
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return result, err
 }
 
 func (s *AdminServer) watch(ctx context.Context) {
@@ -165,23 +181,4 @@ func getSleep() time.Duration {
 	}
 	targetDate := time.Date(now.Year(), now.Month(), now.Day()+1, 9, 0, 0, 0, time.Local)
 	return targetDate.Sub(now)
-}
-
-func toPbSessions(in []types.Session) []*pb.ScheduleSession {
-	result := make([]*pb.ScheduleSession, 0, len(in))
-	for _, sess := range in {
-		result = append(result, toPbSession(&sess))
-	}
-	return result
-}
-
-func toPbSession(in *types.Session) *pb.ScheduleSession {
-	if in == nil {
-		return nil
-	}
-	return &pb.ScheduleSession{
-		Type:  string(in.Type),
-		Start: in.Start,
-		End:   in.End,
-	}
 }

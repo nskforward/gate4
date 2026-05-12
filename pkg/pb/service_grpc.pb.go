@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Gateway_GetPositions_FullMethodName = "/proto.Gateway/GetPositions"
-	Gateway_QuoteStream_FullMethodName  = "/proto.Gateway/QuoteStream"
+	Gateway_GetPositions_FullMethodName     = "/proto.Gateway/GetPositions"
+	Gateway_SubscribeQuoutes_FullMethodName = "/proto.Gateway/SubscribeQuoutes"
 )
 
 // GatewayClient is the client API for Gateway service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GatewayClient interface {
 	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
-	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
+	SubscribeQuoutes(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 }
 
 type gatewayClient struct {
@@ -49,9 +49,9 @@ func (c *gatewayClient) GetPositions(ctx context.Context, in *AccountRequest, op
 	return out, nil
 }
 
-func (c *gatewayClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error) {
+func (c *gatewayClient) SubscribeQuoutes(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Gateway_ServiceDesc.Streams[0], Gateway_QuoteStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Gateway_ServiceDesc.Streams[0], Gateway_SubscribeQuoutes_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +66,14 @@ func (c *gatewayClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest,
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Gateway_QuoteStreamClient = grpc.ServerStreamingClient[QuoteStreamResponse]
+type Gateway_SubscribeQuoutesClient = grpc.ServerStreamingClient[QuoteStreamResponse]
 
 // GatewayServer is the server API for Gateway service.
 // All implementations must embed UnimplementedGatewayServer
 // for forward compatibility.
 type GatewayServer interface {
 	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
-	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
+	SubscribeQuoutes(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	mustEmbedUnimplementedGatewayServer()
 }
 
@@ -87,8 +87,8 @@ type UnimplementedGatewayServer struct{}
 func (UnimplementedGatewayServer) GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPositions not implemented")
 }
-func (UnimplementedGatewayServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
-	return status.Error(codes.Unimplemented, "method QuoteStream not implemented")
+func (UnimplementedGatewayServer) SubscribeQuoutes(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeQuoutes not implemented")
 }
 func (UnimplementedGatewayServer) mustEmbedUnimplementedGatewayServer() {}
 func (UnimplementedGatewayServer) testEmbeddedByValue()                 {}
@@ -129,16 +129,16 @@ func _Gateway_GetPositions_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Gateway_QuoteStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Gateway_SubscribeQuoutes_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(QuoteStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GatewayServer).QuoteStream(m, &grpc.GenericServerStream[QuoteStreamRequest, QuoteStreamResponse]{ServerStream: stream})
+	return srv.(GatewayServer).SubscribeQuoutes(m, &grpc.GenericServerStream[QuoteStreamRequest, QuoteStreamResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Gateway_QuoteStreamServer = grpc.ServerStreamingServer[QuoteStreamResponse]
+type Gateway_SubscribeQuoutesServer = grpc.ServerStreamingServer[QuoteStreamResponse]
 
 // Gateway_ServiceDesc is the grpc.ServiceDesc for Gateway service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -154,8 +154,8 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "QuoteStream",
-			Handler:       _Gateway_QuoteStream_Handler,
+			StreamName:    "SubscribeQuoutes",
+			Handler:       _Gateway_SubscribeQuoutes_Handler,
 			ServerStreams: true,
 		},
 	},
@@ -163,12 +163,12 @@ var Gateway_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Admin_ListAccounts_FullMethodName  = "/proto.Admin/ListAccounts"
-	Admin_AddAccount_FullMethodName    = "/proto.Admin/AddAccount"
-	Admin_DeleteAccount_FullMethodName = "/proto.Admin/DeleteAccount"
-	Admin_GetPositions_FullMethodName  = "/proto.Admin/GetPositions"
-	Admin_QuoteStream_FullMethodName   = "/proto.Admin/QuoteStream"
-	Admin_GetSchedule_FullMethodName   = "/proto.Admin/GetSchedule"
+	Admin_ListAccounts_FullMethodName     = "/proto.Admin/ListAccounts"
+	Admin_AddAccount_FullMethodName       = "/proto.Admin/AddAccount"
+	Admin_DeleteAccount_FullMethodName    = "/proto.Admin/DeleteAccount"
+	Admin_GetPositions_FullMethodName     = "/proto.Admin/GetPositions"
+	Admin_SubscribeQuoutes_FullMethodName = "/proto.Admin/SubscribeQuoutes"
+	Admin_GetSchedule_FullMethodName      = "/proto.Admin/GetSchedule"
 )
 
 // AdminClient is the client API for Admin service.
@@ -179,7 +179,7 @@ type AdminClient interface {
 	AddAccount(ctx context.Context, in *AddAccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
 	DeleteAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
 	GetPositions(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*GetPositionsResponse, error)
-	QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
+	SubscribeQuoutes(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error)
 }
 
@@ -231,9 +231,9 @@ func (c *adminClient) GetPositions(ctx context.Context, in *AccountRequest, opts
 	return out, nil
 }
 
-func (c *adminClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error) {
+func (c *adminClient) SubscribeQuoutes(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[0], Admin_QuoteStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Admin_ServiceDesc.Streams[0], Admin_SubscribeQuoutes_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func (c *adminClient) QuoteStream(ctx context.Context, in *QuoteStreamRequest, o
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Admin_QuoteStreamClient = grpc.ServerStreamingClient[QuoteStreamResponse]
+type Admin_SubscribeQuoutesClient = grpc.ServerStreamingClient[QuoteStreamResponse]
 
 func (c *adminClient) GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -268,7 +268,7 @@ type AdminServer interface {
 	AddAccount(context.Context, *AddAccountRequest) (*EmptyMessage, error)
 	DeleteAccount(context.Context, *AccountRequest) (*EmptyMessage, error)
 	GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error)
-	QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
+	SubscribeQuoutes(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
@@ -292,8 +292,8 @@ func (UnimplementedAdminServer) DeleteAccount(context.Context, *AccountRequest) 
 func (UnimplementedAdminServer) GetPositions(context.Context, *AccountRequest) (*GetPositionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPositions not implemented")
 }
-func (UnimplementedAdminServer) QuoteStream(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
-	return status.Error(codes.Unimplemented, "method QuoteStream not implemented")
+func (UnimplementedAdminServer) SubscribeQuoutes(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeQuoutes not implemented")
 }
 func (UnimplementedAdminServer) GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSchedule not implemented")
@@ -391,16 +391,16 @@ func _Admin_GetPositions_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Admin_QuoteStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Admin_SubscribeQuoutes_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(QuoteStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(AdminServer).QuoteStream(m, &grpc.GenericServerStream[QuoteStreamRequest, QuoteStreamResponse]{ServerStream: stream})
+	return srv.(AdminServer).SubscribeQuoutes(m, &grpc.GenericServerStream[QuoteStreamRequest, QuoteStreamResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Admin_QuoteStreamServer = grpc.ServerStreamingServer[QuoteStreamResponse]
+type Admin_SubscribeQuoutesServer = grpc.ServerStreamingServer[QuoteStreamResponse]
 
 func _Admin_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetScheduleRequest)
@@ -450,8 +450,8 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "QuoteStream",
-			Handler:       _Admin_QuoteStream_Handler,
+			StreamName:    "SubscribeQuoutes",
+			Handler:       _Admin_SubscribeQuoutes_Handler,
 			ServerStreams: true,
 		},
 	},
