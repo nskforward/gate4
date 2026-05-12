@@ -3,7 +3,9 @@ package transport
 import (
 	"context"
 	"log/slog"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
@@ -69,25 +71,19 @@ func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest
 }
 */
 
-func (s *GatewayServer) QuoteStream(req *pb.QuoteStreamRequest, serverStream pb.Gateway_QuoteStreamServer) error {
-	client, err := s.broker.Client(req.AccountKey)
-	if err != nil {
-		return err
-	}
-
-	stream := client.SubscribeQuotes(serverStream.Context(), req.Symbol)
-	defer stream.Close()
-
-	for q := range stream.Range() {
-		err := serverStream.Send(&pb.QuoteStreamResponse{
-			Symbol:    q.Symbol,
-			Timestamp: q.Timestamp,
-			Ask:       q.Ask.Price,
-			Bid:       q.Bid.Price,
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return stream.Err()
+func (s *GatewayServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream pb.Gateway_SubscribeQuoutesServer) error {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "gateway subscribe quote stream",
+		"id", id,
+		"input", req.String(),
+	)
+	t1 := time.Now()
+	err := s.broker.SubscribeQuoutes(serverStream.Context(), req, serverStream.Send)
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return err
 }
