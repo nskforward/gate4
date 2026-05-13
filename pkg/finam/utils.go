@@ -39,20 +39,15 @@ func convertAsset(in *assets.GetAssetResponse) types.AssetInfo {
 	}
 }
 
-func convertSessions(in []*assets.ScheduleResponse_Sessions) ([]types.Session, *types.Session) {
-	timestamp := time.Now().Unix()
-	var current *types.Session
+func convertSessions(in []*assets.ScheduleResponse_Sessions) []types.Session {
 	result := make([]types.Session, 0, len(in))
+	now := time.Now().Unix()
 	for _, sess := range in {
-		out := convertSession(sess)
-		if out.Start <= timestamp && out.End >= timestamp {
-			current = &out
-		}
-		if out.End >= timestamp {
+		if sess.Interval.EndTime.Seconds >= now {
 			result = append(result, convertSession(sess))
 		}
 	}
-	return result, current
+	return result
 }
 
 func convertSession(in *assets.ScheduleResponse_Sessions) types.Session {

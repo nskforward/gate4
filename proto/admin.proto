@@ -28,19 +28,3 @@ message AddAccountRequest {
 message GetPositionsResponse {
   repeated Position positions = 1;
 }
-
-message GetScheduleRequest {
-  string account_key = 1;
-  string symbol = 2;
-}
-
-message GetScheduleResponse {
-  ScheduleSession current_session = 1;
-  repeated ScheduleSession sessions = 2;
-}
-
-message ScheduleSession {
-  string type = 1;
-  int64 start = 2;
-  int64 end = 3;
-}

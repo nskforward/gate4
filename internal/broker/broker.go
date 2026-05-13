@@ -3,10 +3,14 @@ package broker
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
+	"time"
 
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/retries"
+	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
@@ -14,6 +18,7 @@ type Broker struct {
 	accounts     *AccountStore
 	finamClients *finam.MultiClient
 	mx           sync.Mutex
+	quoteStreams *streams.Store[types.Quote]
 }
 
 func NewBroker() (*Broker, error) {
@@ -24,6 +29,7 @@ func NewBroker() (*Broker, error) {
 	return &Broker{
 		accounts:     accounts,
 		finamClients: finam.NewMultiClient(),
+		quoteStreams: streams.NewStore[types.Quote](context.Background(), 1),
 	}, nil
 }
 
@@ -45,21 +51,26 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, req *pb.QuoteStreamReques
 		return err
 	}
 
-	stream := client.SubscribeQuotes(ctx, req.Symbol)
-	defer stream.Close()
+	stream := b.quoteStreams.Subscribe(ctx, req.Symbol, func(topicCtx context.Context, publish func(data types.Quote) bool) error {
+		retry := retries.New(retries.Config{
+			InitialDelay:  500 * time.Millisecond,
+			MaxDelay:      30 * time.Second,
+			BackoffFactor: 2.0,
+			MaxAttempts:   10,
+			MaxJitter:     time.Second,
+		})
+		return retry.Do(topicCtx, func() error {
+			return client.SubscribeQuotes(topicCtx, req.Symbol, publish)
+		})
+	})
 
 	for q := range stream.Range() {
-		err := send(&pb.QuoteStreamResponse{
-			Symbol:    q.Symbol,
-			Timestamp: q.Timestamp,
-			Ask:       q.Ask.Price,
-			Bid:       q.Bid.Price,
-		})
+		err := send(toPbQuote(q))
 		if err != nil {
 			return err
 		}
 	}
-	return stream.Err()
+	return nil
 }
 
 func (b *Broker) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
@@ -90,17 +101,19 @@ func (b *Broker) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	sessions, current, err := client.GetSchedule(ctx, req.Symbol)
+	sessions, err := client.GetSchedule(ctx, req.Symbol)
 	if err != nil {
 		return nil, err
 	}
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
+	})
 	return &pb.GetScheduleResponse{
-		CurrentSession: toPbSession(current),
-		Sessions:       toPbSessions(sessions),
+		Sessions: toPbSessions(sessions),
 	}, nil
 }
 
-func (b *Broker) getClient(key string) (types.BrokerClient, error) {
+func (b *Broker) getClient(key string) (Client, error) {
 	account, ok := b.accounts.Lookup(key)
 	if !ok {
 		return nil, fmt.Errorf("unknown account key: %s", key)

@@ -17,7 +17,7 @@ func New(cfg Config) *Retry {
 	}
 }
 
-func (retry *Retry) Do(ctx context.Context, callback func(attempt int) error) error {
+func (retry *Retry) Do(ctx context.Context, callback func() error) error {
 	attempt := 0
 	lastAttempt := time.Now()
 
@@ -38,7 +38,7 @@ func (retry *Retry) Do(ctx context.Context, callback func(attempt int) error) er
 			retry.cfg.OnBefore(attempt)
 		}
 
-		err := callback(attempt)
+		err := callback()
 		if retry.cfg.OnAfter != nil {
 			retry.cfg.OnAfter(err)
 		}

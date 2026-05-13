@@ -257,170 +257,6 @@ func (x *GetPositionsResponse) GetPositions() []*Position {
 	return nil
 }
 
-type GetScheduleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
-	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetScheduleRequest) Reset() {
-	*x = GetScheduleRequest{}
-	mi := &file_admin_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetScheduleRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetScheduleRequest) ProtoMessage() {}
-
-func (x *GetScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetScheduleRequest.ProtoReflect.Descriptor instead.
-func (*GetScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *GetScheduleRequest) GetAccountKey() string {
-	if x != nil {
-		return x.AccountKey
-	}
-	return ""
-}
-
-func (x *GetScheduleRequest) GetSymbol() string {
-	if x != nil {
-		return x.Symbol
-	}
-	return ""
-}
-
-type GetScheduleResponse struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	CurrentSession *ScheduleSession       `protobuf:"bytes,1,opt,name=current_session,json=currentSession,proto3" json:"current_session,omitempty"`
-	Sessions       []*ScheduleSession     `protobuf:"bytes,2,rep,name=sessions,proto3" json:"sessions,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *GetScheduleResponse) Reset() {
-	*x = GetScheduleResponse{}
-	mi := &file_admin_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetScheduleResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetScheduleResponse) ProtoMessage() {}
-
-func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetScheduleResponse.ProtoReflect.Descriptor instead.
-func (*GetScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *GetScheduleResponse) GetCurrentSession() *ScheduleSession {
-	if x != nil {
-		return x.CurrentSession
-	}
-	return nil
-}
-
-func (x *GetScheduleResponse) GetSessions() []*ScheduleSession {
-	if x != nil {
-		return x.Sessions
-	}
-	return nil
-}
-
-type ScheduleSession struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Start         int64                  `protobuf:"varint,2,opt,name=start,proto3" json:"start,omitempty"`
-	End           int64                  `protobuf:"varint,3,opt,name=end,proto3" json:"end,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ScheduleSession) Reset() {
-	*x = ScheduleSession{}
-	mi := &file_admin_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ScheduleSession) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ScheduleSession) ProtoMessage() {}
-
-func (x *ScheduleSession) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ScheduleSession.ProtoReflect.Descriptor instead.
-func (*ScheduleSession) Descriptor() ([]byte, []int) {
-	return file_admin_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ScheduleSession) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
-func (x *ScheduleSession) GetStart() int64 {
-	if x != nil {
-		return x.Start
-	}
-	return 0
-}
-
-func (x *ScheduleSession) GetEnd() int64 {
-	if x != nil {
-		return x.End
-	}
-	return 0
-}
-
 var File_admin_proto protoreflect.FileDescriptor
 
 const file_admin_proto_rawDesc = "" +
@@ -438,18 +274,7 @@ const file_admin_proto_rawDesc = "" +
 	"\x11AddAccountRequest\x12(\n" +
 	"\aaccount\x18\x01 \x01(\v2\x0e.proto.AccountR\aaccount\"E\n" +
 	"\x14GetPositionsResponse\x12-\n" +
-	"\tpositions\x18\x01 \x03(\v2\x0f.proto.PositionR\tpositions\"M\n" +
-	"\x12GetScheduleRequest\x12\x1f\n" +
-	"\vaccount_key\x18\x01 \x01(\tR\n" +
-	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\x8a\x01\n" +
-	"\x13GetScheduleResponse\x12?\n" +
-	"\x0fcurrent_session\x18\x01 \x01(\v2\x16.proto.ScheduleSessionR\x0ecurrentSession\x122\n" +
-	"\bsessions\x18\x02 \x03(\v2\x16.proto.ScheduleSessionR\bsessions\"M\n" +
-	"\x0fScheduleSession\x12\x12\n" +
-	"\x04type\x18\x01 \x01(\tR\x04type\x12\x14\n" +
-	"\x05start\x18\x02 \x01(\x03R\x05start\x12\x10\n" +
-	"\x03end\x18\x03 \x01(\x03R\x03endB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\tpositions\x18\x01 \x03(\v2\x0f.proto.PositionR\tpositionsB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_admin_proto_rawDescOnce sync.Once
@@ -463,29 +288,24 @@ func file_admin_proto_rawDescGZIP() []byte {
 	return file_admin_proto_rawDescData
 }
 
-var file_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_admin_proto_goTypes = []any{
 	(*Account)(nil),              // 0: proto.Account
 	(*EmptyMessage)(nil),         // 1: proto.EmptyMessage
 	(*ListAccountsResponse)(nil), // 2: proto.ListAccountsResponse
 	(*AddAccountRequest)(nil),    // 3: proto.AddAccountRequest
 	(*GetPositionsResponse)(nil), // 4: proto.GetPositionsResponse
-	(*GetScheduleRequest)(nil),   // 5: proto.GetScheduleRequest
-	(*GetScheduleResponse)(nil),  // 6: proto.GetScheduleResponse
-	(*ScheduleSession)(nil),      // 7: proto.ScheduleSession
-	(*Position)(nil),             // 8: proto.Position
+	(*Position)(nil),             // 5: proto.Position
 }
 var file_admin_proto_depIdxs = []int32{
 	0, // 0: proto.ListAccountsResponse.items:type_name -> proto.Account
 	0, // 1: proto.AddAccountRequest.account:type_name -> proto.Account
-	8, // 2: proto.GetPositionsResponse.positions:type_name -> proto.Position
-	7, // 3: proto.GetScheduleResponse.current_session:type_name -> proto.ScheduleSession
-	7, // 4: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	5, // 2: proto.GetPositionsResponse.positions:type_name -> proto.Position
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_admin_proto_init() }
@@ -500,7 +320,7 @@ func file_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_proto_rawDesc), len(file_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

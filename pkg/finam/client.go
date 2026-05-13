@@ -3,7 +3,6 @@ package finam
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
@@ -11,8 +10,6 @@ import (
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/orders"
-	"github.com/nskforward/gate4/pkg/retries"
-	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,7 +21,6 @@ const (
 
 type Client struct {
 	accountID         string
-	quoteStreams      *streams.Store[types.Quote]
 	markedDataService marketdata.MarketDataServiceClient
 	orderService      orders.OrdersServiceClient
 	assetsService     assets.AssetsServiceClient
@@ -48,7 +44,6 @@ func NewClient(accountID, secret string) (*Client, error) {
 
 	return &Client{
 		accountID:         accountID,
-		quoteStreams:      streams.NewStore[types.Quote](context.Background(), 1),
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,
@@ -133,10 +128,10 @@ func (c *Client) GetOrders(ctx context.Context, accountID string) ([]*orders.Ord
 */
 
 // GetSchedule возвращает расписание торгов
-func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, *types.Session, error) {
+func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer cancel()
 	req := &assets.ScheduleRequest{
@@ -144,10 +139,9 @@ func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Sessio
 	}
 	resp, err := c.assetsService.Schedule(reqCtx, req)
 	if err != nil {
-		return nil, nil, fmt.Errorf("get schedule failed: %w", err)
+		return nil, fmt.Errorf("get schedule failed: %w", err)
 	}
-	sessions, current := convertSessions(resp.Sessions)
-	return sessions, current, nil
+	return convertSessions(resp.Sessions), nil
 }
 
 /*
@@ -166,7 +160,45 @@ func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.O
 }
 */
 
-// SubscribeQuotes подписывается на котировки
+func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(types.Quote) bool) error {
+	reqCtx, err := c.authContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	finamStream, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
+		Symbols: []string{symbol},
+	})
+	if err != nil {
+		return err
+	}
+
+	cache := make(map[string]*types.Quote)
+
+	for {
+		resp, err := finamStream.Recv()
+		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				if st.Code() == codes.Canceled {
+					return nil
+				}
+			}
+			return err
+		}
+		quotes := convertQuotes(resp.Quote)
+		for _, q := range quotes {
+			changed := changedQuote(cache, q)
+			if changed != nil {
+				if !send(*changed) {
+					return nil
+				}
+			}
+		}
+	}
+}
+
+/*
 func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.Stream[types.Quote] {
 
 	return c.quoteStreams.Subscribe(ctx, symbol, func(ctx context.Context, publish func(data types.Quote) bool) error {
@@ -225,6 +257,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.St
 		})
 	})
 }
+*/
 
 /*
 // SubscribeAccountTrades подписывается на сделки аккаунта

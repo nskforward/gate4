@@ -31,3 +31,18 @@ message QuoteStreamResponse {
   string ask = 3;
   string bid = 4;
 }
+
+message GetScheduleRequest {
+  string account_key = 1;
+  string symbol = 2;
+}
+
+message GetScheduleResponse {
+  repeated ScheduleSession sessions = 2;
+}
+
+message ScheduleSession {
+  string type = 1;
+  int64 start = 2;
+  int64 end = 3;
+}

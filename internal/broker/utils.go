@@ -23,3 +23,12 @@ func toPbSession(in *types.Session) *pb.ScheduleSession {
 		End:   in.End,
 	}
 }
+
+func toPbQuote(in types.Quote) *pb.QuoteStreamResponse {
+	return &pb.QuoteStreamResponse{
+		Symbol:    in.Symbol,
+		Timestamp: in.Timestamp,
+		Ask:       in.Ask.Price,
+		Bid:       in.Bid.Price,
+	}
+}

@@ -83,7 +83,7 @@ func (c *AdminClient) GetPositions(ctx context.Context, key string) ([]*pb.Posit
 	return resp.Positions, nil
 }
 
-func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*pb.ScheduleSession, *pb.ScheduleSession, error) {
+func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*pb.ScheduleSession, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.GetSchedule(reqCtx, &pb.GetScheduleRequest{
@@ -91,7 +91,7 @@ func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*p
 		Symbol:     symbol,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return resp.Sessions, resp.CurrentSession, nil
+	return resp.Sessions, nil
 }
