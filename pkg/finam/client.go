@@ -73,14 +73,14 @@ func (c *Client) GetAccount(ctx context.Context) (*types.AccountInfo, error) {
 }
 
 // GetAssetInfo возвращает информацию об активе
-func (c *Client) GetAsset(ctx context.Context, accountID, symbol string) (*types.AssetInfo, error) {
+func (c *Client) GetAsset(ctx context.Context, symbol string) (*types.AssetInfo, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
 	defer cancel()
 	resp, err := c.assetsService.GetAsset(reqCtx, &assets.GetAssetRequest{
-		AccountId: accountID,
+		AccountId: c.accountID,
 		Symbol:    symbol,
 	})
 	if err != nil {
@@ -88,6 +88,22 @@ func (c *Client) GetAsset(ctx context.Context, accountID, symbol string) (*types
 	}
 	result := convertAsset(resp)
 	return &result, nil
+}
+
+func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {
+	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	req := &assets.ScheduleRequest{
+		Symbol: symbol,
+	}
+	resp, err := c.assetsService.Schedule(reqCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("get schedule failed: %w", err)
+	}
+	return convertSessions(resp.Sessions), nil
 }
 
 /*
@@ -127,23 +143,6 @@ func (c *Client) GetOrders(ctx context.Context, accountID string) ([]*orders.Ord
 }
 */
 
-// GetSchedule возвращает расписание торгов
-func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {
-	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
-	if err != nil {
-		return nil, err
-	}
-	defer cancel()
-	req := &assets.ScheduleRequest{
-		Symbol: symbol,
-	}
-	resp, err := c.assetsService.Schedule(reqCtx, req)
-	if err != nil {
-		return nil, fmt.Errorf("get schedule failed: %w", err)
-	}
-	return convertSessions(resp.Sessions), nil
-}
-
 /*
 // PlaceOrder размещает ордер
 func (c *Client) PlaceOrder(ctx context.Context, order *orders.Order) (*orders.OrderState, error) {
@@ -173,7 +172,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 		return err
 	}
 
-	cache := make(map[string]*types.Quote)
+	cache := NewQuoteCache()
 
 	for {
 		resp, err := finamStream.Recv()
@@ -186,11 +185,10 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 			}
 			return err
 		}
-		quotes := convertQuotes(resp.Quote)
-		for _, q := range quotes {
-			changed := changedQuote(cache, q)
-			if changed != nil {
-				if !send(*changed) {
+		for _, q := range resp.Quote {
+			result := cache.Get(q)
+			if result != nil {
+				if !send(*result) {
 					return nil
 				}
 			}
@@ -198,99 +196,36 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 	}
 }
 
-/*
-func (c *Client) SubscribeQuotes(ctx context.Context, symbol string) *streams.Stream[types.Quote] {
-
-	return c.quoteStreams.Subscribe(ctx, symbol, func(ctx context.Context, publish func(data types.Quote) bool) error {
-
-		retry := retries.New(retries.Config{
-			InitialDelay:  500 * time.Millisecond,
-			MaxDelay:      30 * time.Second,
-			BackoffFactor: 2.0,
-			MaxAttempts:   10,
-			MaxJitter:     time.Second,
-			OnBefore: func(attempt int) {
-				slog.Debug("create a new outgoing finam quote stream", "symbol", symbol, "attempt", attempt)
-			},
-			OnAfter: func(err error) {
-				slog.Debug("finam remote quote stream exited", "symbol", symbol, "error", err)
-			},
-		})
-
-		return retry.Do(ctx, func(attempt int) error {
-
-			reqCtx, err := c.authContext(ctx)
-			if err != nil {
-				return err
-			}
-
-			finamStream, err := c.markedDataService.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
-				Symbols: []string{symbol},
-			})
-			if err != nil {
-				return err
-			}
-
-			cache := make(map[string]*types.Quote)
-
-			for {
-				resp, err := finamStream.Recv()
-				if err != nil {
-					st, ok := status.FromError(err)
-					if ok {
-						if st.Code() == codes.Canceled {
-							return nil
-						}
-					}
-					return err
-				}
-				quotes := convertQuotes(resp.Quote)
-				for _, q := range quotes {
-					changed := changedQuote(cache, q)
-					if changed != nil {
-						if !publish(*changed) {
-							return nil
-						}
-					}
-				}
-			}
-		})
-	})
-}
-*/
-
-/*
-// SubscribeAccountTrades подписывается на сделки аккаунта
-func (c *Client) SubscribeAccountTrades(ctx context.Context, accountID string) (iter.Seq2[*v1.AccountTrade, error], error) {
-	reqCtx, err := c.Context(ctx)
+func (c *Client) SubscribeAccountTrades(ctx context.Context, symbol string, send func(types.AccountTrade) bool) error {
+	reqCtx, err := c.authContext(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	stream, err := c.orderService.SubscribeTrades(reqCtx, &orders.SubscribeTradesRequest{
-		AccountId: accountID,
+	finamStream, err := c.orderService.SubscribeTrades(reqCtx, &orders.SubscribeTradesRequest{
+		AccountId: c.accountID,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return func(yield func(*v1.AccountTrade, error) bool) {
-		for {
-			resp, err := stream.Recv()
-			if err == io.EOF {
-				return
-			}
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-			for _, trade := range resp.Trades {
-				if !yield(trade, nil) {
-					return
+
+	for {
+		resp, err := finamStream.Recv()
+		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				if st.Code() == codes.Canceled {
+					return nil
 				}
+			}
+			return err
+		}
+		for _, trade := range resp.Trades {
+			if !send(convertAccountTrade(trade)) {
+				return nil
 			}
 		}
-	}, nil
+	}
 }
-*/
 
 // ContextWithTimeout создаёт контекст с таймаутом
 func (c *Client) authContextWithTimeout(ctx context.Context, timeout time.Duration) (reqCtx context.Context, cancel context.CancelFunc, err error) {

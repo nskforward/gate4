@@ -1,9 +1,9 @@
 package finam
 
 import (
+	v1 "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/assets"
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/types"
 	"github.com/shopspring/decimal"
 	protodecimal "google.golang.org/genproto/googleapis/type/decimal"
@@ -23,6 +23,20 @@ func convertPosition(in *accounts.Position) types.Position {
 		Price:  in.AveragePrice.Value,
 		Size:   in.Quantity.Value,
 		Profit: in.UnrealizedPnl.Value,
+	}
+}
+
+func convertAccountTrade(in *v1.AccountTrade) types.AccountTrade {
+	size := in.Size.Value
+	if in.Side == v1.Side_SIDE_SELL {
+		size = "-" + size
+	}
+	return types.AccountTrade{
+		Timestamp: in.Timestamp.Seconds,
+		AccountID: in.AccountId,
+		Symbol:    in.Symbol,
+		Price:     in.Price.Value,
+		Size:      size,
 	}
 }
 
@@ -79,29 +93,6 @@ func convertSessionType(sessionType string) types.SessionType {
 	}
 }
 
-func convertQuotes(in []*marketdata.Quote) []types.Quote {
-	result := make([]types.Quote, 0, len(in))
-	for _, q := range in {
-		result = append(result, convertQuote(q))
-	}
-	return result
-}
-
-func convertQuote(in *marketdata.Quote) types.Quote {
-	return types.Quote{
-		Timestamp: in.Timestamp.Seconds,
-		Symbol:    in.Symbol,
-		Ask: types.QuoteLevel{
-			Price: getNullableDecimal(in.Ask),
-			Size:  getNullableDecimal(in.AskSize),
-		},
-		Bid: types.QuoteLevel{
-			Price: getNullableDecimal(in.Bid),
-			Size:  getNullableDecimal(in.BidSize),
-		},
-	}
-}
-
 func getNullableDecimal(v *protodecimal.Decimal) string {
 	if v == nil {
 		return "0"
@@ -116,30 +107,4 @@ func calcMinStep(minStep int64, decimals int32) string {
 	exp := decimal.NewFromInt32(decimals)
 	divisor := base.Pow(exp)
 	return minStepDec.Div(divisor).StringFixed(decimals)
-}
-
-func changedQuote(cache map[string]*types.Quote, q types.Quote) *types.Quote {
-	cached, ok := cache[q.Symbol]
-	if !ok {
-		cache[q.Symbol] = &q
-		return &q
-	}
-
-	updated := false
-
-	if q.Ask.Price != "0" && q.Ask.Price != cached.Ask.Price {
-		cached.Ask.Price = q.Ask.Price
-		updated = true
-	}
-
-	if q.Bid.Price != "0" && q.Bid.Price != cached.Bid.Price {
-		cached.Bid.Price = q.Bid.Price
-		updated = true
-	}
-
-	if !updated {
-		return nil
-	}
-
-	return cached
 }

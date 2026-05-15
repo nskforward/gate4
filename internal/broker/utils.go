@@ -28,7 +28,7 @@ func toPbQuote(in types.Quote) *pb.QuoteStreamResponse {
 	return &pb.QuoteStreamResponse{
 		Symbol:    in.Symbol,
 		Timestamp: in.Timestamp,
-		Ask:       in.Ask.Price,
-		Bid:       in.Bid.Price,
+		Ask:       in.Ask,
+		Bid:       in.Bid,
 	}
 }
