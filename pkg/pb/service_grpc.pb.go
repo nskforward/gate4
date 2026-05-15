@@ -170,6 +170,7 @@ const (
 	Admin_SubscribeQuoutes_FullMethodName       = "/proto.Admin/SubscribeQuoutes"
 	Admin_GetSchedule_FullMethodName            = "/proto.Admin/GetSchedule"
 	Admin_SubscribeAccountTrades_FullMethodName = "/proto.Admin/SubscribeAccountTrades"
+	Admin_GetAsset_FullMethodName               = "/proto.Admin/GetAsset"
 )
 
 // AdminClient is the client API for Admin service.
@@ -183,6 +184,7 @@ type AdminClient interface {
 	SubscribeQuoutes(ctx context.Context, in *QuoteStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[QuoteStreamResponse], error)
 	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*GetScheduleResponse, error)
 	SubscribeAccountTrades(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[AccountTradeResponse], error)
+	GetAsset(ctx context.Context, in *GetAssetRequest, opts ...grpc.CallOption) (*GetAssetResponse, error)
 }
 
 type adminClient struct {
@@ -281,6 +283,16 @@ func (c *adminClient) SubscribeAccountTrades(ctx context.Context, in *AccountReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Admin_SubscribeAccountTradesClient = grpc.ServerStreamingClient[AccountTradeResponse]
 
+func (c *adminClient) GetAsset(ctx context.Context, in *GetAssetRequest, opts ...grpc.CallOption) (*GetAssetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAssetResponse)
+	err := c.cc.Invoke(ctx, Admin_GetAsset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServer is the server API for Admin service.
 // All implementations must embed UnimplementedAdminServer
 // for forward compatibility.
@@ -292,6 +304,7 @@ type AdminServer interface {
 	SubscribeQuoutes(*QuoteStreamRequest, grpc.ServerStreamingServer[QuoteStreamResponse]) error
 	GetSchedule(context.Context, *GetScheduleRequest) (*GetScheduleResponse, error)
 	SubscribeAccountTrades(*AccountRequest, grpc.ServerStreamingServer[AccountTradeResponse]) error
+	GetAsset(context.Context, *GetAssetRequest) (*GetAssetResponse, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -322,6 +335,9 @@ func (UnimplementedAdminServer) GetSchedule(context.Context, *GetScheduleRequest
 }
 func (UnimplementedAdminServer) SubscribeAccountTrades(*AccountRequest, grpc.ServerStreamingServer[AccountTradeResponse]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeAccountTrades not implemented")
+}
+func (UnimplementedAdminServer) GetAsset(context.Context, *GetAssetRequest) (*GetAssetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAsset not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
 func (UnimplementedAdminServer) testEmbeddedByValue()               {}
@@ -456,6 +472,24 @@ func _Admin_SubscribeAccountTrades_Handler(srv interface{}, stream grpc.ServerSt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Admin_SubscribeAccountTradesServer = grpc.ServerStreamingServer[AccountTradeResponse]
 
+func _Admin_GetAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServer).GetAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Admin_GetAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServer).GetAsset(ctx, req.(*GetAssetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Admin_ServiceDesc is the grpc.ServiceDesc for Admin service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -482,6 +516,10 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSchedule",
 			Handler:    _Admin_GetSchedule_Handler,
+		},
+		{
+			MethodName: "GetAsset",
+			Handler:    _Admin_GetAsset_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

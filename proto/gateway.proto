@@ -50,3 +50,17 @@ message AccountTradeResponse {
   string price = 4;
 	string size = 5;
 }
+
+message GetAssetRequest {
+  string account_key = 1;
+  string symbol = 2;
+}
+
+message GetAssetResponse {
+  string symbol = 1;
+	string description = 2;     
+	int32 decimals = 3;
+	string min_step = 4;
+	string lot_size = 5;  
+	string currency = 6; 
+}

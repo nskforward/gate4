@@ -485,6 +485,142 @@ func (x *AccountTradeResponse) GetSize() string {
 	return ""
 }
 
+type GetAssetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
+	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssetRequest) Reset() {
+	*x = GetAssetRequest{}
+	mi := &file_gateway_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssetRequest) ProtoMessage() {}
+
+func (x *GetAssetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssetRequest.ProtoReflect.Descriptor instead.
+func (*GetAssetRequest) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetAssetRequest) GetAccountKey() string {
+	if x != nil {
+		return x.AccountKey
+	}
+	return ""
+}
+
+func (x *GetAssetRequest) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+type GetAssetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Decimals      int32                  `protobuf:"varint,3,opt,name=decimals,proto3" json:"decimals,omitempty"`
+	MinStep       string                 `protobuf:"bytes,4,opt,name=min_step,json=minStep,proto3" json:"min_step,omitempty"`
+	LotSize       string                 `protobuf:"bytes,5,opt,name=lot_size,json=lotSize,proto3" json:"lot_size,omitempty"`
+	Currency      string                 `protobuf:"bytes,6,opt,name=currency,proto3" json:"currency,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssetResponse) Reset() {
+	*x = GetAssetResponse{}
+	mi := &file_gateway_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssetResponse) ProtoMessage() {}
+
+func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssetResponse.ProtoReflect.Descriptor instead.
+func (*GetAssetResponse) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetAssetResponse) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *GetAssetResponse) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GetAssetResponse) GetDecimals() int32 {
+	if x != nil {
+		return x.Decimals
+	}
+	return 0
+}
+
+func (x *GetAssetResponse) GetMinStep() string {
+	if x != nil {
+		return x.MinStep
+	}
+	return ""
+}
+
+func (x *GetAssetResponse) GetLotSize() string {
+	if x != nil {
+		return x.LotSize
+	}
+	return ""
+}
+
+func (x *GetAssetResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
 var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
@@ -522,7 +658,18 @@ const file_gateway_proto_rawDesc = "" +
 	"account_id\x18\x02 \x01(\tR\taccountId\x12\x16\n" +
 	"\x06symbol\x18\x03 \x01(\tR\x06symbol\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\tR\x05price\x12\x12\n" +
-	"\x04size\x18\x05 \x01(\tR\x04sizeB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\x04size\x18\x05 \x01(\tR\x04size\"J\n" +
+	"\x0fGetAssetRequest\x12\x1f\n" +
+	"\vaccount_key\x18\x01 \x01(\tR\n" +
+	"accountKey\x12\x16\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\xba\x01\n" +
+	"\x10GetAssetResponse\x12\x16\n" +
+	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
+	"\bdecimals\x18\x03 \x01(\x05R\bdecimals\x12\x19\n" +
+	"\bmin_step\x18\x04 \x01(\tR\aminStep\x12\x19\n" +
+	"\blot_size\x18\x05 \x01(\tR\alotSize\x12\x1a\n" +
+	"\bcurrency\x18\x06 \x01(\tR\bcurrencyB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_gateway_proto_rawDescOnce sync.Once
@@ -536,7 +683,7 @@ func file_gateway_proto_rawDescGZIP() []byte {
 	return file_gateway_proto_rawDescData
 }
 
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_gateway_proto_goTypes = []any{
 	(*GetPositionsResponse)(nil), // 0: proto.GetPositionsResponse
 	(*Position)(nil),             // 1: proto.Position
@@ -546,6 +693,8 @@ var file_gateway_proto_goTypes = []any{
 	(*GetScheduleResponse)(nil),  // 5: proto.GetScheduleResponse
 	(*ScheduleSession)(nil),      // 6: proto.ScheduleSession
 	(*AccountTradeResponse)(nil), // 7: proto.AccountTradeResponse
+	(*GetAssetRequest)(nil),      // 8: proto.GetAssetRequest
+	(*GetAssetResponse)(nil),     // 9: proto.GetAssetResponse
 }
 var file_gateway_proto_depIdxs = []int32{
 	1, // 0: proto.GetPositionsResponse.positions:type_name -> proto.Position
@@ -568,7 +717,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

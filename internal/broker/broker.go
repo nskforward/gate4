@@ -115,6 +115,14 @@ func (b *Broker) GetSchedule(ctx context.Context, accountKey, symbol string) ([]
 	return b.scheduleCache.GetSessions(ctx, client, symbol)
 }
 
+func (b *Broker) GetAsset(ctx context.Context, accountKey, symbol string) (types.AssetInfo, error) {
+	client, err := b.getClient(accountKey)
+	if err != nil {
+		return types.AssetInfo{}, err
+	}
+	return client.GetAsset(ctx, symbol)
+}
+
 func (b *Broker) getClient(key string) (Client, error) {
 	account, ok := b.accounts.Lookup(key)
 	if !ok {

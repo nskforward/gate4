@@ -42,12 +42,12 @@ func convertAccountTrade(in *v1.AccountTrade) types.AccountTrade {
 
 func convertAsset(in *assets.GetAssetResponse) types.AssetInfo {
 	return types.AssetInfo{
-		Symbol:   in.Ticker,
-		Name:     in.Name,
-		Decimals: in.Decimals,
-		Currency: in.QuoteCurrency,
-		LotSize:  in.LotSize.Value,
-		MinStep:  calcMinStep(in.MinStep, in.Decimals),
+		Symbol:      in.Ticker,
+		Description: in.Name,
+		Decimals:    in.Decimals,
+		Currency:    in.QuoteCurrency,
+		LotSize:     in.LotSize.Value,
+		MinStep:     calcMinStep(in.MinStep, in.Decimals),
 	}
 }
 

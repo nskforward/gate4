@@ -73,10 +73,10 @@ func (c *Client) GetAccount(ctx context.Context) (*types.AccountInfo, error) {
 }
 
 // GetAssetInfo возвращает информацию об активе
-func (c *Client) GetAsset(ctx context.Context, symbol string) (*types.AssetInfo, error) {
+func (c *Client) GetAsset(ctx context.Context, symbol string) (types.AssetInfo, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
-		return nil, err
+		return types.AssetInfo{}, err
 	}
 	defer cancel()
 	resp, err := c.assetsService.GetAsset(reqCtx, &assets.GetAssetRequest{
@@ -84,10 +84,9 @@ func (c *Client) GetAsset(ctx context.Context, symbol string) (*types.AssetInfo,
 		Symbol:    symbol,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("get asset info failed: %w", err)
+		return types.AssetInfo{}, fmt.Errorf("get asset info failed: %w", err)
 	}
-	result := convertAsset(resp)
-	return &result, nil
+	return convertAsset(resp), nil
 }
 
 func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Session, error) {

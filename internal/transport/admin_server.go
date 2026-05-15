@@ -166,6 +166,26 @@ func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReques
 	return convertSessions(sessions), nil
 }
 
+func (s *AdminServer) GetAsset(ctx context.Context, req *pb.GetAssetRequest) (*pb.GetAssetResponse, error) {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin get asset",
+		"id", id,
+		"input", req.String(),
+	)
+	asset, err := s.broker.GetAsset(ctx, req.AccountKey, req.Symbol)
+	t1 := time.Now()
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return convertAsset(asset), nil
+}
+
 func (s *AdminServer) watch(ctx context.Context) {
 	for {
 		sleep := getSleep()

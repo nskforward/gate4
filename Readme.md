@@ -6,6 +6,7 @@ proto impl -> broker -> finam client
 
 ## TODO
 - Get asset info
+- Assets cache
 - Positions cache
 - Update finam tokens automatically
 - Move accounts watch expiration into separate module from transport

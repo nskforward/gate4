@@ -55,3 +55,14 @@ func convertAccountTrade(in types.AccountTrade) *pb.AccountTradeResponse {
 		Size:      in.Size,
 	}
 }
+
+func convertAsset(in types.AssetInfo) *pb.GetAssetResponse {
+	return &pb.GetAssetResponse{
+		Symbol:      in.Symbol,
+		Description: in.Description,
+		Decimals:    in.Decimals,
+		MinStep:     in.MinStep,
+		LotSize:     in.LotSize,
+		Currency:    in.Currency,
+	}
+}

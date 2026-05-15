@@ -20,4 +20,5 @@ service Admin {
   rpc SubscribeQuoutes(QuoteStreamRequest) returns (stream QuoteStreamResponse);
   rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {}
   rpc SubscribeAccountTrades(AccountRequest) returns (stream AccountTradeResponse);
+  rpc GetAsset(GetAssetRequest) returns (GetAssetResponse) {}
 }
