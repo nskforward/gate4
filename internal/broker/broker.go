@@ -3,7 +3,6 @@ package broker
 import (
 	"context"
 	"fmt"
-	"sort"
 	"sync"
 	"time"
 
@@ -15,10 +14,11 @@ import (
 )
 
 type Broker struct {
-	accounts     *AccountStore
-	finamClients *finam.MultiClient
-	mx           sync.Mutex
-	quoteStreams *streams.Store[types.Quote]
+	accounts      *AccountStore
+	finamClients  *finam.MultiClient
+	mx            sync.Mutex
+	quoteStreams  *streams.Store[types.Quote]
+	scheduleCache *ScheduleCache
 }
 
 func NewBroker() (*Broker, error) {
@@ -27,9 +27,10 @@ func NewBroker() (*Broker, error) {
 		return nil, err
 	}
 	return &Broker{
-		accounts:     accounts,
-		finamClients: finam.NewMultiClient(),
-		quoteStreams: streams.NewStore[types.Quote](context.Background(), 1),
+		accounts:      accounts,
+		finamClients:  finam.NewMultiClient(),
+		quoteStreams:  streams.NewStore[types.Quote](context.Background(), 1),
+		scheduleCache: NewScheduleCache(),
 	}, nil
 }
 
@@ -101,13 +102,10 @@ func (b *Broker) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	sessions, err := client.GetSchedule(ctx, req.Symbol)
+	sessions, err := b.scheduleCache.GetSessions(ctx, client, req.Symbol)
 	if err != nil {
 		return nil, err
 	}
-	sort.Slice(sessions, func(i, j int) bool {
-		return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
-	})
 	return &pb.GetScheduleResponse{
 		Sessions: toPbSessions(sessions),
 	}, nil

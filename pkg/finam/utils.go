@@ -1,8 +1,6 @@
 package finam
 
 import (
-	"time"
-
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/assets"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
@@ -41,11 +39,8 @@ func convertAsset(in *assets.GetAssetResponse) types.AssetInfo {
 
 func convertSessions(in []*assets.ScheduleResponse_Sessions) []types.Session {
 	result := make([]types.Session, 0, len(in))
-	now := time.Now().Unix()
 	for _, sess := range in {
-		if sess.Interval.EndTime.Seconds >= now {
-			result = append(result, convertSession(sess))
-		}
+		result = append(result, convertSession(sess))
 	}
 	return result
 }
