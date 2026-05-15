@@ -10,6 +10,7 @@ import (
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/types"
 )
 
 type AdminServer struct {
@@ -98,7 +99,9 @@ func (s *AdminServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream 
 		"input", req.String(),
 	)
 	t1 := time.Now()
-	err := s.broker.SubscribeQuoutes(serverStream.Context(), req, serverStream.Send)
+	err := s.broker.SubscribeQuoutes(serverStream.Context(), req.AccountKey, req.Symbol, func(q types.Quote) error {
+		return serverStream.Send(convertQuote(q))
+	})
 	slog.Debug("finish call",
 		"id", id,
 		"duration", time.Since(t1).String(),
@@ -114,14 +117,14 @@ func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) 
 		"id", id,
 		"input", req.String(),
 	)
-	result, err := s.broker.GetPositions(ctx, req)
+	info, err := s.broker.GetAccountInfo(ctx, req.AccountKey)
 	t1 := time.Now()
 	slog.Debug("finish call",
 		"id", id,
 		"duration", time.Since(t1).String(),
 		"error", err,
 	)
-	return result, err
+	return convertPositions(info), nil
 }
 
 func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
@@ -131,14 +134,17 @@ func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReques
 		"id", id,
 		"input", req.String(),
 	)
-	result, err := s.broker.GetSchedule(ctx, req)
+	sessions, err := s.broker.GetSchedule(ctx, req.AccountKey, req.Symbol)
 	t1 := time.Now()
 	slog.Debug("finish call",
 		"id", id,
 		"duration", time.Since(t1).String(),
 		"error", err,
 	)
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return convertSessions(sessions), nil
 }
 
 func (s *AdminServer) watch(ctx context.Context) {

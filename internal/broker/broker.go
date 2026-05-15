@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/nskforward/gate4/pkg/finam"
-	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/retries"
 	"github.com/nskforward/gate4/pkg/streams"
 	"github.com/nskforward/gate4/pkg/types"
@@ -46,13 +45,12 @@ func (b *Broker) Accounts() []*Account {
 	return b.accounts.Accounts()
 }
 
-func (b *Broker) SubscribeQuoutes(ctx context.Context, req *pb.QuoteStreamRequest, send func(*pb.QuoteStreamResponse) error) error {
-	client, err := b.getClient(req.AccountKey)
+func (b *Broker) SubscribeQuoutes(ctx context.Context, accountKey, symbol string, send func(types.Quote) error) error {
+	client, err := b.getClient(accountKey)
 	if err != nil {
 		return err
 	}
-
-	stream := b.quoteStreams.Subscribe(ctx, req.Symbol, func(topicCtx context.Context, publish func(data types.Quote) bool) error {
+	stream := b.quoteStreams.Subscribe(ctx, symbol, func(topicCtx context.Context, publish func(data types.Quote) bool) error {
 		retry := retries.New(retries.Config{
 			InitialDelay:  500 * time.Millisecond,
 			MaxDelay:      30 * time.Second,
@@ -61,12 +59,11 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, req *pb.QuoteStreamReques
 			MaxJitter:     time.Second,
 		})
 		return retry.Do(topicCtx, func() error {
-			return client.SubscribeQuotes(topicCtx, req.Symbol, publish)
+			return client.SubscribeQuotes(topicCtx, symbol, publish)
 		})
 	})
-
 	for q := range stream.Range() {
-		err := send(toPbQuote(q))
+		err := send(q)
 		if err != nil {
 			return err
 		}
@@ -74,41 +71,20 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, req *pb.QuoteStreamReques
 	return nil
 }
 
-func (b *Broker) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
-	client, err := b.getClient(req.AccountKey)
+func (b *Broker) GetAccountInfo(ctx context.Context, accountKey string) (*types.AccountInfo, error) {
+	client, err := b.getClient(accountKey)
 	if err != nil {
 		return nil, err
 	}
-	info, err := client.GetAccount(ctx)
-	if err != nil {
-		return nil, err
-	}
-	positions := make([]*pb.Position, 0, len(info.Positions))
-	for _, pos := range info.Positions {
-		positions = append(positions, &pb.Position{
-			Symbol: pos.Symbol,
-			Price:  pos.Price,
-			Size:   pos.Size,
-			Profit: pos.Profit,
-		})
-	}
-	return &pb.GetPositionsResponse{
-		Positions: positions,
-	}, nil
+	return client.GetAccount(ctx)
 }
 
-func (b *Broker) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
-	client, err := b.getClient(req.AccountKey)
+func (b *Broker) GetSchedule(ctx context.Context, accountKey, symbol string) ([]types.Session, error) {
+	client, err := b.getClient(accountKey)
 	if err != nil {
 		return nil, err
 	}
-	sessions, err := b.scheduleCache.GetSessions(ctx, client, req.Symbol)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.GetScheduleResponse{
-		Sessions: toPbSessions(sessions),
-	}, nil
+	return b.scheduleCache.GetSessions(ctx, client, symbol)
 }
 
 func (b *Broker) getClient(key string) (Client, error) {

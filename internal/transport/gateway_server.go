@@ -10,6 +10,7 @@ import (
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/pkg/grpcserv"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -79,7 +80,9 @@ func (s *GatewayServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStrea
 		"input", req.String(),
 	)
 	t1 := time.Now()
-	err := s.broker.SubscribeQuoutes(serverStream.Context(), req, serverStream.Send)
+	err := s.broker.SubscribeQuoutes(serverStream.Context(), req.AccountKey, req.Symbol, func(q types.Quote) error {
+		return serverStream.Send(convertQuote(q))
+	})
 	slog.Debug("finish call",
 		"id", id,
 		"duration", time.Since(t1).String(),
