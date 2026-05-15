@@ -19,4 +19,5 @@ service Admin {
   rpc GetPositions(AccountRequest) returns (GetPositionsResponse) {}
   rpc SubscribeQuoutes(QuoteStreamRequest) returns (stream QuoteStreamResponse);
   rpc GetSchedule(GetScheduleRequest) returns (GetScheduleResponse) {}
+  rpc SubscribeAccountTrades(AccountRequest) returns (stream AccountTradeResponse);
 }

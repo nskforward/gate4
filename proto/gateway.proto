@@ -4,13 +4,9 @@ package proto;
 
 option go_package = "gate4/pkg/pb";
 
-message AccountRequest {
-  string account_key = 1;
-}
 
-message AccountResponse {
-  string broker_id = 1;
-  string account_id = 2;
+message GetPositionsResponse {
+  repeated Position positions = 1;
 }
 
 message Position {
@@ -45,4 +41,12 @@ message ScheduleSession {
   string type = 1;
   int64 start = 2;
   int64 end = 3;
+}
+
+message AccountTradeResponse {
+  int64 timestamp = 1;
+	string account_id = 2;
+	string symbol = 3;
+  string price = 4;
+	string size = 5;
 }

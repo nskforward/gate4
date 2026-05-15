@@ -45,3 +45,13 @@ func convertSessions(in []types.Session) *pb.GetScheduleResponse {
 		Sessions: sessions,
 	}
 }
+
+func convertAccountTrade(in types.AccountTrade) *pb.AccountTradeResponse {
+	return &pb.AccountTradeResponse{
+		Symbol:    in.Symbol,
+		Timestamp: in.Timestamp,
+		AccountId: in.AccountID,
+		Price:     in.Price,
+		Size:      in.Size,
+	}
+}

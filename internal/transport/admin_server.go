@@ -110,6 +110,25 @@ func (s *AdminServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream 
 	return err
 }
 
+func (s *AdminServer) SubscribeAccountTrades(req *pb.AccountRequest, serverStream pb.Admin_SubscribeAccountTradesServer) error {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin subscribe account trades",
+		"id", id,
+		"input", req.String(),
+	)
+	t1 := time.Now()
+	err := s.broker.SubscribeAccountTrades(serverStream.Context(), req.AccountKey, func(t types.AccountTrade) error {
+		return serverStream.Send(convertAccountTrade(t))
+	})
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return err
+}
+
 func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
 	id := uuid.NewString()
 	slog.Debug("start call",

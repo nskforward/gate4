@@ -196,7 +196,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 	}
 }
 
-func (c *Client) SubscribeAccountTrades(ctx context.Context, symbol string, send func(types.AccountTrade) bool) error {
+func (c *Client) SubscribeAccountTrades(ctx context.Context, send func(types.AccountTrade) bool) error {
 	reqCtx, err := c.authContext(ctx)
 	if err != nil {
 		return err

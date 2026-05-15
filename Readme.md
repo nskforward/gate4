@@ -5,7 +5,6 @@
 proto impl -> broker -> finam client
 
 ## TODO
-- Watch accounts trades
 - Get asset info
 - Positions cache
 - Update finam tokens automatically
