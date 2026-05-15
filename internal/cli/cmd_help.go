@@ -19,8 +19,10 @@ func (c *Client) cmdHelp(context.Context) error {
 	commandInfo("account list", "show accounts list", "gate4 account list")
 	commandInfo("account add", "add a new account", "gate4 account add")
 	commandInfo("account del <key>", "delete a account", "gate4 account del <key>")
-	commandInfo("quotes <symbol> <key>", "subscribe for quote stream", "gate4 quotes <symbol> <key>")
+	commandInfo("quotes <symbol> <key>", "subscribe for the quote stream", "gate4 quotes <symbol> <key>")
 	commandInfo("positions <key>", "show list of account positions", "gate4 positions <key>")
 	commandInfo("schedule <symbol> <key>", "show the symbol trading schedule", "gate4 schedule <symbol> <key>")
+	commandInfo("my-trades <key>", "subscribe for the account trades", "gate4 my-trades <key>")
+	commandInfo("asset <symbol> <key>", "show the asset general inforamtion", "gate4 asset <symbol> <key>")
 	return nil
 }

@@ -38,6 +38,12 @@ func (c *AdminClient) SubscribeQuotes(ctx context.Context, accountKey, symbol st
 	})
 }
 
+func (c *AdminClient) SubscribeAccountTrades(ctx context.Context, accountKey string) (grpc.ServerStreamingClient[pb.AccountTradeResponse], error) {
+	return c.client.SubscribeAccountTrades(ctx, &pb.AccountRequest{
+		AccountKey: accountKey,
+	})
+}
+
 func (c *AdminClient) ListAccounts(ctx context.Context) ([]*pb.Account, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -94,4 +100,13 @@ func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*p
 		return nil, err
 	}
 	return resp.Sessions, nil
+}
+
+func (c *AdminClient) GetAsset(ctx context.Context, key, symbol string) (*pb.GetAssetResponse, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	return c.client.GetAsset(reqCtx, &pb.GetAssetRequest{
+		AccountKey: key,
+		Symbol:     symbol,
+	})
 }
