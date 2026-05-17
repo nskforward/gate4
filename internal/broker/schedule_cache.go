@@ -33,21 +33,45 @@ func (cache *ScheduleCache) GetSessions(ctx context.Context, client Client, symb
 
 	sessions, ok := symbols[symbol]
 	if !ok || !isFreshSessions(sessions) {
+		slog.Debug("get schedule sessions", "cache", "miss")
+
 		var err error
 		sessions, err = client.GetSchedule(ctx, symbol)
 		if err != nil {
 			return nil, err
 		}
-		sort.Slice(sessions, func(i, j int) bool {
-			return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
-		})
-		slog.Debug("get schedule sessions", "cache", "miss")
+		sessions = cache.normalize(sessions)
 		symbols[symbol] = sessions
-	} else {
-		slog.Debug("get schedule sessions", "cache", "hit")
+		return sessions, nil
 	}
 
+	slog.Debug("get schedule sessions", "cache", "hit")
 	return sessions, nil
+}
+
+func (cache *ScheduleCache) normalize(sessions []types.Session) []types.Session {
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
+	})
+
+	result := sessions[:0]
+	last := func() int { return len(result) - 1 }
+
+	for i, curr := range sessions {
+		if i == 0 {
+			result = append(result, curr)
+			continue
+		}
+
+		if curr.Type == result[last()].Type {
+			result[last()].End = curr.End
+			continue
+		}
+
+		result = append(result, curr)
+	}
+
+	return result
 }
 
 func isFreshSessions(sessions []types.Session) bool {

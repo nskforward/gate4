@@ -3,6 +3,7 @@ package broker
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -59,6 +60,12 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, accountKey, symbol string
 			BackoffFactor: 2.0,
 			MaxAttempts:   10,
 			MaxJitter:     time.Second,
+			OnError: func(err error) {
+				slog.Error("unexpectedly quote stream closed", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "symbol", symbol, "error", err.Error())
+			},
+			OnAttempt: func(attempt int) {
+				slog.Debug("try to connect to quote stream", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "symbol", symbol, "attempt", attempt)
+			},
 		})
 		return retry.Do(topicCtx, func() error {
 			return client.SubscribeQuotes(topicCtx, symbol, publish)

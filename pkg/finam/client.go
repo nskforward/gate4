@@ -53,6 +53,14 @@ func NewClient(accountID, secret string) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) GetAccountID() string {
+	return c.accountID
+}
+
+func (c *Client) GetBrokerID() string {
+	return "finam"
+}
+
 // GetAccountInfo возвращает информацию о счёте
 func (c *Client) GetAccount(ctx context.Context) (*types.AccountInfo, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)

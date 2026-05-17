@@ -52,6 +52,8 @@ func (c *Client) execCmd(ctx context.Context, command string, args []string) err
 		return c.cmdSchedule(ctx, args)
 	case "my-trades":
 		return c.cmdMyTrades(ctx, args)
+	case "asset":
+		return c.cmdAssetInfo(ctx, args)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}

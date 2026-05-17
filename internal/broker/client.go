@@ -7,6 +7,8 @@ import (
 )
 
 type Client interface {
+	GetAccountID() string
+	GetBrokerID() string
 	GetAccount(ctx context.Context) (*types.AccountInfo, error)
 	GetAsset(ctx context.Context, symbol string) (types.AssetInfo, error)
 	GetSchedule(ctx context.Context, symbol string) ([]types.Session, error)

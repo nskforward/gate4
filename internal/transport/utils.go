@@ -20,6 +20,7 @@ func convertPosition(in types.Position) *pb.Position {
 		Symbol: in.Symbol,
 		Price:  in.Price,
 		Size:   in.Size,
+		Profit: in.Profit,
 	}
 }
 

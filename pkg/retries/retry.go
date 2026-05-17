@@ -24,7 +24,7 @@ func (retry *Retry) Do(ctx context.Context, callback func() error) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
 		default:
 		}
 
@@ -34,13 +34,13 @@ func (retry *Retry) Do(ctx context.Context, callback func() error) error {
 			attempt++
 		}
 
-		if retry.cfg.OnBefore != nil {
-			retry.cfg.OnBefore(attempt)
+		if retry.cfg.OnAttempt != nil {
+			retry.cfg.OnAttempt(attempt)
 		}
 
 		err := callback()
-		if retry.cfg.OnAfter != nil {
-			retry.cfg.OnAfter(err)
+		if retry.cfg.OnError != nil {
+			retry.cfg.OnError(err)
 		}
 		if err == nil {
 			return nil
@@ -62,6 +62,10 @@ func (retry *Retry) Do(ctx context.Context, callback func() error) error {
 
 func (retry *Retry) backoff(attempt int) time.Duration {
 	delayNano := float64(retry.cfg.InitialDelay) * math.Pow(retry.cfg.BackoffFactor, float64(attempt))
-	delay := time.Duration(delayNano) + time.Duration(rand.Int64N(int64(retry.cfg.MaxJitter)))
+	delay := time.Duration(delayNano) + Jitter(retry.cfg.MaxJitter)
 	return min(delay, retry.cfg.MaxDelay)
+}
+
+func Jitter(max time.Duration) time.Duration {
+	return time.Duration(rand.Int64N(int64(max)))
 }
