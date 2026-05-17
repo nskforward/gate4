@@ -3,6 +3,7 @@ package finam
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
@@ -214,6 +215,8 @@ func (c *Client) SubscribeAccountTrades(ctx context.Context, send func(types.Acc
 	if err != nil {
 		return err
 	}
+
+	slog.Debug("finam connected to account trades stream", "account_id", c.accountID)
 
 	for {
 		resp, err := finamStream.Recv()

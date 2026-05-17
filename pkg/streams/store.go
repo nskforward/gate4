@@ -2,7 +2,6 @@ package streams
 
 import (
 	"context"
-	"log/slog"
 	"sync"
 )
 
@@ -31,14 +30,10 @@ func (store *Store[T]) Subscribe(ctx context.Context, key string, publish Publis
 		store.topics[key] = topic
 	}
 	store.mx.Unlock()
-	if !ok {
-		slog.Debug("create topic", "key", key)
-	}
 	return topic.Subscribe(ctx, store.size)
 }
 
 func (store *Store[T]) remove(t *topic[T]) {
-	slog.Debug("delete topic", "key", t.key)
 	store.mx.Lock()
 	defer store.mx.Unlock()
 	delete(store.topics, t.key)
