@@ -21,27 +21,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type GetPositionsResponse struct {
+type SymbolRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Positions     []*Position            `protobuf:"bytes,1,rep,name=positions,proto3" json:"positions,omitempty"`
+	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
+	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetPositionsResponse) Reset() {
-	*x = GetPositionsResponse{}
+func (x *SymbolRequest) Reset() {
+	*x = SymbolRequest{}
 	mi := &file_gateway_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetPositionsResponse) String() string {
+func (x *SymbolRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetPositionsResponse) ProtoMessage() {}
+func (*SymbolRequest) ProtoMessage() {}
 
-func (x *GetPositionsResponse) ProtoReflect() protoreflect.Message {
+func (x *SymbolRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_gateway_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,16 +54,23 @@ func (x *GetPositionsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetPositionsResponse.ProtoReflect.Descriptor instead.
-func (*GetPositionsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SymbolRequest.ProtoReflect.Descriptor instead.
+func (*SymbolRequest) Descriptor() ([]byte, []int) {
 	return file_gateway_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetPositionsResponse) GetPositions() []*Position {
+func (x *SymbolRequest) GetAccountKey() string {
 	if x != nil {
-		return x.Positions
+		return x.AccountKey
 	}
-	return nil
+	return ""
+}
+
+func (x *SymbolRequest) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
 }
 
 type Position struct {
@@ -133,58 +141,6 @@ func (x *Position) GetProfit() string {
 	return ""
 }
 
-type QuoteStreamRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
-	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *QuoteStreamRequest) Reset() {
-	*x = QuoteStreamRequest{}
-	mi := &file_gateway_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *QuoteStreamRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*QuoteStreamRequest) ProtoMessage() {}
-
-func (x *QuoteStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use QuoteStreamRequest.ProtoReflect.Descriptor instead.
-func (*QuoteStreamRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *QuoteStreamRequest) GetAccountKey() string {
-	if x != nil {
-		return x.AccountKey
-	}
-	return ""
-}
-
-func (x *QuoteStreamRequest) GetSymbol() string {
-	if x != nil {
-		return x.Symbol
-	}
-	return ""
-}
-
 type QuoteStreamResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
@@ -197,7 +153,7 @@ type QuoteStreamResponse struct {
 
 func (x *QuoteStreamResponse) Reset() {
 	*x = QuoteStreamResponse{}
-	mi := &file_gateway_proto_msgTypes[3]
+	mi := &file_gateway_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -209,7 +165,7 @@ func (x *QuoteStreamResponse) String() string {
 func (*QuoteStreamResponse) ProtoMessage() {}
 
 func (x *QuoteStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[3]
+	mi := &file_gateway_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -222,7 +178,7 @@ func (x *QuoteStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteStreamResponse.ProtoReflect.Descriptor instead.
 func (*QuoteStreamResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{3}
+	return file_gateway_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *QuoteStreamResponse) GetSymbol() string {
@@ -253,58 +209,6 @@ func (x *QuoteStreamResponse) GetBid() string {
 	return ""
 }
 
-type GetScheduleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
-	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetScheduleRequest) Reset() {
-	*x = GetScheduleRequest{}
-	mi := &file_gateway_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetScheduleRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetScheduleRequest) ProtoMessage() {}
-
-func (x *GetScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetScheduleRequest.ProtoReflect.Descriptor instead.
-func (*GetScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *GetScheduleRequest) GetAccountKey() string {
-	if x != nil {
-		return x.AccountKey
-	}
-	return ""
-}
-
-func (x *GetScheduleRequest) GetSymbol() string {
-	if x != nil {
-		return x.Symbol
-	}
-	return ""
-}
-
 type GetScheduleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sessions      []*ScheduleSession     `protobuf:"bytes,2,rep,name=sessions,proto3" json:"sessions,omitempty"`
@@ -314,7 +218,7 @@ type GetScheduleResponse struct {
 
 func (x *GetScheduleResponse) Reset() {
 	*x = GetScheduleResponse{}
-	mi := &file_gateway_proto_msgTypes[5]
+	mi := &file_gateway_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -326,7 +230,7 @@ func (x *GetScheduleResponse) String() string {
 func (*GetScheduleResponse) ProtoMessage() {}
 
 func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[5]
+	mi := &file_gateway_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -339,7 +243,7 @@ func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetScheduleResponse.ProtoReflect.Descriptor instead.
 func (*GetScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{5}
+	return file_gateway_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetScheduleResponse) GetSessions() []*ScheduleSession {
@@ -360,7 +264,7 @@ type ScheduleSession struct {
 
 func (x *ScheduleSession) Reset() {
 	*x = ScheduleSession{}
-	mi := &file_gateway_proto_msgTypes[6]
+	mi := &file_gateway_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +276,7 @@ func (x *ScheduleSession) String() string {
 func (*ScheduleSession) ProtoMessage() {}
 
 func (x *ScheduleSession) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[6]
+	mi := &file_gateway_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +289,7 @@ func (x *ScheduleSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleSession.ProtoReflect.Descriptor instead.
 func (*ScheduleSession) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{6}
+	return file_gateway_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ScheduleSession) GetType() string {
@@ -422,7 +326,7 @@ type AccountTradeResponse struct {
 
 func (x *AccountTradeResponse) Reset() {
 	*x = AccountTradeResponse{}
-	mi := &file_gateway_proto_msgTypes[7]
+	mi := &file_gateway_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -434,7 +338,7 @@ func (x *AccountTradeResponse) String() string {
 func (*AccountTradeResponse) ProtoMessage() {}
 
 func (x *AccountTradeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[7]
+	mi := &file_gateway_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -447,7 +351,7 @@ func (x *AccountTradeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountTradeResponse.ProtoReflect.Descriptor instead.
 func (*AccountTradeResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{7}
+	return file_gateway_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *AccountTradeResponse) GetTimestamp() int64 {
@@ -485,58 +389,6 @@ func (x *AccountTradeResponse) GetSize() string {
 	return ""
 }
 
-type GetAssetRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AccountKey    string                 `protobuf:"bytes,1,opt,name=account_key,json=accountKey,proto3" json:"account_key,omitempty"`
-	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetAssetRequest) Reset() {
-	*x = GetAssetRequest{}
-	mi := &file_gateway_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetAssetRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetAssetRequest) ProtoMessage() {}
-
-func (x *GetAssetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetAssetRequest.ProtoReflect.Descriptor instead.
-func (*GetAssetRequest) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetAssetRequest) GetAccountKey() string {
-	if x != nil {
-		return x.AccountKey
-	}
-	return ""
-}
-
-func (x *GetAssetRequest) GetSymbol() string {
-	if x != nil {
-		return x.Symbol
-	}
-	return ""
-}
-
 type GetAssetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
@@ -551,7 +403,7 @@ type GetAssetResponse struct {
 
 func (x *GetAssetResponse) Reset() {
 	*x = GetAssetResponse{}
-	mi := &file_gateway_proto_msgTypes[9]
+	mi := &file_gateway_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +415,7 @@ func (x *GetAssetResponse) String() string {
 func (*GetAssetResponse) ProtoMessage() {}
 
 func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[9]
+	mi := &file_gateway_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -576,7 +428,7 @@ func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAssetResponse.ProtoReflect.Descriptor instead.
 func (*GetAssetResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{9}
+	return file_gateway_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetAssetResponse) GetSymbol() string {
@@ -625,27 +477,21 @@ var File_gateway_proto protoreflect.FileDescriptor
 
 const file_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\rgateway.proto\x12\x05proto\"E\n" +
-	"\x14GetPositionsResponse\x12-\n" +
-	"\tpositions\x18\x01 \x03(\v2\x0f.proto.PositionR\tpositions\"d\n" +
+	"\rgateway.proto\x12\x05proto\"H\n" +
+	"\rSymbolRequest\x12\x1f\n" +
+	"\vaccount_key\x18\x01 \x01(\tR\n" +
+	"accountKey\x12\x16\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"d\n" +
 	"\bPosition\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\tR\x05price\x12\x12\n" +
 	"\x04size\x18\x03 \x01(\tR\x04size\x12\x16\n" +
-	"\x06profit\x18\x04 \x01(\tR\x06profit\"M\n" +
-	"\x12QuoteStreamRequest\x12\x1f\n" +
-	"\vaccount_key\x18\x01 \x01(\tR\n" +
-	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"o\n" +
+	"\x06profit\x18\x04 \x01(\tR\x06profit\"o\n" +
 	"\x13QuoteStreamResponse\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x10\n" +
 	"\x03ask\x18\x03 \x01(\tR\x03ask\x12\x10\n" +
-	"\x03bid\x18\x04 \x01(\tR\x03bid\"M\n" +
-	"\x12GetScheduleRequest\x12\x1f\n" +
-	"\vaccount_key\x18\x01 \x01(\tR\n" +
-	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"I\n" +
+	"\x03bid\x18\x04 \x01(\tR\x03bid\"I\n" +
 	"\x13GetScheduleResponse\x122\n" +
 	"\bsessions\x18\x02 \x03(\v2\x16.proto.ScheduleSessionR\bsessions\"M\n" +
 	"\x0fScheduleSession\x12\x12\n" +
@@ -658,11 +504,7 @@ const file_gateway_proto_rawDesc = "" +
 	"account_id\x18\x02 \x01(\tR\taccountId\x12\x16\n" +
 	"\x06symbol\x18\x03 \x01(\tR\x06symbol\x12\x14\n" +
 	"\x05price\x18\x04 \x01(\tR\x05price\x12\x12\n" +
-	"\x04size\x18\x05 \x01(\tR\x04size\"J\n" +
-	"\x0fGetAssetRequest\x12\x1f\n" +
-	"\vaccount_key\x18\x01 \x01(\tR\n" +
-	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\xba\x01\n" +
+	"\x04size\x18\x05 \x01(\tR\x04size\"\xba\x01\n" +
 	"\x10GetAssetResponse\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -683,27 +525,23 @@ func file_gateway_proto_rawDescGZIP() []byte {
 	return file_gateway_proto_rawDescData
 }
 
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_gateway_proto_goTypes = []any{
-	(*GetPositionsResponse)(nil), // 0: proto.GetPositionsResponse
+	(*SymbolRequest)(nil),        // 0: proto.SymbolRequest
 	(*Position)(nil),             // 1: proto.Position
-	(*QuoteStreamRequest)(nil),   // 2: proto.QuoteStreamRequest
-	(*QuoteStreamResponse)(nil),  // 3: proto.QuoteStreamResponse
-	(*GetScheduleRequest)(nil),   // 4: proto.GetScheduleRequest
-	(*GetScheduleResponse)(nil),  // 5: proto.GetScheduleResponse
-	(*ScheduleSession)(nil),      // 6: proto.ScheduleSession
-	(*AccountTradeResponse)(nil), // 7: proto.AccountTradeResponse
-	(*GetAssetRequest)(nil),      // 8: proto.GetAssetRequest
-	(*GetAssetResponse)(nil),     // 9: proto.GetAssetResponse
+	(*QuoteStreamResponse)(nil),  // 2: proto.QuoteStreamResponse
+	(*GetScheduleResponse)(nil),  // 3: proto.GetScheduleResponse
+	(*ScheduleSession)(nil),      // 4: proto.ScheduleSession
+	(*AccountTradeResponse)(nil), // 5: proto.AccountTradeResponse
+	(*GetAssetResponse)(nil),     // 6: proto.GetAssetResponse
 }
 var file_gateway_proto_depIdxs = []int32{
-	1, // 0: proto.GetPositionsResponse.positions:type_name -> proto.Position
-	6, // 1: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 0: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_gateway_proto_init() }
@@ -717,7 +555,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

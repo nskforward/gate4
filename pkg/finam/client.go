@@ -21,7 +21,7 @@ const (
 )
 
 type Client struct {
-	accountID         string
+	accountInfo       types.AccountInfo
 	markedDataService marketdata.MarketDataServiceClient
 	orderService      orders.OrdersServiceClient
 	assetsService     assets.AssetsServiceClient
@@ -44,7 +44,10 @@ func NewClient(accountID, secret string) (*Client, error) {
 	markedDataService := marketdata.NewMarketDataServiceClient(conn)
 
 	return &Client{
-		accountID:         accountID,
+		accountInfo: types.AccountInfo{
+			BrokerID:  "finam",
+			AccountID: accountID,
+		},
 		markedDataService: markedDataService,
 		orderService:      orderService,
 		assetsService:     assetsService,
@@ -54,31 +57,23 @@ func NewClient(accountID, secret string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) GetAccountID() string {
-	return c.accountID
+func (c *Client) GetAccountInfo() types.AccountInfo {
+	return c.accountInfo
 }
 
-func (c *Client) GetBrokerID() string {
-	return "finam"
-}
-
-// GetAccountInfo возвращает информацию о счёте
-func (c *Client) GetAccount(ctx context.Context) (*types.AccountInfo, error) {
+func (c *Client) GetPositions(ctx context.Context) ([]types.Position, error) {
 	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
 	if err != nil {
 		return nil, err
 	}
 	defer cancel()
 	resp, err := c.accountService.GetAccount(reqCtx, &accounts.GetAccountRequest{
-		AccountId: c.accountID,
+		AccountId: c.accountInfo.AccountID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("get account info failed: %w", err)
+		return nil, fmt.Errorf("get positions failed: %w", err)
 	}
-	return &types.AccountInfo{
-		AccountID: resp.AccountId,
-		Positions: convertPositions(resp.Positions),
-	}, nil
+	return convertPositions(resp.Positions), nil
 }
 
 // GetAssetInfo возвращает информацию об активе
@@ -89,7 +84,7 @@ func (c *Client) GetAsset(ctx context.Context, symbol string) (types.AssetInfo, 
 	}
 	defer cancel()
 	resp, err := c.assetsService.GetAsset(reqCtx, &assets.GetAssetRequest{
-		AccountId: c.accountID,
+		AccountId: c.accountInfo.AccountID,
 		Symbol:    symbol,
 	})
 	if err != nil {
@@ -210,13 +205,13 @@ func (c *Client) SubscribeAccountTrades(ctx context.Context, send func(types.Acc
 		return err
 	}
 	finamStream, err := c.orderService.SubscribeTrades(reqCtx, &orders.SubscribeTradesRequest{
-		AccountId: c.accountID,
+		AccountId: c.accountInfo.AccountID,
 	})
 	if err != nil {
 		return err
 	}
 
-	slog.Debug("finam connected to account trades stream", "account_id", c.accountID)
+	slog.Debug("finam connected to account trades stream", "account_id", c.accountInfo.AccountID)
 
 	for {
 		resp, err := finamStream.Recv()

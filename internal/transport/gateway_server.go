@@ -72,7 +72,7 @@ func (s *GatewayServer) GetPositions(ctx context.Context, req *pb.AccountRequest
 }
 */
 
-func (s *GatewayServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream pb.Gateway_SubscribeQuoutesServer) error {
+func (s *GatewayServer) SubscribeQuoutes(req *pb.SymbolRequest, serverStream pb.Gateway_SubscribeQuoutesServer) error {
 	id := uuid.NewString()
 	slog.Debug("start call",
 		"name", "gateway subscribe quote stream",

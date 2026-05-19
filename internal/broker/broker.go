@@ -20,6 +20,7 @@ type Broker struct {
 	quoteStreams        *streams.Store[types.Quote]
 	accountTradeStreams *streams.Store[types.AccountTrade]
 	scheduleCache       *ScheduleCache
+	positionStore       *PositionStore
 }
 
 func NewBroker() (*Broker, error) {
@@ -33,6 +34,7 @@ func NewBroker() (*Broker, error) {
 		quoteStreams:        streams.NewStore[types.Quote](context.Background(), 1),
 		accountTradeStreams: streams.NewStore[types.AccountTrade](context.Background(), 32),
 		scheduleCache:       NewScheduleCache(),
+		positionStore:       NewPositionStore(),
 	}, nil
 }
 
@@ -61,10 +63,10 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, accountKey, symbol string
 			MaxAttempts:   10,
 			MaxJitter:     time.Second,
 			OnError: func(err error) {
-				slog.Error("unexpectedly quote stream closed", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "symbol", symbol, "error", err.Error())
+				slog.Error("unexpectedly quote stream closed", "broker", client.GetAccountInfo().BrokerID, "account_id", client.GetAccountInfo().AccountID, "symbol", symbol, "error", err.Error())
 			},
 			OnAttempt: func(attempt int) {
-				slog.Debug("try to connect to quote stream", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "symbol", symbol, "attempt", attempt)
+				slog.Debug("try to connect to quote stream", "broker", client.GetAccountInfo().BrokerID, "account_id", client.GetAccountInfo().AccountID, "symbol", symbol, "attempt", attempt)
 			},
 		})
 		return retry.Do(topicCtx, func() error {
@@ -106,12 +108,24 @@ func (b *Broker) SubscribeAccountTrades(ctx context.Context, accountKey string, 
 	return nil
 }
 
-func (b *Broker) GetAccountInfo(ctx context.Context, accountKey string) (*types.AccountInfo, error) {
+func (b *Broker) GetAccountInfo(ctx context.Context, accountKey string) (types.AccountInfo, error) {
 	client, err := b.getClient(accountKey)
 	if err != nil {
-		return nil, err
+		return types.AccountInfo{}, err
 	}
-	return client.GetAccount(ctx)
+	return client.GetAccountInfo(), nil
+}
+
+func (b *Broker) GetPosition(ctx context.Context, accountKey, symbol string) (types.Position, error) {
+	client, err := b.getClient(accountKey)
+	if err != nil {
+		return types.Position{}, err
+	}
+	acc, err := b.positionStore.Get(ctx, client)
+	if err != nil {
+		return types.Position{}, err
+	}
+	return acc.Get(symbol), nil
 }
 
 func (b *Broker) GetSchedule(ctx context.Context, accountKey, symbol string) ([]types.Session, error) {

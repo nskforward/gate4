@@ -32,7 +32,7 @@ func (c *AdminClient) Close() {
 }
 
 func (c *AdminClient) SubscribeQuotes(ctx context.Context, accountKey, symbol string) (grpc.ServerStreamingClient[pb.QuoteStreamResponse], error) {
-	return c.client.SubscribeQuoutes(ctx, &pb.QuoteStreamRequest{
+	return c.client.SubscribeQuoutes(ctx, &pb.SymbolRequest{
 		AccountKey: accountKey,
 		Symbol:     symbol,
 	})
@@ -77,22 +77,19 @@ func (c *AdminClient) DeleteAccount(ctx context.Context, key string) error {
 	return err
 }
 
-func (c *AdminClient) GetPositions(ctx context.Context, key string) ([]*pb.Position, error) {
+func (c *AdminClient) GetPosition(ctx context.Context, key, symbol string) (*pb.Position, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := c.client.GetPositions(reqCtx, &pb.AccountRequest{
+	return c.client.GetPosition(reqCtx, &pb.SymbolRequest{
 		AccountKey: key,
+		Symbol:     symbol,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return resp.Positions, nil
 }
 
 func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*pb.ScheduleSession, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := c.client.GetSchedule(reqCtx, &pb.GetScheduleRequest{
+	resp, err := c.client.GetSchedule(reqCtx, &pb.SymbolRequest{
 		AccountKey: key,
 		Symbol:     symbol,
 	})
@@ -105,7 +102,7 @@ func (c *AdminClient) GetSchedule(ctx context.Context, key, symbol string) ([]*p
 func (c *AdminClient) GetAsset(ctx context.Context, key, symbol string) (*pb.GetAssetResponse, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	return c.client.GetAsset(reqCtx, &pb.GetAssetRequest{
+	return c.client.GetAsset(reqCtx, &pb.SymbolRequest{
 		AccountKey: key,
 		Symbol:     symbol,
 	})

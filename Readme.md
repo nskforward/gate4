@@ -1,7 +1,7 @@
 # GATE4
 
 ## TODO
-- Create position store: calc position on trades stream
+- Returns the positions list from the store
 - Implement the last quote store for all open positions regadless of subscribers
 - Calculate the Profit of pb.Position on the fly from the last quote store
 - Add asset info (decimals) to position calculation precision

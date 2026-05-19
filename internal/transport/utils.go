@@ -5,7 +5,8 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
-func convertPositions(info *types.AccountInfo) *pb.GetPositionsResponse {
+/*
+func convertPositions(posi *types.AccountInfo) *pb.GetPositionsResponse {
 	positions := make([]*pb.Position, 0, len(info.Positions))
 	for _, pos := range info.Positions {
 		positions = append(positions, convertPosition(pos))
@@ -14,6 +15,7 @@ func convertPositions(info *types.AccountInfo) *pb.GetPositionsResponse {
 		Positions: positions,
 	}
 }
+*/
 
 func convertPosition(in types.Position) *pb.Position {
 	return &pb.Position{

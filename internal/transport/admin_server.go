@@ -91,7 +91,7 @@ func (s *AdminServer) DeleteAccount(_ context.Context, req *pb.AccountRequest) (
 	return &pb.EmptyMessage{}, err
 }
 
-func (s *AdminServer) SubscribeQuoutes(req *pb.QuoteStreamRequest, serverStream pb.Admin_SubscribeQuoutesServer) error {
+func (s *AdminServer) SubscribeQuoutes(req *pb.SymbolRequest, serverStream pb.Admin_SubscribeQuoutesServer) error {
 	id := uuid.NewString()
 	slog.Debug("start call",
 		"name", "admin subscribe quote stream",
@@ -129,24 +129,24 @@ func (s *AdminServer) SubscribeAccountTrades(req *pb.AccountRequest, serverStrea
 	return err
 }
 
-func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.GetPositionsResponse, error) {
+func (s *AdminServer) GetPosition(ctx context.Context, req *pb.SymbolRequest) (*pb.Position, error) {
 	id := uuid.NewString()
 	slog.Debug("start call",
-		"name", "admin get positions",
+		"name", "admin get position",
 		"id", id,
 		"input", req.String(),
 	)
-	info, err := s.broker.GetAccountInfo(ctx, req.AccountKey)
+	info, err := s.broker.GetPosition(ctx, req.AccountKey, req.Symbol)
 	t1 := time.Now()
 	slog.Debug("finish call",
 		"id", id,
 		"duration", time.Since(t1).String(),
 		"error", err,
 	)
-	return convertPositions(info), nil
+	return convertPosition(info), nil
 }
 
-func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleRequest) (*pb.GetScheduleResponse, error) {
+func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.SymbolRequest) (*pb.GetScheduleResponse, error) {
 	id := uuid.NewString()
 	slog.Debug("start call",
 		"name", "admin get shedule",
@@ -166,7 +166,7 @@ func (s *AdminServer) GetSchedule(ctx context.Context, req *pb.GetScheduleReques
 	return convertSessions(sessions), nil
 }
 
-func (s *AdminServer) GetAsset(ctx context.Context, req *pb.GetAssetRequest) (*pb.GetAssetResponse, error) {
+func (s *AdminServer) GetAsset(ctx context.Context, req *pb.SymbolRequest) (*pb.GetAssetResponse, error) {
 	id := uuid.NewString()
 	slog.Debug("start call",
 		"name", "admin get asset",

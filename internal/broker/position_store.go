@@ -40,12 +40,12 @@ func (store *PositionStore) Get(ctx context.Context, client Client) (*accountPos
 
 	t1 := time.Now()
 
-	info, err := client.GetAccount(ctx)
+	allPositions, err := client.GetPositions(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	acc := newAccountPositions(ctx, info.Positions)
+	acc := newAccountPositions(allPositions)
 
 	store.accounts[client] = acc
 
@@ -68,7 +68,7 @@ func (store *PositionStore) Del(client Client) {
 }
 
 func (store *PositionStore) watchTrades(acc *accountPositions, client Client, ignoreBefore time.Time) {
-	slog.Debug("start watching account trades", "account_id", client.GetAccountID())
+	slog.Debug("start watching account trades", "account_id", client.GetAccountInfo().AccountID)
 
 	retry := retries.New(retries.Config{
 		InitialDelay:  time.Second,
@@ -77,10 +77,10 @@ func (store *PositionStore) watchTrades(acc *accountPositions, client Client, ig
 		MaxAttempts:   0,
 		MaxJitter:     time.Second,
 		OnError: func(err error) {
-			slog.Error("unexpectedly account trades stream closed", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "error", err.Error())
+			slog.Error("unexpectedly account trades stream closed", "broker", client.GetAccountInfo().BrokerID, "account_id", client.GetAccountInfo().AccountID, "error", err.Error())
 		},
 		OnAttempt: func(attempt int) {
-			slog.Debug("try to connect to account trades stream", "broker", client.GetBrokerID(), "account_id", client.GetAccountID(), "attempt", attempt)
+			slog.Debug("try to connect to account trades stream", "broker", client.GetAccountInfo().BrokerID, "account_id", client.GetAccountInfo().AccountID, "attempt", attempt)
 		},
 	})
 
@@ -98,24 +98,38 @@ func (store *PositionStore) watchTrades(acc *accountPositions, client Client, ig
 		})
 	})
 	if err != nil {
-		slog.Debug("stop watching account trades", "account_id", client.GetAccountID(), "error", err.Error())
+		slog.Debug("stop watching account trades", "account_id", client.GetAccountInfo().AccountID, "error", err.Error())
 		panic(err)
 	}
 }
 
-func newAccountPositions(ctx context.Context, in []types.Position) *accountPositions {
+func newAccountPositions(in []types.Position) *accountPositions {
 	symbols := make(map[string]*types.Position)
 	for _, pos := range in {
 		symbols[pos.Symbol] = &pos
 	}
 
-	accountCtx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	return &accountPositions{
-		ctx:     accountCtx,
+		ctx:     ctx,
 		cancel:  cancel,
 		symbols: symbols,
 	}
 
+}
+
+func (acc *accountPositions) Get(symbol string) types.Position {
+	acc.mx.Lock()
+	defer acc.mx.Unlock()
+	pos, ok := acc.symbols[symbol]
+	if !ok {
+		return types.Position{}
+	}
+	return types.Position{
+		Symbol: pos.Symbol,
+		Price:  pos.Price,
+		Size:   pos.Size,
+	}
 }
 
 func (acc *accountPositions) calculate(trade types.AccountTrade) error {
@@ -168,7 +182,7 @@ func (acc *accountPositions) calculate(trade types.AccountTrade) error {
 	totalSize := posSize.Add(tradeSize)
 	if totalSize.IsZero() {
 		// full closure
-		pos.Size = "0"
+		pos.Size = ""
 		delete(acc.symbols, trade.Symbol)
 		return nil
 	}

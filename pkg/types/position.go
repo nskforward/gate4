@@ -5,3 +5,7 @@ type Position struct {
 	Price  string
 	Size   string // sign is direction
 }
+
+func (pos Position) IsEmpty() bool {
+	return pos.Size == ""
+}
