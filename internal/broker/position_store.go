@@ -132,6 +132,22 @@ func (acc *accountPositions) Get(symbol string) types.Position {
 	}
 }
 
+func (acc *accountPositions) GetAll() []types.Position {
+	acc.mx.Lock()
+	defer acc.mx.Unlock()
+
+	positions := make([]types.Position, 0, len(acc.symbols))
+	for _, pos := range acc.symbols {
+		positions = append(positions, types.Position{
+			Symbol: pos.Symbol,
+			Price:  pos.Price,
+			Size:   pos.Size,
+		})
+	}
+
+	return positions
+}
+
 func (acc *accountPositions) calculate(trade types.AccountTrade) error {
 	tradeSize, err := decimal.NewFromString(trade.Size)
 	if err != nil {

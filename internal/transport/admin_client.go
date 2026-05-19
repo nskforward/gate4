@@ -77,6 +77,14 @@ func (c *AdminClient) DeleteAccount(ctx context.Context, key string) error {
 	return err
 }
 
+func (c *AdminClient) GetPositions(ctx context.Context, key string) (*pb.ListPositions, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	return c.client.GetPositions(reqCtx, &pb.AccountRequest{
+		AccountKey: key,
+	})
+}
+
 func (c *AdminClient) GetPosition(ctx context.Context, key, symbol string) (*pb.Position, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

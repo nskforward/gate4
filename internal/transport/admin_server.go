@@ -129,6 +129,23 @@ func (s *AdminServer) SubscribeAccountTrades(req *pb.AccountRequest, serverStrea
 	return err
 }
 
+func (s *AdminServer) GetPositions(ctx context.Context, req *pb.AccountRequest) (*pb.ListPositions, error) {
+	id := uuid.NewString()
+	slog.Debug("start call",
+		"name", "admin get positions",
+		"id", id,
+		"input", req.String(),
+	)
+	positions, err := s.broker.GetPositions(ctx, req.AccountKey)
+	t1 := time.Now()
+	slog.Debug("finish call",
+		"id", id,
+		"duration", time.Since(t1).String(),
+		"error", err,
+	)
+	return convertPositions(positions), nil
+}
+
 func (s *AdminServer) GetPosition(ctx context.Context, req *pb.SymbolRequest) (*pb.Position, error) {
 	id := uuid.NewString()
 	slog.Debug("start call",

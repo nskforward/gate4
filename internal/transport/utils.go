@@ -5,17 +5,15 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
-/*
-func convertPositions(posi *types.AccountInfo) *pb.GetPositionsResponse {
-	positions := make([]*pb.Position, 0, len(info.Positions))
-	for _, pos := range info.Positions {
-		positions = append(positions, convertPosition(pos))
+func convertPositions(positions []types.Position) *pb.ListPositions {
+	result := make([]*pb.Position, 0, len(positions))
+	for _, pos := range positions {
+		result = append(result, convertPosition(pos))
 	}
-	return &pb.GetPositionsResponse{
-		Positions: positions,
+	return &pb.ListPositions{
+		Positions: result,
 	}
 }
-*/
 
 func convertPosition(in types.Position) *pb.Position {
 	return &pb.Position{

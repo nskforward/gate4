@@ -73,6 +73,50 @@ func (x *SymbolRequest) GetSymbol() string {
 	return ""
 }
 
+type ListPositions struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Positions     []*Position            `protobuf:"bytes,1,rep,name=positions,proto3" json:"positions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPositions) Reset() {
+	*x = ListPositions{}
+	mi := &file_gateway_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPositions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPositions) ProtoMessage() {}
+
+func (x *ListPositions) ProtoReflect() protoreflect.Message {
+	mi := &file_gateway_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPositions.ProtoReflect.Descriptor instead.
+func (*ListPositions) Descriptor() ([]byte, []int) {
+	return file_gateway_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListPositions) GetPositions() []*Position {
+	if x != nil {
+		return x.Positions
+	}
+	return nil
+}
+
 type Position struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
@@ -85,7 +129,7 @@ type Position struct {
 
 func (x *Position) Reset() {
 	*x = Position{}
-	mi := &file_gateway_proto_msgTypes[1]
+	mi := &file_gateway_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -97,7 +141,7 @@ func (x *Position) String() string {
 func (*Position) ProtoMessage() {}
 
 func (x *Position) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[1]
+	mi := &file_gateway_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +154,7 @@ func (x *Position) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Position.ProtoReflect.Descriptor instead.
 func (*Position) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{1}
+	return file_gateway_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Position) GetSymbol() string {
@@ -153,7 +197,7 @@ type QuoteStreamResponse struct {
 
 func (x *QuoteStreamResponse) Reset() {
 	*x = QuoteStreamResponse{}
-	mi := &file_gateway_proto_msgTypes[2]
+	mi := &file_gateway_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -165,7 +209,7 @@ func (x *QuoteStreamResponse) String() string {
 func (*QuoteStreamResponse) ProtoMessage() {}
 
 func (x *QuoteStreamResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[2]
+	mi := &file_gateway_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -178,7 +222,7 @@ func (x *QuoteStreamResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QuoteStreamResponse.ProtoReflect.Descriptor instead.
 func (*QuoteStreamResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{2}
+	return file_gateway_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *QuoteStreamResponse) GetSymbol() string {
@@ -218,7 +262,7 @@ type GetScheduleResponse struct {
 
 func (x *GetScheduleResponse) Reset() {
 	*x = GetScheduleResponse{}
-	mi := &file_gateway_proto_msgTypes[3]
+	mi := &file_gateway_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -230,7 +274,7 @@ func (x *GetScheduleResponse) String() string {
 func (*GetScheduleResponse) ProtoMessage() {}
 
 func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[3]
+	mi := &file_gateway_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -243,7 +287,7 @@ func (x *GetScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetScheduleResponse.ProtoReflect.Descriptor instead.
 func (*GetScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{3}
+	return file_gateway_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetScheduleResponse) GetSessions() []*ScheduleSession {
@@ -264,7 +308,7 @@ type ScheduleSession struct {
 
 func (x *ScheduleSession) Reset() {
 	*x = ScheduleSession{}
-	mi := &file_gateway_proto_msgTypes[4]
+	mi := &file_gateway_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -276,7 +320,7 @@ func (x *ScheduleSession) String() string {
 func (*ScheduleSession) ProtoMessage() {}
 
 func (x *ScheduleSession) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[4]
+	mi := &file_gateway_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -289,7 +333,7 @@ func (x *ScheduleSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleSession.ProtoReflect.Descriptor instead.
 func (*ScheduleSession) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{4}
+	return file_gateway_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ScheduleSession) GetType() string {
@@ -326,7 +370,7 @@ type AccountTradeResponse struct {
 
 func (x *AccountTradeResponse) Reset() {
 	*x = AccountTradeResponse{}
-	mi := &file_gateway_proto_msgTypes[5]
+	mi := &file_gateway_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -338,7 +382,7 @@ func (x *AccountTradeResponse) String() string {
 func (*AccountTradeResponse) ProtoMessage() {}
 
 func (x *AccountTradeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[5]
+	mi := &file_gateway_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -351,7 +395,7 @@ func (x *AccountTradeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountTradeResponse.ProtoReflect.Descriptor instead.
 func (*AccountTradeResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{5}
+	return file_gateway_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AccountTradeResponse) GetTimestamp() int64 {
@@ -403,7 +447,7 @@ type GetAssetResponse struct {
 
 func (x *GetAssetResponse) Reset() {
 	*x = GetAssetResponse{}
-	mi := &file_gateway_proto_msgTypes[6]
+	mi := &file_gateway_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -415,7 +459,7 @@ func (x *GetAssetResponse) String() string {
 func (*GetAssetResponse) ProtoMessage() {}
 
 func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gateway_proto_msgTypes[6]
+	mi := &file_gateway_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -428,7 +472,7 @@ func (x *GetAssetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAssetResponse.ProtoReflect.Descriptor instead.
 func (*GetAssetResponse) Descriptor() ([]byte, []int) {
-	return file_gateway_proto_rawDescGZIP(), []int{6}
+	return file_gateway_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetAssetResponse) GetSymbol() string {
@@ -481,7 +525,9 @@ const file_gateway_proto_rawDesc = "" +
 	"\rSymbolRequest\x12\x1f\n" +
 	"\vaccount_key\x18\x01 \x01(\tR\n" +
 	"accountKey\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"d\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\">\n" +
+	"\rListPositions\x12-\n" +
+	"\tpositions\x18\x01 \x03(\v2\x0f.proto.PositionR\tpositions\"d\n" +
 	"\bPosition\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x14\n" +
 	"\x05price\x18\x02 \x01(\tR\x05price\x12\x12\n" +
@@ -525,23 +571,25 @@ func file_gateway_proto_rawDescGZIP() []byte {
 	return file_gateway_proto_rawDescData
 }
 
-var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_gateway_proto_goTypes = []any{
 	(*SymbolRequest)(nil),        // 0: proto.SymbolRequest
-	(*Position)(nil),             // 1: proto.Position
-	(*QuoteStreamResponse)(nil),  // 2: proto.QuoteStreamResponse
-	(*GetScheduleResponse)(nil),  // 3: proto.GetScheduleResponse
-	(*ScheduleSession)(nil),      // 4: proto.ScheduleSession
-	(*AccountTradeResponse)(nil), // 5: proto.AccountTradeResponse
-	(*GetAssetResponse)(nil),     // 6: proto.GetAssetResponse
+	(*ListPositions)(nil),        // 1: proto.ListPositions
+	(*Position)(nil),             // 2: proto.Position
+	(*QuoteStreamResponse)(nil),  // 3: proto.QuoteStreamResponse
+	(*GetScheduleResponse)(nil),  // 4: proto.GetScheduleResponse
+	(*ScheduleSession)(nil),      // 5: proto.ScheduleSession
+	(*AccountTradeResponse)(nil), // 6: proto.AccountTradeResponse
+	(*GetAssetResponse)(nil),     // 7: proto.GetAssetResponse
 }
 var file_gateway_proto_depIdxs = []int32{
-	4, // 0: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: proto.ListPositions.positions:type_name -> proto.Position
+	5, // 1: proto.GetScheduleResponse.sessions:type_name -> proto.ScheduleSession
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_gateway_proto_init() }
@@ -555,7 +603,7 @@ func file_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gateway_proto_rawDesc), len(file_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

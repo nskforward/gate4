@@ -16,6 +16,7 @@ service Admin {
   rpc ListAccounts(EmptyMessage) returns (ListAccountsResponse) {}
   rpc AddAccount(AddAccountRequest) returns (EmptyMessage) {}
   rpc DeleteAccount(AccountRequest) returns (EmptyMessage) {}
+  rpc GetPositions(AccountRequest) returns (ListPositions) {}
   rpc GetPosition(SymbolRequest) returns (Position) {}
   rpc SubscribeQuoutes(SymbolRequest) returns (stream QuoteStreamResponse);
   rpc GetSchedule(SymbolRequest) returns (GetScheduleResponse) {}

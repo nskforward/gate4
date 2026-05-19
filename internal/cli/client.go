@@ -47,6 +47,8 @@ func (c *Client) execCmd(ctx context.Context, command string, args []string) err
 	case "quotes":
 		return c.cmdQuotes(ctx, args)
 	case "position":
+		return c.cmdPosition(ctx, args)
+	case "positions":
 		return c.cmdPositions(ctx, args)
 	case "schedule":
 		return c.cmdSchedule(ctx, args)

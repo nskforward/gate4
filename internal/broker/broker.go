@@ -116,6 +116,18 @@ func (b *Broker) GetAccountInfo(ctx context.Context, accountKey string) (types.A
 	return client.GetAccountInfo(), nil
 }
 
+func (b *Broker) GetPositions(ctx context.Context, accountKey string) ([]types.Position, error) {
+	client, err := b.getClient(accountKey)
+	if err != nil {
+		return nil, err
+	}
+	acc, err := b.positionStore.Get(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	return acc.GetAll(), nil
+}
+
 func (b *Broker) GetPosition(ctx context.Context, accountKey, symbol string) (types.Position, error) {
 	client, err := b.getClient(accountKey)
 	if err != nil {

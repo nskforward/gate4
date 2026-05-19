@@ -27,12 +27,13 @@ const file_service_proto_rawDesc = "" +
 	"\rservice.proto\x12\x05proto\x1a\rgateway.proto\x1a\vadmin.proto2\x89\x01\n" +
 	"\aGateway\x126\n" +
 	"\vGetPosition\x12\x14.proto.SymbolRequest\x1a\x0f.proto.Position\"\x00\x12F\n" +
-	"\x10SubscribeQuoutes\x12\x14.proto.SymbolRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\x99\x04\n" +
+	"\x10SubscribeQuoutes\x12\x14.proto.SymbolRequest\x1a\x1a.proto.QuoteStreamResponse0\x012\xd8\x04\n" +
 	"\x05Admin\x12B\n" +
 	"\fListAccounts\x12\x13.proto.EmptyMessage\x1a\x1b.proto.ListAccountsResponse\"\x00\x12=\n" +
 	"\n" +
 	"AddAccount\x12\x18.proto.AddAccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x12=\n" +
-	"\rDeleteAccount\x12\x15.proto.AccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x126\n" +
+	"\rDeleteAccount\x12\x15.proto.AccountRequest\x1a\x13.proto.EmptyMessage\"\x00\x12=\n" +
+	"\fGetPositions\x12\x15.proto.AccountRequest\x1a\x14.proto.ListPositions\"\x00\x126\n" +
 	"\vGetPosition\x12\x14.proto.SymbolRequest\x1a\x0f.proto.Position\"\x00\x12F\n" +
 	"\x10SubscribeQuoutes\x12\x14.proto.SymbolRequest\x1a\x1a.proto.QuoteStreamResponse0\x01\x12A\n" +
 	"\vGetSchedule\x12\x14.proto.SymbolRequest\x1a\x1a.proto.GetScheduleResponse\"\x00\x12N\n" +
@@ -47,9 +48,10 @@ var file_service_proto_goTypes = []any{
 	(*Position)(nil),             // 4: proto.Position
 	(*QuoteStreamResponse)(nil),  // 5: proto.QuoteStreamResponse
 	(*ListAccountsResponse)(nil), // 6: proto.ListAccountsResponse
-	(*GetScheduleResponse)(nil),  // 7: proto.GetScheduleResponse
-	(*AccountTradeResponse)(nil), // 8: proto.AccountTradeResponse
-	(*GetAssetResponse)(nil),     // 9: proto.GetAssetResponse
+	(*ListPositions)(nil),        // 7: proto.ListPositions
+	(*GetScheduleResponse)(nil),  // 8: proto.GetScheduleResponse
+	(*AccountTradeResponse)(nil), // 9: proto.AccountTradeResponse
+	(*GetAssetResponse)(nil),     // 10: proto.GetAssetResponse
 }
 var file_service_proto_depIdxs = []int32{
 	0,  // 0: proto.Gateway.GetPosition:input_type -> proto.SymbolRequest
@@ -57,23 +59,25 @@ var file_service_proto_depIdxs = []int32{
 	1,  // 2: proto.Admin.ListAccounts:input_type -> proto.EmptyMessage
 	2,  // 3: proto.Admin.AddAccount:input_type -> proto.AddAccountRequest
 	3,  // 4: proto.Admin.DeleteAccount:input_type -> proto.AccountRequest
-	0,  // 5: proto.Admin.GetPosition:input_type -> proto.SymbolRequest
-	0,  // 6: proto.Admin.SubscribeQuoutes:input_type -> proto.SymbolRequest
-	0,  // 7: proto.Admin.GetSchedule:input_type -> proto.SymbolRequest
-	3,  // 8: proto.Admin.SubscribeAccountTrades:input_type -> proto.AccountRequest
-	0,  // 9: proto.Admin.GetAsset:input_type -> proto.SymbolRequest
-	4,  // 10: proto.Gateway.GetPosition:output_type -> proto.Position
-	5,  // 11: proto.Gateway.SubscribeQuoutes:output_type -> proto.QuoteStreamResponse
-	6,  // 12: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
-	1,  // 13: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
-	1,  // 14: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
-	4,  // 15: proto.Admin.GetPosition:output_type -> proto.Position
-	5,  // 16: proto.Admin.SubscribeQuoutes:output_type -> proto.QuoteStreamResponse
-	7,  // 17: proto.Admin.GetSchedule:output_type -> proto.GetScheduleResponse
-	8,  // 18: proto.Admin.SubscribeAccountTrades:output_type -> proto.AccountTradeResponse
-	9,  // 19: proto.Admin.GetAsset:output_type -> proto.GetAssetResponse
-	10, // [10:20] is the sub-list for method output_type
-	0,  // [0:10] is the sub-list for method input_type
+	3,  // 5: proto.Admin.GetPositions:input_type -> proto.AccountRequest
+	0,  // 6: proto.Admin.GetPosition:input_type -> proto.SymbolRequest
+	0,  // 7: proto.Admin.SubscribeQuoutes:input_type -> proto.SymbolRequest
+	0,  // 8: proto.Admin.GetSchedule:input_type -> proto.SymbolRequest
+	3,  // 9: proto.Admin.SubscribeAccountTrades:input_type -> proto.AccountRequest
+	0,  // 10: proto.Admin.GetAsset:input_type -> proto.SymbolRequest
+	4,  // 11: proto.Gateway.GetPosition:output_type -> proto.Position
+	5,  // 12: proto.Gateway.SubscribeQuoutes:output_type -> proto.QuoteStreamResponse
+	6,  // 13: proto.Admin.ListAccounts:output_type -> proto.ListAccountsResponse
+	1,  // 14: proto.Admin.AddAccount:output_type -> proto.EmptyMessage
+	1,  // 15: proto.Admin.DeleteAccount:output_type -> proto.EmptyMessage
+	7,  // 16: proto.Admin.GetPositions:output_type -> proto.ListPositions
+	4,  // 17: proto.Admin.GetPosition:output_type -> proto.Position
+	5,  // 18: proto.Admin.SubscribeQuoutes:output_type -> proto.QuoteStreamResponse
+	8,  // 19: proto.Admin.GetSchedule:output_type -> proto.GetScheduleResponse
+	9,  // 20: proto.Admin.SubscribeAccountTrades:output_type -> proto.AccountTradeResponse
+	10, // 21: proto.Admin.GetAsset:output_type -> proto.GetAssetResponse
+	11, // [11:22] is the sub-list for method output_type
+	0,  // [0:11] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

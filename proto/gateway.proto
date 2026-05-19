@@ -9,6 +9,10 @@ message SymbolRequest {
    string symbol = 2;
 }
 
+message ListPositions {
+  repeated Position positions = 1;
+}
+
 message Position {
   string symbol = 1;
   string price = 2;
