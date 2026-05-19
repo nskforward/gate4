@@ -22,7 +22,6 @@ func convertPosition(in *accounts.Position) types.Position {
 		Symbol: in.Symbol,
 		Price:  in.AveragePrice.Value,
 		Size:   in.Quantity.Value,
-		Profit: in.UnrealizedPnl.Value,
 	}
 }
 

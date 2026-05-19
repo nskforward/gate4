@@ -2,27 +2,34 @@ package broker
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/nskforward/gate4/pkg/retries"
 	"github.com/nskforward/gate4/pkg/types"
+	"github.com/shopspring/decimal"
 )
 
 type PositionStore struct {
-	accounts map[Client][]types.Position
+	accounts map[Client]*accountPositions
 	mx       sync.Mutex
+}
+
+type accountPositions struct {
+	ctx     context.Context
+	cancel  context.CancelFunc
+	symbols map[string]*types.Position
+	mx      sync.Mutex
 }
 
 func NewPositionStore() *PositionStore {
 	return &PositionStore{
-		accounts: make(map[Client][]types.Position),
+		accounts: make(map[Client]*accountPositions),
 	}
 }
 
-func (store *PositionStore) Get(ctx context.Context, client Client) ([]types.Position, error) {
+func (store *PositionStore) Get(ctx context.Context, client Client) (*accountPositions, error) {
 	store.mx.Lock()
 	defer store.mx.Unlock()
 
@@ -31,19 +38,36 @@ func (store *PositionStore) Get(ctx context.Context, client Client) ([]types.Pos
 		return positions, nil
 	}
 
+	t1 := time.Now()
+
 	info, err := client.GetAccount(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	store.accounts[client] = info.Positions
+	acc := newAccountPositions(ctx, info.Positions)
 
-	go store.watchTrades(ctx, client)
+	store.accounts[client] = acc
 
-	return info.Positions, nil
+	go store.watchTrades(acc, client, t1)
+
+	return acc, nil
 }
 
-func (store *PositionStore) watchTrades(ctx context.Context, client Client) {
+func (store *PositionStore) Del(client Client) {
+	store.mx.Lock()
+	defer store.mx.Unlock()
+
+	acc, ok := store.accounts[client]
+	if !ok {
+		return
+	}
+
+	acc.cancel()
+	delete(store.accounts, client)
+}
+
+func (store *PositionStore) watchTrades(acc *accountPositions, client Client, ignoreBefore time.Time) {
 	slog.Debug("start watching account trades", "account_id", client.GetAccountID())
 
 	retry := retries.New(retries.Config{
@@ -60,14 +84,16 @@ func (store *PositionStore) watchTrades(ctx context.Context, client Client) {
 		},
 	})
 
-	err := retry.Do(ctx, func() error {
-		return client.SubscribeAccountTrades(ctx, func(trade types.AccountTrade) bool {
-			store.mx.Lock()
-			defer store.mx.Unlock()
+	err := retry.Do(acc.ctx, func() error {
+		return client.SubscribeAccountTrades(acc.ctx, func(trade types.AccountTrade) bool {
+			if trade.Timestamp < ignoreBefore.Unix() {
+				// ignore old trades
+				return true
+			}
 
-			// TODO !!!
-			fmt.Println("account trade:", trade)
+			acc.calculate(trade)
 
+			// always true
 			return true
 		})
 	})
@@ -75,4 +101,87 @@ func (store *PositionStore) watchTrades(ctx context.Context, client Client) {
 		slog.Debug("stop watching account trades", "account_id", client.GetAccountID(), "error", err.Error())
 		panic(err)
 	}
+}
+
+func newAccountPositions(ctx context.Context, in []types.Position) *accountPositions {
+	symbols := make(map[string]*types.Position)
+	for _, pos := range in {
+		symbols[pos.Symbol] = &pos
+	}
+
+	accountCtx, cancel := context.WithCancel(ctx)
+	return &accountPositions{
+		ctx:     accountCtx,
+		cancel:  cancel,
+		symbols: symbols,
+	}
+
+}
+
+func (acc *accountPositions) calculate(trade types.AccountTrade) error {
+	tradeSize, err := decimal.NewFromString(trade.Size)
+	if err != nil {
+		return err
+	}
+
+	tradePrice, err := decimal.NewFromString(trade.Price)
+	if err != nil {
+		return err
+	}
+
+	if tradeSize.Sign() == 0 {
+		return nil
+	}
+
+	acc.mx.Lock()
+	defer acc.mx.Unlock()
+
+	pos, ok := acc.symbols[trade.Symbol]
+	if !ok {
+		// no positions
+		acc.symbols[trade.Symbol] = &types.Position{
+			Symbol: trade.Symbol,
+			Price:  trade.Price,
+			Size:   trade.Size,
+		}
+		return nil
+	}
+
+	posSize, err := decimal.NewFromString(pos.Size)
+	if err != nil {
+		return err
+	}
+
+	posPrice, err := decimal.NewFromString(pos.Price)
+	if err != nil {
+		return err
+	}
+
+	if tradeSize.Sign() == posSize.Sign() {
+		// add more in the same direction
+		totalSize := posSize.Add(tradeSize)
+		pos.Price = posSize.Mul(posPrice).Add(tradeSize.Mul(tradePrice)).Div(totalSize).StringFixedBank(2)
+		pos.Size = totalSize.String()
+		return nil
+	}
+
+	totalSize := posSize.Add(tradeSize)
+	if totalSize.IsZero() {
+		// full closure
+		pos.Size = "0"
+		delete(acc.symbols, trade.Symbol)
+		return nil
+	}
+
+	cmp := tradeSize.Abs().Cmp(posSize.Abs())
+	if cmp < 0 {
+		// partial closure
+		pos.Size = totalSize.String()
+		return nil
+	}
+
+	// coup
+	pos.Price = trade.Price
+	pos.Size = totalSize.String()
+	return nil
 }
