@@ -2,6 +2,7 @@ package retries
 
 import (
 	"context"
+	"errors"
 	"math"
 	"math/rand/v2"
 	"time"
@@ -17,7 +18,7 @@ func New(cfg Config) *Retry {
 	}
 }
 
-func (retry *Retry) Do(ctx context.Context, callback func() error) error {
+func (retry *Retry) Do(ctx context.Context, f func() error) error {
 	attempt := 0
 	lastAttempt := time.Now()
 
@@ -38,12 +39,17 @@ func (retry *Retry) Do(ctx context.Context, callback func() error) error {
 			retry.cfg.OnAttempt(attempt)
 		}
 
-		err := callback()
-		if retry.cfg.OnError != nil {
-			retry.cfg.OnError(err)
-		}
+		err := f()
 		if err == nil {
 			return nil
+		}
+
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil
+		}
+
+		if retry.cfg.OnError != nil {
+			retry.cfg.OnError(err)
 		}
 
 		if attempt >= retry.cfg.MaxAttempts {

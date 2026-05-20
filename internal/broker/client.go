@@ -7,6 +7,7 @@ import (
 )
 
 type Client interface {
+	GetLastQuote(ctx context.Context, symbol string) (types.Quote, error)
 	GetAccountInfo() types.AccountInfo
 	GetPositions(ctx context.Context) ([]types.Position, error)
 	GetAsset(ctx context.Context, symbol string) (types.AssetInfo, error)

@@ -10,67 +10,62 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
-type ScheduleCache struct {
-	clients map[Client]map[string][]types.Session
+type scheduleStore struct {
+	client  Client
+	ctx     context.Context
+	cancel  context.CancelFunc
+	symbols map[string][]types.Session
 	mx      sync.Mutex
 }
 
-func NewScheduleCache() *ScheduleCache {
-	return &ScheduleCache{
-		clients: make(map[Client]map[string][]types.Session),
+func newScheduleStore(client Client) *scheduleStore {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &scheduleStore{
+		ctx:     ctx,
+		cancel:  cancel,
+		client:  client,
+		symbols: make(map[string][]types.Session),
 	}
 }
 
-func (cache *ScheduleCache) GetSessions(ctx context.Context, client Client, symbol string) ([]types.Session, error) {
-	cache.mx.Lock()
-	defer cache.mx.Unlock()
+func (store *scheduleStore) Get(symbol string) ([]types.Session, error) {
+	store.mx.Lock()
+	defer store.mx.Unlock()
 
-	symbols, ok := cache.clients[client]
-	if !ok {
-		symbols = make(map[string][]types.Session)
-		cache.clients[client] = symbols
-	}
-
-	sessions, ok := symbols[symbol]
+	sessions, ok := store.symbols[symbol]
 	if !ok || !isFreshSessions(sessions) {
 		slog.Debug("get schedule sessions", "cache", "miss")
 
 		var err error
-		sessions, err = client.GetSchedule(ctx, symbol)
+		sessions, err := store.client.GetSchedule(store.ctx, symbol)
 		if err != nil {
 			return nil, err
 		}
-		sessions = cache.normalize(sessions)
-		symbols[symbol] = sessions
+		sessions = normalizeSessions(sessions)
+		store.symbols[symbol] = sessions
 		return sessions, nil
 	}
-
 	slog.Debug("get schedule sessions", "cache", "hit")
 	return sessions, nil
 }
 
-func (cache *ScheduleCache) normalize(sessions []types.Session) []types.Session {
+func normalizeSessions(sessions []types.Session) []types.Session {
 	sort.Slice(sessions, func(i, j int) bool {
 		return sessions[i].Start < sessions[j].Start && sessions[i].End < sessions[j].End
 	})
-
 	result := sessions[:0]
 	last := func() int { return len(result) - 1 }
-
 	for i, curr := range sessions {
 		if i == 0 {
 			result = append(result, curr)
 			continue
 		}
-
 		if curr.Type == result[last()].Type {
 			result[last()].End = curr.End
 			continue
 		}
-
 		result = append(result, curr)
 	}
-
 	return result
 }
 

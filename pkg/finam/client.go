@@ -109,6 +109,21 @@ func (c *Client) GetSchedule(ctx context.Context, symbol string) ([]types.Sessio
 	return convertSessions(resp.Sessions), nil
 }
 
+func (c *Client) GetLastQuote(ctx context.Context, symbol string) (types.Quote, error) {
+	reqCtx, cancel, err := c.authContextWithTimeout(ctx, 30*time.Second)
+	if err != nil {
+		return types.Quote{}, err
+	}
+	defer cancel()
+	resp, err := c.markedDataService.LastQuote(reqCtx, &marketdata.QuoteRequest{
+		Symbol: symbol,
+	})
+	if err != nil {
+		return types.Quote{}, err
+	}
+	return convertQuote(resp.Quote), nil
+}
+
 /*
 // CancelOrder отменяет ордер
 func (c *Client) CancelOrder(ctx context.Context, accountID, orderID string) (*orders.OrderState, error) {

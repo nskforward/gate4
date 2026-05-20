@@ -4,10 +4,20 @@ import (
 	v1 "github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/accounts"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/assets"
+	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"github.com/nskforward/gate4/pkg/types"
 	"github.com/shopspring/decimal"
 	protodecimal "google.golang.org/genproto/googleapis/type/decimal"
 )
+
+func convertQuote(in *marketdata.Quote) types.Quote {
+	return types.Quote{
+		Timestamp: in.Timestamp.Seconds,
+		Symbol:    in.Symbol,
+		Ask:       in.Ask.Value,
+		Bid:       in.Bid.Value,
+	}
+}
 
 func convertPositions(in []*accounts.Position) []types.Position {
 	result := make([]types.Position, 0, len(in))

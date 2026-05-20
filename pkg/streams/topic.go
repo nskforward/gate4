@@ -69,7 +69,7 @@ func (t *topic[T]) close() {
 
 func (t *topic[T]) startProducer() {
 	defer t.producerActive.Store(false)
-	err := t.publish(t.ctx, t.notify)
+	err := t.publish(t.ctx, t.key, t.notify)
 	if err != nil {
 		t.notifyErr(err)
 	}
