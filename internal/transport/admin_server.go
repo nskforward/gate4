@@ -7,28 +7,29 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nskforward/gate4/internal/broker"
+	"github.com/nskforward/gate4/internal/broker/account"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/pkg/grpcserv"
+	"github.com/nskforward/gate4/pkg/grpc"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
 type AdminServer struct {
 	pb.UnimplementedAdminServer
-	serv   *grpcserv.GRPCServer
+	server *grpc.Server
 	broker *broker.Broker
 }
 
 func NewAdminServer(cfg config.Config, broker *broker.Broker) (*AdminServer, error) {
 	s := &AdminServer{
-		serv:   grpcserv.New(cfg.Admin.ListenAddr),
+		server: grpc.New(cfg.Admin.ListenAddr),
 		broker: broker,
 	}
-	pb.RegisterAdminServer(s.serv, s)
-	s.serv.OnListen = func() {
+	pb.RegisterAdminServer(s.server, s)
+	s.server.OnListen = func() {
 		slog.Info("admin service started", "addr", cfg.Admin.ListenAddr)
 	}
-	s.serv.OnStop = func() {
+	s.server.OnStop = func() {
 		slog.Info("admin service stopped")
 	}
 	return s, nil
@@ -36,7 +37,7 @@ func NewAdminServer(cfg config.Config, broker *broker.Broker) (*AdminServer, err
 
 func (s *AdminServer) Run(ctx context.Context) error {
 	go s.watch(ctx)
-	return s.serv.Run(ctx)
+	return s.server.Run(ctx)
 }
 
 func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListAccountsResponse, error) {
@@ -47,7 +48,7 @@ func (s *AdminServer) ListAccounts(context.Context, *pb.EmptyMessage) (*pb.ListA
 	)
 	t1 := time.Now()
 	result := &pb.ListAccountsResponse{
-		Items: broker.ExportAccounts(s.broker.Accounts()),
+		Items: account.ExportAccounts(s.broker.Accounts()),
 	}
 	slog.Debug("finish call",
 		"id", id,
@@ -66,7 +67,7 @@ func (s *AdminServer) AddAccount(ctx context.Context, req *pb.AddAccountRequest)
 		"valid_until", req.Account.ValidUntil,
 	)
 	t1 := time.Now()
-	account := broker.ImportAccount(req.Account)
+	account := account.ImportAccount(req.Account)
 	err := s.broker.AddAccount(account)
 	slog.Debug("finish call",
 		"id", id,
@@ -224,7 +225,7 @@ func (s *AdminServer) checkAccounts() {
 	}
 }
 
-func (s *AdminServer) notifyAccountExpiration(account *broker.Account, hours float64) {
+func (s *AdminServer) notifyAccountExpiration(account *account.Account, hours float64) {
 	if hours > 24*7 {
 		// greater than a week
 		return

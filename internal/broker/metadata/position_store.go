@@ -1,4 +1,4 @@
-package broker
+package metadata
 
 import (
 	"context"
@@ -12,16 +12,16 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type positionStore struct {
+type PositionStore struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	symbols map[string]*types.Position
 	mx      sync.Mutex
 }
 
-func newPositionStore(client Client) (*positionStore, error) {
+func NewPositionStore(client types.Client) (*PositionStore, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	store := &positionStore{
+	store := &PositionStore{
 		ctx:     ctx,
 		cancel:  cancel,
 		symbols: make(map[string]*types.Position),
@@ -35,7 +35,7 @@ func newPositionStore(client Client) (*positionStore, error) {
 	return store, err
 }
 
-func (store *positionStore) fill(client Client) error {
+func (store *PositionStore) fill(client types.Client) error {
 	reqCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	positions, err := client.GetPositions(reqCtx)
@@ -50,7 +50,7 @@ func (store *positionStore) fill(client Client) error {
 	return nil
 }
 
-func (store *positionStore) watch(client Client, ignoreBefore time.Time) {
+func (store *PositionStore) watch(client types.Client, ignoreBefore time.Time) {
 	slog.Debug("start watching account trades", "account_id", client.GetAccountInfo().AccountID)
 	retry := store.initTradesRetry(client, ignoreBefore)
 	err := retry.Do(store.ctx, func() error {
@@ -70,7 +70,7 @@ func (store *positionStore) watch(client Client, ignoreBefore time.Time) {
 	}
 }
 
-func (store *positionStore) initTradesRetry(client Client, ignoreBefore time.Time) *retries.Retry {
+func (store *PositionStore) initTradesRetry(client types.Client, ignoreBefore time.Time) *retries.Retry {
 	return retries.New(retries.Config{
 		InitialDelay:  time.Second,
 		MaxDelay:      time.Minute,
@@ -86,7 +86,7 @@ func (store *positionStore) initTradesRetry(client Client, ignoreBefore time.Tim
 	})
 }
 
-func (store *positionStore) calculate(trade types.AccountTrade) error {
+func (store *PositionStore) calculate(trade types.AccountTrade) error {
 	tradeSize, err := decimal.NewFromString(trade.Size)
 	if err != nil {
 		return err

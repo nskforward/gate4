@@ -8,31 +8,29 @@ import (
 	"github.com/google/uuid"
 	"github.com/nskforward/gate4/internal/broker"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/pkg/grpcserv"
+	"github.com/nskforward/gate4/pkg/grpc"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/types"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type GatewayServer struct {
 	pb.UnimplementedGatewayServer
-	serv   *grpcserv.GRPCServer
+	serv   *grpc.Server
 	broker *broker.Broker
 }
 
 func NewGatewayServer(cfg config.Config, broker *broker.Broker) (*GatewayServer, error) {
-	var server *grpcserv.GRPCServer
+	var server *grpc.Server
 
 	if cfg.SSL.CA.CertPath != "" && cfg.SSL.Server.CertPath != "" && cfg.SSL.Server.KeyPath != "" {
-		tlsConfig, err := grpcserv.MTLSConfig(cfg.SSL.CA.CertPath, cfg.SSL.Server.CertPath, cfg.SSL.Server.KeyPath)
+		tlsConfig, err := grpc.MTLSConfig(cfg.SSL.CA.CertPath, cfg.SSL.Server.CertPath, cfg.SSL.Server.KeyPath)
 		if err != nil {
 			return nil, err
 		}
-		server = grpcserv.New(cfg.Gateway.ListenAddr, grpc.Creds(credentials.NewTLS(tlsConfig)))
+		server = grpc.NewWithTLS(cfg.Gateway.ListenAddr, tlsConfig)
 		slog.Info("gateway mTLS enabled")
 	} else {
-		server = grpcserv.New(cfg.Gateway.ListenAddr)
+		server = grpc.New(cfg.Gateway.ListenAddr)
 		slog.Warn("gateway mTLS disabled")
 	}
 

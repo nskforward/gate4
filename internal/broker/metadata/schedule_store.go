@@ -1,4 +1,4 @@
-package broker
+package metadata
 
 import (
 	"context"
@@ -10,17 +10,17 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
-type scheduleStore struct {
-	client  Client
+type ScheduleStore struct {
+	client  types.Client
 	ctx     context.Context
 	cancel  context.CancelFunc
 	symbols map[string][]types.Session
 	mx      sync.Mutex
 }
 
-func newScheduleStore(client Client) *scheduleStore {
+func NewScheduleStore(client types.Client) *ScheduleStore {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &scheduleStore{
+	return &ScheduleStore{
 		ctx:     ctx,
 		cancel:  cancel,
 		client:  client,
@@ -28,7 +28,7 @@ func newScheduleStore(client Client) *scheduleStore {
 	}
 }
 
-func (store *scheduleStore) Get(symbol string) ([]types.Session, error) {
+func (store *ScheduleStore) Get(symbol string) ([]types.Session, error) {
 	store.mx.Lock()
 	defer store.mx.Unlock()
 

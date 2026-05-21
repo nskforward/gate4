@@ -1,31 +1,40 @@
-package grpcserv
+package grpc
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"google.golang.org/grpc"
+	google "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
-type GRPCServer struct {
-	*grpc.Server
+type Server struct {
+	*google.Server
 	addr     string
 	OnListen func()
 	OnStop   func()
 }
 
-func New(addr string, opt ...grpc.ServerOption) *GRPCServer {
-	return &GRPCServer{
+func New(addr string, opt ...google.ServerOption) *Server {
+	return &Server{
 		addr:   addr,
-		Server: grpc.NewServer(opt...),
+		Server: google.NewServer(opt...),
 	}
 }
 
-func (s *GRPCServer) Run(ctx context.Context) error {
+func NewWithTLS(addr string, tlsConfig *tls.Config) *Server {
+	return &Server{
+		addr:   addr,
+		Server: google.NewServer(google.Creds(credentials.NewTLS(tlsConfig))),
+	}
+}
+
+func (s *Server) Run(ctx context.Context) error {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return fmt.Errorf("net.Listen error: %w", err)
@@ -56,7 +65,7 @@ func (s *GRPCServer) Run(ctx context.Context) error {
 	}
 }
 
-func (s *GRPCServer) gracefulShutdown() {
+func (s *Server) gracefulShutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -73,12 +82,12 @@ func (s *GRPCServer) gracefulShutdown() {
 	}
 }
 
-func (s *GRPCServer) serve(listener net.Listener) chan error {
+func (s *Server) serve(listener net.Listener) chan error {
 	errorc := make(chan error, 1)
 	go func() {
 		defer close(errorc)
 		err := s.Server.Serve(listener)
-		if err != nil && err != grpc.ErrServerStopped {
+		if err != nil && err != google.ErrServerStopped {
 			errorc <- err
 		}
 	}()

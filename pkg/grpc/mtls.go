@@ -1,4 +1,4 @@
-package grpcserv
+package grpc
 
 import (
 	"crypto/tls"

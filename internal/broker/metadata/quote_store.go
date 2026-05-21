@@ -1,4 +1,4 @@
-package broker
+package metadata
 
 import (
 	"context"
@@ -8,17 +8,17 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
-type quoteStore struct {
+type QuoteStore struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
-	client  Client
+	client  types.Client
 	symbols map[string]*pubsub.Topic[types.Quote]
 	mx      sync.Mutex
 }
 
-func newQuoteStore(client Client) *quoteStore {
+func NewQuoteStore(client types.Client) *QuoteStore {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &quoteStore{
+	return &QuoteStore{
 		ctx:     ctx,
 		cancel:  cancel,
 		client:  client,
@@ -26,7 +26,7 @@ func newQuoteStore(client Client) *quoteStore {
 	}
 }
 
-func (store *quoteStore) GetLast(symbol string) (types.Quote, error) {
+func (store *QuoteStore) GetLast(symbol string) (types.Quote, error) {
 	store.mx.Lock()
 	topic, ok := store.symbols[symbol]
 	store.mx.Unlock()
@@ -39,7 +39,7 @@ func (store *quoteStore) GetLast(symbol string) (types.Quote, error) {
 	return store.client.GetLastQuote(store.ctx, symbol)
 }
 
-func (store *quoteStore) Subscribe(ctx context.Context, symbol string, f func(types.Quote) error) error {
+func (store *QuoteStore) Subscribe(ctx context.Context, symbol string, f func(types.Quote) error) error {
 	store.mx.Lock()
 	defer store.mx.Unlock()
 

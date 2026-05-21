@@ -5,38 +5,40 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/nskforward/gate4/internal/broker/account"
+	"github.com/nskforward/gate4/internal/broker/metadata"
 	"github.com/nskforward/gate4/pkg/finam"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
 type Broker struct {
 	mx           sync.Mutex
-	accounts     *AccountStore
+	accounts     *account.Store
 	finamClients *finam.MultiClient
-	clients      *clientStore
+	metadata     *metadata.Store
 }
 
 func NewBroker() (*Broker, error) {
-	accounts, err := NewAccountStore("data/accounts.json")
+	accounts, err := account.NewStore("data/accounts.json")
 	if err != nil {
 		return nil, err
 	}
 	return &Broker{
 		accounts:     accounts,
 		finamClients: finam.NewMultiClient(),
-		clients:      newClientStore(),
+		metadata:     metadata.NewStore(),
 	}, nil
 }
 
-func (b *Broker) AddAccount(account *Account) error {
-	return b.accounts.Set(account.Key(), account)
+func (b *Broker) AddAccount(acc *account.Account) error {
+	return b.accounts.Set(acc.Key(), acc)
 }
 
 func (b *Broker) DelAccount(key string) error {
 	return b.accounts.Del(key)
 }
 
-func (b *Broker) Accounts() []*Account {
+func (b *Broker) Accounts() []*account.Account {
 	return b.accounts.Accounts()
 }
 
@@ -45,11 +47,11 @@ func (b *Broker) SubscribeQuoutes(ctx context.Context, accountKey, symbol string
 	if err != nil {
 		return err
 	}
-	metadata, err := b.clients.Get(client)
+	metadata, err := b.metadata.Get(client)
 	if err != nil {
 		return err
 	}
-	return metadata.quotes.Subscribe(ctx, symbol, func(q types.Quote) error {
+	return metadata.QuoteStore.Subscribe(ctx, symbol, func(q types.Quote) error {
 		return send(q)
 	})
 }
@@ -146,7 +148,7 @@ func (b *Broker) GetAsset(ctx context.Context, accountKey, symbol string) (types
 	return client.GetAsset(ctx, symbol)
 }
 
-func (b *Broker) getClient(key string) (Client, error) {
+func (b *Broker) getClient(key string) (types.Client, error) {
 	account, ok := b.accounts.Lookup(key)
 	if !ok {
 		return nil, fmt.Errorf("unknown account key: %s", key)
