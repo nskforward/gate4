@@ -31,6 +31,19 @@ func (c *AdminClient) Close() {
 	c.conn.Close()
 }
 
+func (c *AdminClient) CreateCert(ctx context.Context, commonName, privateKey string) (string, error) {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	resp, err := c.client.CreateCert(reqCtx, &pb.CreateCertRequest{
+		CommonName: commonName,
+		PrivateKey: privateKey,
+	})
+	if err != nil {
+		return "", err
+	}
+	return resp.Cert, nil
+}
+
 func (c *AdminClient) ListUsers(ctx context.Context) ([]*users.User, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

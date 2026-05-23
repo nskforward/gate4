@@ -16,6 +16,7 @@ func Help(context.Context, []string) error {
 	fmt.Println("Commands:")
 	fmt.Println()
 	fmt.Println(padding, fmt.Sprintf(mask, "help"), "- (show all commands)")
+	fmt.Println(padding, fmt.Sprintf(mask, "cert create"), "- (generate a client cert)")
 	fmt.Println()
 	fmt.Println(padding, fmt.Sprintf(mask, "user list [-blocked] [-active]"), "- (show users)")
 	fmt.Println(padding, fmt.Sprintf(mask, "user create"), "- (create a new user)")

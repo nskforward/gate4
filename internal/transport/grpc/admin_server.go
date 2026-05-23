@@ -40,6 +40,20 @@ func NewAdminServer(ctx context.Context, cfg config.Config) (*AdminServer, error
 	return admin, nil
 }
 
+func (admin *AdminServer) CreateCert(ctx context.Context, req *pb.CreateCertRequest) (*pb.CreateCertResponse, error) {
+	if req.CommonName == "" {
+		return nil, status.Error(codes.InvalidArgument, "common name cannot be empty")
+	}
+
+	certData, err := admin.keychainStore.GenCert(req.CommonName, []byte(req.PrivateKey))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	return &pb.CreateCertResponse{
+		Cert: string(certData),
+	}, nil
+}
+
 func (admin *AdminServer) FindUser(ctx context.Context, req *pb.UserID) (*pb.User, error) {
 	user, err := admin.userStore.Find(ctx, req.UserId)
 	if err != nil {

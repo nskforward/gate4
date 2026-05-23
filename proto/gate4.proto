@@ -11,6 +11,7 @@ service Admin {
   rpc DeleteUser(UserID) returns (EmptyMessage) {}
   rpc BlockUser(BlockUserRequest) returns (EmptyMessage) {}
   rpc UpdateUser(UpdateUserRequest) returns (User) {}
+  rpc CreateCert(CreateCertRequest) returns (CreateCertResponse) {}
 }
 
 message EmptyMessage {}
@@ -23,6 +24,15 @@ message User {
   bool blocked = 5;
   optional string secret = 6;
   optional string id = 7;
+}
+
+message CreateCertRequest {
+  string common_name = 1;
+  string private_key = 2;
+}
+
+message CreateCertResponse {
+  string cert = 1;
 }
 
 message ListUsersResponse {
