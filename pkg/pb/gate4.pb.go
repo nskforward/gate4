@@ -61,10 +61,11 @@ type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BrokerId      string                 `protobuf:"bytes,1,opt,name=broker_id,json=brokerId,proto3" json:"broker_id,omitempty"`
 	AccountId     string                 `protobuf:"bytes,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	ValidUntil    int64                  `protobuf:"varint,3,opt,name=valid_until,json=validUntil,proto3" json:"valid_until,omitempty"`
-	Blocked       bool                   `protobuf:"varint,4,opt,name=blocked,proto3" json:"blocked,omitempty"`
-	Secret        *string                `protobuf:"bytes,5,opt,name=secret,proto3,oneof" json:"secret,omitempty"`
-	Id            *string                `protobuf:"bytes,6,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	Created       int64                  `protobuf:"varint,3,opt,name=created,proto3" json:"created,omitempty"`
+	Expires       int64                  `protobuf:"varint,4,opt,name=expires,proto3" json:"expires,omitempty"`
+	Blocked       bool                   `protobuf:"varint,5,opt,name=blocked,proto3" json:"blocked,omitempty"`
+	Secret        *string                `protobuf:"bytes,6,opt,name=secret,proto3,oneof" json:"secret,omitempty"`
+	Id            *string                `protobuf:"bytes,7,opt,name=id,proto3,oneof" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -113,9 +114,16 @@ func (x *User) GetAccountId() string {
 	return ""
 }
 
-func (x *User) GetValidUntil() int64 {
+func (x *User) GetCreated() int64 {
 	if x != nil {
-		return x.ValidUntil
+		return x.Created
+	}
+	return 0
+}
+
+func (x *User) GetExpires() int64 {
+	if x != nil {
+		return x.Expires
 	}
 	return 0
 }
@@ -241,7 +249,7 @@ type UpdateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Secret        string                 `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	ValidUntil    int64                  `protobuf:"varint,3,opt,name=valid_until,json=validUntil,proto3" json:"valid_until,omitempty"`
+	Expires       int64                  `protobuf:"varint,3,opt,name=expires,proto3" json:"expires,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -290,9 +298,9 @@ func (x *UpdateUserRequest) GetSecret() string {
 	return ""
 }
 
-func (x *UpdateUserRequest) GetValidUntil() int64 {
+func (x *UpdateUserRequest) GetExpires() int64 {
 	if x != nil {
-		return x.ValidUntil
+		return x.Expires
 	}
 	return 0
 }
@@ -346,39 +354,39 @@ var File_gate4_proto protoreflect.FileDescriptor
 const file_gate4_proto_rawDesc = "" +
 	"\n" +
 	"\vgate4.proto\x12\x05proto\"\x0e\n" +
-	"\fEmptyMessage\"\xc1\x01\n" +
+	"\fEmptyMessage\"\xd4\x01\n" +
 	"\x04User\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\tR\bbrokerId\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\tR\taccountId\x12\x1f\n" +
-	"\vvalid_until\x18\x03 \x01(\x03R\n" +
-	"validUntil\x12\x18\n" +
-	"\ablocked\x18\x04 \x01(\bR\ablocked\x12\x1b\n" +
-	"\x06secret\x18\x05 \x01(\tH\x00R\x06secret\x88\x01\x01\x12\x13\n" +
-	"\x02id\x18\x06 \x01(\tH\x01R\x02id\x88\x01\x01B\t\n" +
+	"account_id\x18\x02 \x01(\tR\taccountId\x12\x18\n" +
+	"\acreated\x18\x03 \x01(\x03R\acreated\x12\x18\n" +
+	"\aexpires\x18\x04 \x01(\x03R\aexpires\x12\x18\n" +
+	"\ablocked\x18\x05 \x01(\bR\ablocked\x12\x1b\n" +
+	"\x06secret\x18\x06 \x01(\tH\x00R\x06secret\x88\x01\x01\x12\x13\n" +
+	"\x02id\x18\a \x01(\tH\x01R\x02id\x88\x01\x01B\t\n" +
 	"\a_secretB\x05\n" +
 	"\x03_id\"6\n" +
 	"\x11ListUsersResponse\x12!\n" +
 	"\x05users\x18\x01 \x03(\v2\v.proto.UserR\x05users\"E\n" +
 	"\x10BlockUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
-	"\ablocked\x18\x02 \x01(\bR\ablocked\"e\n" +
+	"\ablocked\x18\x02 \x01(\bR\ablocked\"^\n" +
 	"\x11UpdateUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
-	"\x06secret\x18\x02 \x01(\tR\x06secret\x12\x1f\n" +
-	"\vvalid_until\x18\x03 \x01(\x03R\n" +
-	"validUntil\"!\n" +
+	"\x06secret\x18\x02 \x01(\tR\x06secret\x12\x18\n" +
+	"\aexpires\x18\x03 \x01(\x03R\aexpires\"!\n" +
 	"\x06UserID\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId2\xc8\x02\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId2\xc1\x02\n" +
 	"\x05Admin\x12<\n" +
-	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\"\x00\x12'\n" +
-	"\aAddUser\x12\v.proto.User\x1a\r.proto.UserID\"\x00\x12(\n" +
+	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\"\x00\x12(\n" +
+	"\n" +
+	"CreateUser\x12\v.proto.User\x1a\v.proto.User\"\x00\x12(\n" +
 	"\bFindUser\x12\r.proto.UserID\x1a\v.proto.User\"\x00\x122\n" +
 	"\n" +
 	"DeleteUser\x12\r.proto.UserID\x1a\x13.proto.EmptyMessage\"\x00\x12;\n" +
-	"\tBlockUser\x12\x17.proto.BlockUserRequest\x1a\x13.proto.EmptyMessage\"\x00\x12=\n" +
+	"\tBlockUser\x12\x17.proto.BlockUserRequest\x1a\x13.proto.EmptyMessage\"\x00\x125\n" +
 	"\n" +
-	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\x13.proto.EmptyMessage\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\v.proto.User\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_gate4_proto_rawDescOnce sync.Once
@@ -404,17 +412,17 @@ var file_gate4_proto_goTypes = []any{
 var file_gate4_proto_depIdxs = []int32{
 	1, // 0: proto.ListUsersResponse.users:type_name -> proto.User
 	0, // 1: proto.Admin.ListUsers:input_type -> proto.EmptyMessage
-	1, // 2: proto.Admin.AddUser:input_type -> proto.User
+	1, // 2: proto.Admin.CreateUser:input_type -> proto.User
 	5, // 3: proto.Admin.FindUser:input_type -> proto.UserID
 	5, // 4: proto.Admin.DeleteUser:input_type -> proto.UserID
 	3, // 5: proto.Admin.BlockUser:input_type -> proto.BlockUserRequest
 	4, // 6: proto.Admin.UpdateUser:input_type -> proto.UpdateUserRequest
 	2, // 7: proto.Admin.ListUsers:output_type -> proto.ListUsersResponse
-	5, // 8: proto.Admin.AddUser:output_type -> proto.UserID
+	1, // 8: proto.Admin.CreateUser:output_type -> proto.User
 	1, // 9: proto.Admin.FindUser:output_type -> proto.User
 	0, // 10: proto.Admin.DeleteUser:output_type -> proto.EmptyMessage
 	0, // 11: proto.Admin.BlockUser:output_type -> proto.EmptyMessage
-	0, // 12: proto.Admin.UpdateUser:output_type -> proto.EmptyMessage
+	1, // 12: proto.Admin.UpdateUser:output_type -> proto.User
 	7, // [7:13] is the sub-list for method output_type
 	1, // [1:7] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

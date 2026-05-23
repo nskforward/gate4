@@ -6,11 +6,11 @@ option go_package = "gate4/pkg/pb";
 
 service Admin {
   rpc ListUsers(EmptyMessage) returns (ListUsersResponse) {}
-  rpc AddUser(User) returns (UserID) {}
+  rpc CreateUser(User) returns (User) {}
   rpc FindUser(UserID) returns (User) {}
   rpc DeleteUser(UserID) returns (EmptyMessage) {}
   rpc BlockUser(BlockUserRequest) returns (EmptyMessage) {}
-  rpc UpdateUser(UpdateUserRequest) returns (EmptyMessage) {}
+  rpc UpdateUser(UpdateUserRequest) returns (User) {}
 }
 
 message EmptyMessage {}
@@ -18,10 +18,11 @@ message EmptyMessage {}
 message User {
   string broker_id = 1;
   string account_id = 2;
-  int64 valid_until = 3;
-  bool blocked = 4;
-  optional string secret = 5;
-  optional string id = 6;
+  int64 created = 3;
+  int64 expires = 4;
+  bool blocked = 5;
+  optional string secret = 6;
+  optional string id = 7;
 }
 
 message ListUsersResponse {
@@ -36,7 +37,7 @@ message BlockUserRequest {
 message UpdateUserRequest {
   string user_id = 1;
   string secret = 2;
-  int64 valid_until = 3;
+  int64 expires = 3;
 }
 
 message UserID {

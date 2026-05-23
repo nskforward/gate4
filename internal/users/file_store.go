@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -42,6 +43,9 @@ func (store *FileStore) List(ctx context.Context) ([]*User, error) {
 	for _, user := range store.users {
 		users = append(users, user)
 	}
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Created.Before(users[i].Created)
+	})
 	return users, nil
 }
 
@@ -55,10 +59,11 @@ func (store *FileStore) Find(ctx context.Context, userID string) (*User, error) 
 	return nil, nil
 }
 
-func (store *FileStore) Add(ctx context.Context, user *User) error {
+func (store *FileStore) Create(ctx context.Context, user *User) error {
 	store.mx.Lock()
 	defer store.mx.Unlock()
 	user.ID = store.generateID(user)
+	user.Created = time.Now()
 	store.users[user.ID] = user
 	return store.save()
 }
@@ -81,16 +86,17 @@ func (store *FileStore) Block(ctx context.Context, userID string, blocked bool) 
 	return store.save()
 }
 
-func (store *FileStore) Update(ctx context.Context, userID, secret string, validUntil time.Time) error {
+func (store *FileStore) Update(ctx context.Context, userID, secret string, expires time.Time) (*User, error) {
 	user, _ := store.Find(ctx, userID)
 	if user == nil {
-		return fmt.Errorf("user not found with id: %s", userID)
+		return nil, fmt.Errorf("user not found with id: %s", userID)
 	}
 	store.mx.Lock()
 	defer store.mx.Unlock()
 	user.Secret = secret
-	user.ValidUntil = validUntil
-	return store.save()
+	user.Expires = expires
+	err := store.save()
+	return user, err
 }
 
 func (store *FileStore) generateID(user *User) string {

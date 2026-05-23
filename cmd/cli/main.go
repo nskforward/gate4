@@ -33,7 +33,7 @@ func run(ctx context.Context) error {
 	r := cli.NewRouter()
 	r.Handle("help", cli.Help)
 	r.Handle("show users", cli.ListUsers(adminClient))
-	r.Handle("create user", cli.AddUser(adminClient))
+	r.Handle("create user", cli.CreateUser(adminClient))
 	r.Handle("delete user", cli.DeleteUser(adminClient))
 	r.Handle("block user", cli.BlockUser(adminClient))
 	r.Handle("edit user", cli.UpdateUser(adminClient))

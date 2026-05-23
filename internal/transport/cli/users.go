@@ -37,19 +37,27 @@ func ListUsers(client *grpc.AdminClient) Handler {
 		maskBlocked := fmt.Sprintf("%%-%ds", maxLenBlocked)
 
 		for i, user := range users {
-			left := time.Until(user.ValidUntil)
+			left := time.Until(user.Expires)
 			hours := left.Hours()
 			days := 0
 			if hours >= 24 {
 				days = int(hours) / 24
 			}
-			fmt.Println(fmt.Sprintf("%d.", i+1), fmt.Sprintf(maskID, user.ID), "|", formatBlocked(maskBlocked, user.Blocked, user.ValidUntil), "|", fmt.Sprintf("days left: %d", days))
+			fmt.Println(
+				fmt.Sprintf("%d.", i+1),
+				fmt.Sprintf(maskID, user.ID),
+				"|",
+				formatBlocked(maskBlocked, user.Blocked, user.Expires),
+				"| created", user.Created.Format("2006-01-02"),
+				"| expires", user.Expires.Format("2006-01-02"),
+				fmt.Sprintf("(%d days left)", days),
+			)
 		}
 		return nil
 	}
 }
 
-func AddUser(client *grpc.AdminClient) Handler {
+func CreateUser(client *grpc.AdminClient) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user users.User
 
@@ -76,7 +84,7 @@ func AddUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		user.ValidUntil, err = scanner.ScanTime(ctx, "valid until", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0), nil)
+		user.Expires, err = scanner.ScanTime(ctx, "expires", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0), nil)
 		if err != nil {
 			return err
 		}
@@ -86,7 +94,7 @@ func AddUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		err = client.AddUser(ctx, &user)
+		err = client.CreateUser(ctx, &user)
 		if err != nil {
 			return err
 		}

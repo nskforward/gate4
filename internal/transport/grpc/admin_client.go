@@ -41,14 +41,15 @@ func (c *AdminClient) ListUsers(ctx context.Context) ([]*users.User, error) {
 	return convertInUsers(resp.Users), nil
 }
 
-func (c *AdminClient) AddUser(ctx context.Context, user *users.User) error {
+func (c *AdminClient) CreateUser(ctx context.Context, user *users.User) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := c.client.AddUser(reqCtx, convertOutUser(user))
+	resp, err := c.client.CreateUser(reqCtx, convertOutUser(user))
 	if err != nil {
 		return err
 	}
-	user.ID = resp.UserId
+	user.ID = *resp.Id
+	user.Created = time.Unix(resp.Created, 0)
 	return nil
 }
 
@@ -71,13 +72,13 @@ func (c *AdminClient) BlockUser(ctx context.Context, userID string, blocked bool
 	return err
 }
 
-func (c *AdminClient) UpdateUser(ctx context.Context, userID, secret string, validUntil time.Time) error {
+func (c *AdminClient) UpdateUser(ctx context.Context, userID, secret string, expires time.Time) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.UpdateUser(reqCtx, &pb.UpdateUserRequest{
-		UserId:     userID,
-		Secret:     secret,
-		ValidUntil: validUntil.Unix(),
+		UserId:  userID,
+		Secret:  secret,
+		Expires: expires.Unix(),
 	})
 	return err
 }

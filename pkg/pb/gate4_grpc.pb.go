@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Admin_ListUsers_FullMethodName  = "/proto.Admin/ListUsers"
-	Admin_AddUser_FullMethodName    = "/proto.Admin/AddUser"
+	Admin_CreateUser_FullMethodName = "/proto.Admin/CreateUser"
 	Admin_FindUser_FullMethodName   = "/proto.Admin/FindUser"
 	Admin_DeleteUser_FullMethodName = "/proto.Admin/DeleteUser"
 	Admin_BlockUser_FullMethodName  = "/proto.Admin/BlockUser"
@@ -32,11 +32,11 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminClient interface {
 	ListUsers(ctx context.Context, in *EmptyMessage, opts ...grpc.CallOption) (*ListUsersResponse, error)
-	AddUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserID, error)
+	CreateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 	FindUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
 	DeleteUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*EmptyMessage, error)
 	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 }
 
 type adminClient struct {
@@ -57,10 +57,10 @@ func (c *adminClient) ListUsers(ctx context.Context, in *EmptyMessage, opts ...g
 	return out, nil
 }
 
-func (c *adminClient) AddUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UserID, error) {
+func (c *adminClient) CreateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserID)
-	err := c.cc.Invoke(ctx, Admin_AddUser_FullMethodName, in, out, cOpts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, Admin_CreateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -97,9 +97,9 @@ func (c *adminClient) BlockUser(ctx context.Context, in *BlockUserRequest, opts 
 	return out, nil
 }
 
-func (c *adminClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error) {
+func (c *adminClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptyMessage)
+	out := new(User)
 	err := c.cc.Invoke(ctx, Admin_UpdateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -112,11 +112,11 @@ func (c *adminClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opt
 // for forward compatibility.
 type AdminServer interface {
 	ListUsers(context.Context, *EmptyMessage) (*ListUsersResponse, error)
-	AddUser(context.Context, *User) (*UserID, error)
+	CreateUser(context.Context, *User) (*User, error)
 	FindUser(context.Context, *UserID) (*User, error)
 	DeleteUser(context.Context, *UserID) (*EmptyMessage, error)
 	BlockUser(context.Context, *BlockUserRequest) (*EmptyMessage, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*EmptyMessage, error)
+	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	mustEmbedUnimplementedAdminServer()
 }
 
@@ -130,8 +130,8 @@ type UnimplementedAdminServer struct{}
 func (UnimplementedAdminServer) ListUsers(context.Context, *EmptyMessage) (*ListUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedAdminServer) AddUser(context.Context, *User) (*UserID, error) {
-	return nil, status.Error(codes.Unimplemented, "method AddUser not implemented")
+func (UnimplementedAdminServer) CreateUser(context.Context, *User) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
 }
 func (UnimplementedAdminServer) FindUser(context.Context, *UserID) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method FindUser not implemented")
@@ -142,7 +142,7 @@ func (UnimplementedAdminServer) DeleteUser(context.Context, *UserID) (*EmptyMess
 func (UnimplementedAdminServer) BlockUser(context.Context, *BlockUserRequest) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method BlockUser not implemented")
 }
-func (UnimplementedAdminServer) UpdateUser(context.Context, *UpdateUserRequest) (*EmptyMessage, error) {
+func (UnimplementedAdminServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedAdminServer) mustEmbedUnimplementedAdminServer() {}
@@ -184,20 +184,20 @@ func _Admin_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Admin_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Admin_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AdminServer).AddUser(ctx, in)
+		return srv.(AdminServer).CreateUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Admin_AddUser_FullMethodName,
+		FullMethod: Admin_CreateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServer).AddUser(ctx, req.(*User))
+		return srv.(AdminServer).CreateUser(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -286,8 +286,8 @@ var Admin_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Admin_ListUsers_Handler,
 		},
 		{
-			MethodName: "AddUser",
-			Handler:    _Admin_AddUser_Handler,
+			MethodName: "CreateUser",
+			Handler:    _Admin_CreateUser_Handler,
 		},
 		{
 			MethodName: "FindUser",
