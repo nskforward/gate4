@@ -32,11 +32,11 @@ func run(ctx context.Context) error {
 
 	r := cli.NewRouter()
 	r.Handle("help", cli.Help)
-	r.Handle("show users", cli.ListUsers(adminClient))
-	r.Handle("create user", cli.CreateUser(adminClient))
-	r.Handle("delete user", cli.DeleteUser(adminClient))
-	r.Handle("block user", cli.BlockUser(adminClient))
-	r.Handle("edit user", cli.UpdateUser(adminClient))
+	r.Handle("user list", cli.ListUsers(adminClient))
+	r.Handle("user create", cli.CreateUser(adminClient))
+	r.Handle("user delete", cli.DeleteUser(adminClient))
+	r.Handle("user block", cli.BlockUser(adminClient))
+	r.Handle("user edit", cli.UpdateUser(adminClient))
 
 	return r.Run(ctx)
 }

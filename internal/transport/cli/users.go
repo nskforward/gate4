@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -13,21 +14,50 @@ import (
 )
 
 func ListUsers(client *grpc.AdminClient) Handler {
-	return func(ctx context.Context, _ []string) error {
+	return func(ctx context.Context, args []string) error {
+
+		filterActive := true
+		filterBlocked := true
+
+		for _, arg := range args {
+			if arg == "-blocked" {
+				filterBlocked = true
+				filterActive = false
+			}
+			if arg == "-active" {
+				filterBlocked = false
+				filterActive = true
+			}
+		}
+
 		users, err := client.ListUsers(ctx)
 		if err != nil {
 			return err
 		}
-		if len(users) == 0 {
-			fmt.Println("no users")
-			return nil
-		}
 
 		maxLenID := 0
+
+		filtered := users[:0]
 		for _, user := range users {
 			if len(user.ID) > maxLenID {
 				maxLenID = len(user.ID)
 			}
+			if user.Blocked && !filterBlocked {
+				continue
+			}
+			if !user.Blocked && !filterActive {
+				continue
+			}
+			filtered = append(filtered, user)
+		}
+
+		sort.Slice(filtered, func(i, j int) bool {
+			return filtered[i].Expires.Before(filtered[j].Expires)
+		})
+
+		if len(filtered) == 0 {
+			fmt.Println("no users")
+			return nil
 		}
 
 		maskID := fmt.Sprintf("%%-%ds", maxLenID)
@@ -36,7 +66,7 @@ func ListUsers(client *grpc.AdminClient) Handler {
 		fmt.Println("| # |", fmt.Sprintf(maskID, "USER ID"), "| STATUS  | CREATED    | EXPIRES    | DAYS LEFT |")
 		fmt.Println(strings.Repeat("-", 56+maxLenID))
 
-		for i, user := range users {
+		for i, user := range filtered {
 			fmt.Println(
 				fmt.Sprintf("| %d |", i+1),
 				fmt.Sprintf(maskID, user.ID),

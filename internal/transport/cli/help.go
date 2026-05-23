@@ -7,7 +7,7 @@ import (
 
 func Help(context.Context, []string) error {
 	padding := "   "
-	mask := "%-10s"
+	mask := "%-30s"
 
 	fmt.Println("---------------------------------------------------")
 	fmt.Println()
@@ -17,11 +17,11 @@ func Help(context.Context, []string) error {
 	fmt.Println()
 	fmt.Println(padding, fmt.Sprintf(mask, "help"), "- (show all commands)")
 	fmt.Println()
-	fmt.Println(padding, fmt.Sprintf(mask, "show users"), "- (show all users)")
-	fmt.Println(padding, fmt.Sprintf(mask, "create user"), "- (create new user)")
-	fmt.Println(padding, fmt.Sprintf(mask, "delete user [id]"), "- (delete user by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "edit user [id]"), "- (update user secret and valid date by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "block user [id]"), "- (block/unblock user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "user list [-blocked] [-active]"), "- (show users)")
+	fmt.Println(padding, fmt.Sprintf(mask, "user create"), "- (create a new user)")
+	fmt.Println(padding, fmt.Sprintf(mask, "user delete [id]"), "- (delete a user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "user edit [id]"), "- (update the user detailes by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "user block [id]"), "- (block/unblock a user by id)")
 	fmt.Println()
 	return nil
 }

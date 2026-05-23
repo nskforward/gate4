@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sort"
 	"sync"
 	"time"
 
@@ -43,9 +42,6 @@ func (store *FileStore) List(ctx context.Context) ([]*User, error) {
 	for _, user := range store.users {
 		users = append(users, user)
 	}
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Created.Before(users[i].Created)
-	})
 	return users, nil
 }
 
