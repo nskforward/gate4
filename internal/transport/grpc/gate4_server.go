@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"os"
 	"time"
 
 	"github.com/nskforward/gate4/internal/keychain"
@@ -101,6 +102,10 @@ func (gate4 *Gate4Server) Run(ctx context.Context, network, address string) erro
 		return fmt.Errorf("net.Listen error: %w", err)
 	}
 
+	if network == "unix" {
+		defer os.Remove(address)
+	}
+
 	errorc := make(chan error, 1)
 	go func() {
 		defer close(errorc)
@@ -110,7 +115,7 @@ func (gate4 *Gate4Server) Run(ctx context.Context, network, address string) erro
 		}
 	}()
 
-	slog.Info("grpc server is ready to serve requests")
+	slog.Info("grpc server is ready to serve requests", "network", network, "address", address)
 
 	select {
 	case err := <-errorc:

@@ -11,6 +11,9 @@ import (
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/transport/grpc"
 	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/pkg/servers"
+	google "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -40,9 +43,26 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	server := grpc.NewGate4Server(userStore, keychainStore)
+	tlsConfig, err := servers.MTLSConfig(cfg.CA.Cert, cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
+	if err != nil {
+		return err
+	}
 
-	return server.Run(ctx, "tcp", cfg.Server.TCPAddr)
+	var serverPool servers.Pool
+
+	tcpServer := grpc.NewGate4Server(userStore, keychainStore, google.Creds(credentials.NewTLS(tlsConfig)))
+
+	unixServer := grpc.NewGate4Server(userStore, keychainStore)
+
+	serverPool.Add(func(poolCtx context.Context) error {
+		return tcpServer.Run(poolCtx, "tcp", cfg.Server.TCPAddr)
+	})
+
+	serverPool.Add(func(poolCtx context.Context) error {
+		return unixServer.Run(poolCtx, "unix", cfg.Server.UnixAddr)
+	})
+
+	return serverPool.Run(ctx)
 }
 
 func setLogLevel(level slog.Leveler) {

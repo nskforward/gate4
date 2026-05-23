@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"path/filepath"
 	"time"
 
 	"github.com/nskforward/gate4/internal/users"
@@ -16,8 +17,13 @@ type Gate4Client struct {
 	conn   *transport.ClientConn
 }
 
-func NewGate4Client(addr string) (*Gate4Client, error) {
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewGate4Client(network, address string) (*Gate4Client, error) {
+	normalizedAddr := address
+	if network == "unix" {
+		normalizedAddr = "unix:///" + filepath.ToSlash(address)
+	}
+
+	conn, err := grpc.NewClient(normalizedAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

@@ -9,9 +9,9 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	"log/slog"
 	"math/big"
 	math "math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -19,41 +19,40 @@ import (
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func initCACert(ctx context.Context, path string, key *rsa.PrivateKey) (*x509.Certificate, error) {
+func initServerPrivateKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return generateCertCA(ctx, path, key)
+			return generatePrivateKey(ctx, path)
 		}
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, fmt.Errorf("ca cert cannot be a dir: %s", path)
+		return nil, fmt.Errorf("server key cannot be a dir at %s", path)
 	}
-	return loadCert(path)
+	return loadPrivateKey(path)
 }
 
-func loadCert(path string) (*x509.Certificate, error) {
-	data, err := os.ReadFile(path)
+func initServerCert(ctx context.Context, path string, key *rsa.PrivateKey) error {
+	info, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		if os.IsNotExist(err) {
+			_, err = generateCert(ctx, path, key)
+			return err
+		}
+		return err
 	}
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, fmt.Errorf("certificate must be in PEM format: %s", path)
+	if info.IsDir() {
+		return fmt.Errorf("ca cert cannot be a dir: %s", path)
 	}
-	if block.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("pem file is not certificate: %s", path)
-	}
-	slog.Info("loaded CA cert", "file", path)
-	return x509.ParseCertificate(block.Bytes)
+	return nil
 }
 
-func generateCertCA(ctx context.Context, path string, key *rsa.PrivateKey) (*x509.Certificate, error) {
+func generateCert(ctx context.Context, path string, key *rsa.PrivateKey) (*x509.Certificate, error) {
 	scanner := console.NewScanner()
 	defer scanner.Close()
 
-	fmt.Println("WARNING! CA cert not found at", path)
+	fmt.Println("WARNING! server cert not found at", path)
 
 	yes, err := scanner.ScanBool(ctx, "generate?", nil, nil)
 	if err != nil {
@@ -64,6 +63,31 @@ func generateCertCA(ctx context.Context, path string, key *rsa.PrivateKey) (*x50
 		return nil, fmt.Errorf("aborted by user")
 	}
 
+	dnsNames := make([]string, 0, 1)
+	ipAddresses := make([]net.IP, 0, 1)
+
+	commonName, err := scanner.Scan(ctx, "common name", "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	dnsAddr, err := scanner.Scan(ctx, "dns address", "", nil)
+	if err != nil {
+		return nil, err
+	}
+	if dnsAddr != "" {
+		dnsNames = append(dnsNames, dnsAddr)
+	}
+
+	ipAddr, err := scanner.Scan(ctx, "ip address", "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if ipAddr != "" {
+		ipAddresses = append(ipAddresses, net.ParseIP(ipAddr))
+	}
+
 	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
 		return nil, err
@@ -72,17 +96,19 @@ func generateCertCA(ctx context.Context, path string, key *rsa.PrivateKey) (*x50
 	template := &x509.Certificate{
 		SerialNumber: big.NewInt(math.Int63()),
 		Subject: pkix.Name{
-			CommonName:   "Gate4 Root CA 1",
+			CommonName:   commonName,
 			Organization: []string{"Gate4 LLC"},
 			Country:      []string{"RU"},
 		},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().AddDate(10, 0, 0),
-		IsCA:                  true,
+		IsCA:                  false,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		SignatureAlgorithm:    x509.SHA256WithRSA,
+		IPAddresses:           ipAddresses,
+		DNSNames:              dnsNames,
 	}
 
 	data, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)

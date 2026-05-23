@@ -53,7 +53,7 @@ func generatePrivateKey(ctx context.Context, path string) (*rsa.PrivateKey, erro
 	scanner := console.NewScanner()
 	defer scanner.Close()
 
-	fmt.Println("WARNING! CA private key not found at", path)
+	fmt.Println("WARNING! private key not found at", path)
 
 	yes, err := scanner.ScanBool(ctx, "generate?", nil, nil)
 	if err != nil {

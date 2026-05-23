@@ -22,19 +22,29 @@ type Store struct {
 }
 
 func NewStore(ctx context.Context, cfg config.Config) (*Store, error) {
-	key, err := initCAKey(ctx, cfg.CA.Key)
+	caKey, err := initCAKey(ctx, cfg.CA.Key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot init CA key: %w", err)
 	}
 
-	cert, err := initCACert(ctx, cfg.CA.Cert, key)
+	caCert, err := initCACert(ctx, cfg.CA.Cert, caKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot init CA cert: %w", err)
 	}
 
+	key, err := initServerPrivateKey(ctx, cfg.Server.SSL.Key)
+	if err != nil {
+		return nil, fmt.Errorf("cannot init server key: %w", err)
+	}
+
+	err = initServerCert(ctx, cfg.Server.SSL.Cert, key)
+	if err != nil {
+		return nil, fmt.Errorf("cannot init server cert: %w", err)
+	}
+
 	return &Store{
-		key:  key,
-		cert: cert,
+		key:  caKey,
+		cert: caCert,
 	}, nil
 }
 

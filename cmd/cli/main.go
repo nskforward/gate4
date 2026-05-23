@@ -24,7 +24,7 @@ func main() {
 
 func run(ctx context.Context) error {
 	cfg := config.Load()
-	grpcClient, err := grpc.NewGate4Client(cfg.Server.TCPAddr)
+	grpcClient, err := grpc.NewGate4Client("unix", cfg.Server.UnixAddr)
 	if err != nil {
 		return err
 	}
