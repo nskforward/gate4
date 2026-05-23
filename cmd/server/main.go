@@ -29,8 +29,11 @@ func run(ctx context.Context) error {
 	cfg := config.Load()
 	cfg.Log()
 
-	admin := grpc.NewAdminServer()
-	return admin.Run(ctx, cfg.Admin.ListenAddr)
+	admin, err := grpc.NewAdminServer(ctx, cfg)
+	if err != nil {
+		return err
+	}
+	return admin.Run(ctx)
 }
 
 func setLogLevel(level slog.Leveler) {

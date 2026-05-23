@@ -3,9 +3,12 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"time"
 
+	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
 	transport "google.golang.org/grpc"
@@ -15,17 +18,26 @@ import (
 
 type AdminServer struct {
 	pb.UnimplementedAdminServer
-	userStore users.Store
-	transport *transport.Server
+	addr          string
+	userStore     users.Store
+	transport     *transport.Server
+	keychainStore *keychain.Store
 }
 
-func NewAdminServer() *AdminServer {
+func NewAdminServer(ctx context.Context, cfg config.Config) (*AdminServer, error) {
+	keychainStore, err := keychain.NewStore(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	admin := &AdminServer{
-		userStore: users.NewFileStorage(),
-		transport: transport.NewServer(),
+		addr:          cfg.Admin.ListenAddr,
+		userStore:     users.NewFileStorage(),
+		transport:     transport.NewServer(),
+		keychainStore: keychainStore,
 	}
 	pb.RegisterAdminServer(admin.transport, admin)
-	return admin
+	return admin, nil
 }
 
 func (admin *AdminServer) FindUser(ctx context.Context, req *pb.UserID) (*pb.User, error) {
@@ -77,8 +89,8 @@ func (admin *AdminServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 	return convertOutUser(user), nil
 }
 
-func (admin *AdminServer) Run(ctx context.Context, addr string) error {
-	listener, err := net.Listen("tcp", addr)
+func (admin *AdminServer) Run(ctx context.Context) error {
+	listener, err := net.Listen("tcp", admin.addr)
 	if err != nil {
 		return fmt.Errorf("net.Listen error: %w", err)
 	}
@@ -91,6 +103,8 @@ func (admin *AdminServer) Run(ctx context.Context, addr string) error {
 			errorc <- err
 		}
 	}()
+
+	slog.Info("admin server is ready to serve requests")
 
 	select {
 	case err := <-errorc:
