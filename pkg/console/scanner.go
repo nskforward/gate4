@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"slices"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -31,47 +29,49 @@ func (s *Scanner) Close() {
 	})
 }
 
-func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time) (time.Time, error) {
-	defVal := ""
-	if !defaultValue.IsZero() {
-		defVal = defaultValue.Format(layout)
-	} else {
-		defVal = time.Now().Format(layout)
+func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time, dst *time.Time) (time.Time, error) {
+	dstStr := ""
+	if dst != nil {
+		dstStr = (*dst).Format(layout)
 	}
 
-	input, err := s.Scan(ctx, prompt, defVal)
+	defStr := ""
+	if !defaultValue.IsZero() {
+		defStr = defaultValue.Format(layout)
+	} else {
+		defStr = time.Now().Format(layout)
+	}
+
+	input, err := s.Scan(ctx, prompt, defStr, &dstStr)
 	if err != nil {
 		return time.Time{}, err
 	}
 	return time.Parse(layout, input)
 }
 
-func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue bool) (bool, error) {
+func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue bool, dst *bool) (bool, error) {
 	prompt = fmt.Sprintf("%s (y/n)", prompt)
 
-	defVal := "n"
-	if defaultValue {
-		defVal = "y"
+	dstStr := ""
+	if dst != nil {
+		dstStr = bool2str(*dst)
 	}
-	input, err := s.Scan(ctx, prompt, defVal)
+	defStr := bool2str(defaultValue)
+
+	input, err := s.Scan(ctx, prompt, defStr, &dstStr)
 	if err != nil {
 		return false, err
 	}
-
-	input = strings.ToLower(input)
-
-	if slices.Contains([]string{"y", "yes", "ok", "1", "true"}, input) {
-		return true, nil
-	}
-	if slices.Contains([]string{"n", "no", "false", "0"}, input) {
-		return false, nil
-	}
-
-	return false, fmt.Errorf("unrecognized bool input: %s", input)
+	return str2bool(input), nil
 }
 
-func (s *Scanner) Scan(ctx context.Context, prompt string, defaultValue string) (string, error) {
-	prompt = fmt.Sprintf("- %s: ", prompt)
+func (s *Scanner) Scan(ctx context.Context, prompt, defaultValue string, dst *string) (string, error) {
+	prompt = fmt.Sprintf("- %s:", prompt)
+
+	if dst != nil && *dst != "" {
+		fmt.Println(prompt, *dst)
+		return *dst, nil
+	}
 
 	fd := int(os.Stdin.Fd())
 	oldState, err := term.MakeRaw(fd)
@@ -81,6 +81,7 @@ func (s *Scanner) Scan(ctx context.Context, prompt string, defaultValue string) 
 	defer term.Restore(fd, oldState)
 
 	fmt.Print(prompt)
+	fmt.Print(" ")
 	buf := []byte(defaultValue)
 	if len(buf) > 0 {
 		fmt.Print(string(buf))

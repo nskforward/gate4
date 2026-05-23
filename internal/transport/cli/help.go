@@ -19,9 +19,9 @@ func Help(context.Context, []string) error {
 	fmt.Println()
 	fmt.Println(padding, fmt.Sprintf(mask, "show users"), "- (show all users)")
 	fmt.Println(padding, fmt.Sprintf(mask, "create user"), "- (create new user)")
-	fmt.Println(padding, fmt.Sprintf(mask, "delete user"), "- (delete user by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "edit user"), "- (update user secret and valid date by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "block user"), "- (block/unblock user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "delete user [id]"), "- (delete user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "edit user [id]"), "- (update user secret and valid date by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "block user [id]"), "- (block/unblock user by id)")
 	fmt.Println()
 	return nil
 }
