@@ -34,6 +34,8 @@ func run(ctx context.Context) error {
 	r.Handle("users", cli.ListUsers(adminClient))
 	r.Handle("user add", cli.AddUser(adminClient))
 	r.Handle("user del", cli.DeleteUser(adminClient))
+	r.Handle("user block", cli.BlockUser(adminClient))
+	r.Handle("user set", cli.UpdateUser(adminClient))
 
 	return r.Run(ctx)
 }

@@ -52,12 +52,32 @@ func (c *AdminClient) AddUser(ctx context.Context, user *users.User) error {
 	return nil
 }
 
+func (c *AdminClient) DeleteUser(ctx context.Context, userID string) error {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	_, err := c.client.DeleteUser(reqCtx, &pb.UserID{
+		UserId: userID,
+	})
+	return err
+}
+
 func (c *AdminClient) BlockUser(ctx context.Context, userID string, blocked bool) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.BlockUser(reqCtx, &pb.BlockUserRequest{
 		UserId:  userID,
 		Blocked: blocked,
+	})
+	return err
+}
+
+func (c *AdminClient) UpdateUser(ctx context.Context, userID, secret string, validUntil time.Time) error {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	_, err := c.client.UpdateUser(reqCtx, &pb.UpdateUserRequest{
+		UserId:     userID,
+		Secret:     secret,
+		ValidUntil: validUntil.Unix(),
 	})
 	return err
 }
