@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -17,6 +18,10 @@ func main() {
 	defer stop()
 	err := run(ctx)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			fmt.Println()
+			return
+		}
 		fmt.Fprintln(os.Stderr, "error:", err)
 	}
 }
@@ -31,11 +36,11 @@ func run(ctx context.Context) error {
 
 	r := cli.NewRouter()
 	r.Handle("help", cli.Help)
-	r.Handle("users", cli.ListUsers(adminClient))
-	r.Handle("user add", cli.AddUser(adminClient))
-	r.Handle("user del", cli.DeleteUser(adminClient))
-	r.Handle("user block", cli.BlockUser(adminClient))
-	r.Handle("user set", cli.UpdateUser(adminClient))
+	r.Handle("show users", cli.ListUsers(adminClient))
+	r.Handle("create user", cli.AddUser(adminClient))
+	r.Handle("delete user", cli.DeleteUser(adminClient))
+	r.Handle("block user", cli.BlockUser(adminClient))
+	r.Handle("edit user", cli.UpdateUser(adminClient))
 
 	return r.Run(ctx)
 }

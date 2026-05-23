@@ -94,17 +94,59 @@ func (s *Scanner) Scan(ctx context.Context) (string, error) {
 }
 
 // ScanPassword читает строку без отображения (как пароль).
-func (s *Scanner) ScanPassword(ctx context.Context) (string, error) {
-	passCh := make(chan []byte, 1)
+// ScanPassword читает пароль без эхо-вывода, отображая счётчик символов.
+// prompt — строка, которая будет выведена перед началом ввода (например, "- secret: ").
+func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, error) {
+
+	prompt = fmt.Sprintf("- %s: ", prompt)
+
+	fd := int(os.Stdin.Fd())
+	oldState, err := term.MakeRaw(fd)
+	if err != nil {
+		return "", fmt.Errorf("failed to set raw mode: %w", err)
+	}
+	defer term.Restore(fd, oldState)
+
+	// Выводим приглашение один раз перед входом в raw‑режим.
+	fmt.Print(prompt)
+
+	passCh := make(chan string, 1)
 	errCh := make(chan error, 1)
 
 	go func() {
-		password, err := term.ReadPassword(int(os.Stdin.Fd()))
-		if err != nil {
-			errCh <- err
-			return
+		var buf []byte
+		oneByte := make([]byte, 1)
+
+		// Обновляет строку: возвращает каретку, печатает prompt + счётчик, стирает хвост.
+		updateCount := func() {
+			fmt.Fprintf(os.Stdout, "\r%s[%d chars]\033[K", prompt, len(buf))
 		}
-		passCh <- password
+
+		for {
+			_, err := os.Stdin.Read(oneByte)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			c := oneByte[0]
+
+			switch c {
+			case '\r', '\n': // Enter
+				os.Stdout.Write([]byte("\r\n"))
+				passCh <- string(buf)
+				return
+			case 0x7f, 0x08: // Backspace
+				if len(buf) > 0 {
+					buf = buf[:len(buf)-1]
+					updateCount()
+				}
+			default:
+				if c >= 0x20 { // печатные символы
+					buf = append(buf, c)
+					updateCount()
+				}
+			}
+		}
 	}()
 
 	select {
@@ -113,9 +155,6 @@ func (s *Scanner) ScanPassword(ctx context.Context) (string, error) {
 	case err := <-errCh:
 		return "", err
 	case pass := <-passCh:
-		// ReadPassword не выводит символ новой строки после ввода,
-		// поэтому добавляем его сами.
-		fmt.Println()
-		return string(pass), nil
+		return pass, nil
 	}
 }

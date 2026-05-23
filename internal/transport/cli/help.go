@@ -17,11 +17,11 @@ func Help(context.Context, []string) error {
 	fmt.Println()
 	fmt.Println(padding, fmt.Sprintf(mask, "help"), "- (show all commands)")
 	fmt.Println()
-	fmt.Println(padding, fmt.Sprintf(mask, "users"), "- (show all users)")
-	fmt.Println(padding, fmt.Sprintf(mask, "user add"), "- (add user)")
-	fmt.Println(padding, fmt.Sprintf(mask, "user del"), "- (delete user by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "user set"), "- (update user secret and valid date by id)")
-	fmt.Println(padding, fmt.Sprintf(mask, "user block"), "- (block/unblock user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "show users"), "- (show all users)")
+	fmt.Println(padding, fmt.Sprintf(mask, "create user"), "- (create new user)")
+	fmt.Println(padding, fmt.Sprintf(mask, "delete user"), "- (delete user by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "edit user"), "- (update user secret and valid date by id)")
+	fmt.Println(padding, fmt.Sprintf(mask, "block user"), "- (block/unblock user by id)")
 	fmt.Println()
 	return nil
 }

@@ -75,8 +75,7 @@ func AddUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Print("- secret: ")
-		user.Secret, err = scanner.ScanPassword(ctx)
+		user.Secret, err = scanner.ScanPassword(ctx, "secret")
 		if err != nil {
 			return err
 		}
@@ -122,7 +121,7 @@ func DeleteUser(client *grpc.AdminClient) Handler {
 		if err != nil {
 			return err
 		}
-		fmt.Println("deleted")
+		fmt.Println("user deleted")
 		return nil
 	}
 }
@@ -153,9 +152,9 @@ func BlockUser(client *grpc.AdminClient) Handler {
 		}
 
 		if blocked {
-			fmt.Println("blocked")
+			fmt.Println("user blocked")
 		} else {
-			fmt.Println("unblocked")
+			fmt.Println("user unblocked")
 		}
 
 		return nil
@@ -176,8 +175,7 @@ func UpdateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Print("- secret: ")
-		secret, err := scanner.ScanPassword(ctx)
+		secret, err := scanner.ScanPassword(ctx, "secret")
 		if err != nil {
 			return err
 		}
@@ -193,7 +191,7 @@ func UpdateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Println("updated")
+		fmt.Println("user update")
 
 		return nil
 	}
