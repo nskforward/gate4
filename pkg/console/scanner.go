@@ -31,16 +31,29 @@ func (s *Scanner) Close() {
 	})
 }
 
-func (s *Scanner) ScanTime(ctx context.Context, layout string) (time.Time, error) {
-	input, err := s.Scan(ctx)
+func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time) (time.Time, error) {
+	defVal := ""
+	if !defaultValue.IsZero() {
+		defVal = defaultValue.Format(layout)
+	} else {
+		defVal = time.Now().Format(layout)
+	}
+
+	input, err := s.Scan(ctx, prompt, defVal)
 	if err != nil {
 		return time.Time{}, err
 	}
 	return time.Parse(layout, input)
 }
 
-func (s *Scanner) ScanBool(ctx context.Context) (bool, error) {
-	input, err := s.Scan(ctx)
+func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue bool) (bool, error) {
+	prompt = fmt.Sprintf("%s (y/n)", prompt)
+
+	defVal := "n"
+	if defaultValue {
+		defVal = "y"
+	}
+	input, err := s.Scan(ctx, prompt, defVal)
 	if err != nil {
 		return false, err
 	}
@@ -57,30 +70,59 @@ func (s *Scanner) ScanBool(ctx context.Context) (bool, error) {
 	return false, fmt.Errorf("unrecognized bool input: %s", input)
 }
 
-// Scan читает одну строку с отображением вводимых символов.
-// Не использует буферизацию, совместим с последующим вызовом ScanPassword.
-func (s *Scanner) Scan(ctx context.Context) (string, error) {
+func (s *Scanner) Scan(ctx context.Context, prompt string, defaultValue string) (string, error) {
+	prompt = fmt.Sprintf("- %s: ", prompt)
+
+	fd := int(os.Stdin.Fd())
+	oldState, err := term.MakeRaw(fd)
+	if err != nil {
+		return "", fmt.Errorf("failed to set raw mode: %w", err)
+	}
+	defer term.Restore(fd, oldState)
+
+	fmt.Print(prompt)
+	buf := []byte(defaultValue)
+	if len(buf) > 0 {
+		fmt.Print(string(buf))
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	lineCh := make(chan string, 1)
 	errCh := make(chan error, 1)
 
 	go func() {
-		var buf []byte
-		b := make([]byte, 1)
+		oneByte := make([]byte, 1)
 		for {
-			n, err := os.Stdin.Read(b)
+			_, err := os.Stdin.Read(oneByte)
 			if err != nil {
 				errCh <- err
 				return
 			}
-			if n == 0 {
-				continue
+			c := oneByte[0]
+
+			switch c {
+			case '\r', '\n': // Enter
+				os.Stdout.Write([]byte("\r\n"))
+				lineCh <- string(buf)
+				return
+			case 0x03: // Ctrl+C
+				cancel() // отменяем контекст
+				os.Stdout.Write([]byte("^C\r\n"))
+				return // горутина завершается
+			case 0x7f, 0x08: // Backspace
+				if len(buf) > 0 {
+					buf = buf[:len(buf)-1]
+					os.Stdout.Write([]byte("\b \b"))
+				}
+			default:
+				if c >= 0x20 {
+					buf = append(buf, c)
+					os.Stdout.Write([]byte{c})
+				}
 			}
-			if b[0] == '\n' || b[0] == '\r' {
-				break
-			}
-			buf = append(buf, b[0])
 		}
-		lineCh <- string(buf)
 	}()
 
 	select {
@@ -93,9 +135,6 @@ func (s *Scanner) Scan(ctx context.Context) (string, error) {
 	}
 }
 
-// ScanPassword читает строку без отображения (как пароль).
-// ScanPassword читает пароль без эхо-вывода, отображая счётчик символов.
-// prompt — строка, которая будет выведена перед началом ввода (например, "- secret: ").
 func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, error) {
 
 	prompt = fmt.Sprintf("- %s: ", prompt)
@@ -107,8 +146,10 @@ func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, erro
 	}
 	defer term.Restore(fd, oldState)
 
-	// Выводим приглашение один раз перед входом в raw‑режим.
 	fmt.Print(prompt)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	passCh := make(chan string, 1)
 	errCh := make(chan error, 1)
@@ -117,7 +158,6 @@ func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, erro
 		var buf []byte
 		oneByte := make([]byte, 1)
 
-		// Обновляет строку: возвращает каретку, печатает prompt + счётчик, стирает хвост.
 		updateCount := func() {
 			fmt.Fprintf(os.Stdout, "\r%s[%d chars]\033[K", prompt, len(buf))
 		}
@@ -131,9 +171,13 @@ func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, erro
 			c := oneByte[0]
 
 			switch c {
-			case '\r', '\n': // Enter
+			case '\r', '\n':
 				os.Stdout.Write([]byte("\r\n"))
 				passCh <- string(buf)
+				return
+			case 0x03: // Ctrl+C
+				cancel()
+				os.Stdout.Write([]byte("^C\r\n"))
 				return
 			case 0x7f, 0x08: // Backspace
 				if len(buf) > 0 {
@@ -141,7 +185,7 @@ func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, erro
 					updateCount()
 				}
 			default:
-				if c >= 0x20 { // печатные символы
+				if c >= 0x20 {
 					buf = append(buf, c)
 					updateCount()
 				}

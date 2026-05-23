@@ -58,8 +58,7 @@ func AddUser(client *grpc.AdminClient) Handler {
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		fmt.Print("- broker id: ")
-		input, err := scanner.Scan(ctx)
+		input, err := scanner.Scan(ctx, "broker id", "")
 		if err != nil {
 			return err
 		}
@@ -69,8 +68,7 @@ func AddUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Print("- account id: ")
-		user.AccountID, err = scanner.Scan(ctx)
+		user.AccountID, err = scanner.Scan(ctx, "account id", "")
 		if err != nil {
 			return err
 		}
@@ -80,14 +78,12 @@ func AddUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Print("- valid until (YYYY-MM-DD HH:MM): ")
-		user.ValidUntil, err = scanner.ScanTime(ctx, "2006-01-02 15:04")
+		user.ValidUntil, err = scanner.ScanTime(ctx, "valid until", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0))
 		if err != nil {
 			return err
 		}
 
-		fmt.Print("- blocked? (y/n): ")
-		user.Blocked, err = scanner.ScanBool(ctx)
+		user.Blocked, err = scanner.ScanBool(ctx, "blocked?", false)
 		if err != nil {
 			return err
 		}
@@ -111,8 +107,7 @@ func DeleteUser(client *grpc.AdminClient) Handler {
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		fmt.Print("- user id: ")
-		userID, err := scanner.Scan(ctx)
+		userID, err := scanner.Scan(ctx, "user id", "")
 		if err != nil {
 			return err
 		}
@@ -134,14 +129,12 @@ func BlockUser(client *grpc.AdminClient) Handler {
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		fmt.Print("- user id: ")
-		userID, err := scanner.Scan(ctx)
+		userID, err := scanner.Scan(ctx, "user id", "")
 		if err != nil {
 			return err
 		}
 
-		fmt.Print("- blocked? (y/n): ")
-		blocked, err := scanner.ScanBool(ctx)
+		blocked, err := scanner.ScanBool(ctx, "blocked?", false)
 		if err != nil {
 			return err
 		}
@@ -169,8 +162,7 @@ func UpdateUser(client *grpc.AdminClient) Handler {
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		fmt.Print("- user id: ")
-		userID, err := scanner.Scan(ctx)
+		userID, err := scanner.Scan(ctx, "user id", "")
 		if err != nil {
 			return err
 		}
@@ -180,8 +172,7 @@ func UpdateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Print("- valid until (YYYY-MM-DD HH:MM): ")
-		validUntil, err := scanner.ScanTime(ctx, "2006-01-02 15:04")
+		validUntil, err := scanner.ScanTime(ctx, "valid until", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0))
 		if err != nil {
 			return err
 		}

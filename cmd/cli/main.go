@@ -17,11 +17,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	err := run(ctx)
-	if err != nil {
-		if errors.Is(err, context.Canceled) {
-			fmt.Println()
-			return
-		}
+	if err != nil && !errors.Is(err, context.Canceled) {
 		fmt.Fprintln(os.Stderr, "error:", err)
 	}
 }
