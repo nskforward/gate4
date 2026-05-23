@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/nskforward/gate4/internal/brokers"
@@ -23,36 +24,30 @@ func ListUsers(client *grpc.AdminClient) Handler {
 		}
 
 		maxLenID := 0
-		maxLenBlocked := len("active")
 		for _, user := range users {
 			if len(user.ID) > maxLenID {
 				maxLenID = len(user.ID)
 			}
-			if user.Blocked {
-				maxLenBlocked = len("blocked")
-			}
 		}
 
 		maskID := fmt.Sprintf("%%-%ds", maxLenID)
-		maskBlocked := fmt.Sprintf("%%-%ds", maxLenBlocked)
+
+		fmt.Println(strings.Repeat("-", 56+maxLenID))
+		fmt.Println("| # |", fmt.Sprintf(maskID, "USER ID"), "| STATUS  | CREATED    | EXPIRES    | DAYS LEFT |")
+		fmt.Println(strings.Repeat("-", 56+maxLenID))
 
 		for i, user := range users {
-			left := time.Until(user.Expires)
-			hours := left.Hours()
-			days := 0
-			if hours >= 24 {
-				days = int(hours) / 24
-			}
 			fmt.Println(
-				fmt.Sprintf("%d.", i+1),
+				fmt.Sprintf("| %d |", i+1),
 				fmt.Sprintf(maskID, user.ID),
 				"|",
-				formatBlocked(maskBlocked, user.Blocked, user.Expires),
-				"| created", user.Created.Format("2006-01-02"),
-				"| expires", user.Expires.Format("2006-01-02"),
-				fmt.Sprintf("(%d days left)", days),
+				formatStatus(user.Blocked, user.Expires),
+				"|", user.Created.Format("2006-01-02"),
+				"|", user.Expires.Format("2006-01-02"),
+				"|", formatDaysLeft(user.Expires, 14), "|",
 			)
 		}
+		fmt.Println(strings.Repeat("-", 56+maxLenID))
 		return nil
 	}
 }
@@ -89,7 +84,7 @@ func CreateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		user.Blocked, err = scanner.ScanBool(ctx, "blocked?", false, nil)
+		user.Blocked, err = scanner.ScanBool(ctx, "blocked?", new(false), nil)
 		if err != nil {
 			return err
 		}
@@ -99,7 +94,7 @@ func CreateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Println("success: user created with id:", user.ID)
+		fmt.Println("success: user created with id", user.ID)
 
 		return nil
 	}
@@ -124,12 +119,13 @@ func DeleteUser(client *grpc.AdminClient) Handler {
 		}
 
 		fmt.Println("WARNING! user will be permanently removed")
-		allow, err := scanner.ScanBool(ctx, "continue?", false, nil)
+		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
 		if err != nil {
 			return err
 		}
 
 		if !allow {
+			fmt.Println("canceled")
 			return nil
 		}
 
@@ -138,7 +134,7 @@ func DeleteUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Println("success: user deleted with id:", userID)
+		fmt.Println("success: user deleted with id", userID)
 		return nil
 	}
 }
@@ -161,7 +157,7 @@ func BlockUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		blocked, err := scanner.ScanBool(ctx, "blocked?", true, nil)
+		blocked, err := scanner.ScanBool(ctx, "blocked?", nil, nil)
 		if err != nil {
 			return err
 		}
@@ -176,7 +172,7 @@ func BlockUser(client *grpc.AdminClient) Handler {
 			op = "unblocked"
 		}
 
-		fmt.Println("success: user", op, "with id:", userID)
+		fmt.Println("success: user", op, "with id", userID)
 
 		return nil
 	}
@@ -215,18 +211,25 @@ func UpdateUser(client *grpc.AdminClient) Handler {
 			return err
 		}
 
-		fmt.Println("success: user update with id:", userID)
+		fmt.Println("success: user update with id", userID)
 
 		return nil
 	}
 }
 
-func formatBlocked(mask string, blocked bool, expires time.Time) string {
-	if blocked {
-		return fmt.Sprintf(mask, "blocked")
+func formatStatus(blocked bool, expires time.Time) string {
+	status := console.GreenText("active ")
+	if blocked || time.Since(expires) > 0 {
+		status = console.RedText("blocked")
 	}
-	if time.Since(expires) > 0 {
-		return fmt.Sprintf(mask, "blocked")
+	return fmt.Sprintf("%-7s", status)
+}
+
+func formatDaysLeft(expires time.Time, threshold int) string {
+	daysLeft := int(time.Until(expires).Hours() / 24)
+	text := fmt.Sprintf("%-9d", daysLeft)
+	if daysLeft < threshold {
+		return console.RedText(text)
 	}
-	return fmt.Sprintf(mask, "active")
+	return text
 }

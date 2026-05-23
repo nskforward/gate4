@@ -49,14 +49,18 @@ func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultVa
 	return time.Parse(layout, input)
 }
 
-func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue bool, dst *bool) (bool, error) {
+func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue, dst *bool) (bool, error) {
 	prompt = fmt.Sprintf("%s (y/n)", prompt)
 
 	dstStr := ""
 	if dst != nil {
 		dstStr = bool2str(*dst)
 	}
-	defStr := bool2str(defaultValue)
+
+	defStr := ""
+	if defaultValue != nil {
+		defStr = bool2str(*defaultValue)
+	}
 
 	input, err := s.Scan(ctx, prompt, defStr, &dstStr)
 	if err != nil {
