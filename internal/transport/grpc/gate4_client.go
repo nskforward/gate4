@@ -11,27 +11,27 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type AdminClient struct {
+type Gate4Client struct {
 	client pb.AdminClient
 	conn   *transport.ClientConn
 }
 
-func NewAdminClient(addr string) (*AdminClient, error) {
+func NewGate4Client(addr string) (*Gate4Client, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
-	return &AdminClient{
+	return &Gate4Client{
 		conn:   conn,
 		client: pb.NewAdminClient(conn),
 	}, nil
 }
 
-func (c *AdminClient) Close() {
+func (c *Gate4Client) Close() {
 	c.conn.Close()
 }
 
-func (c *AdminClient) CreateCert(ctx context.Context, commonName, privateKey string) (string, error) {
+func (c *Gate4Client) CreateCert(ctx context.Context, commonName, privateKey string) (string, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.CreateCert(reqCtx, &pb.CreateCertRequest{
@@ -44,7 +44,7 @@ func (c *AdminClient) CreateCert(ctx context.Context, commonName, privateKey str
 	return resp.Cert, nil
 }
 
-func (c *AdminClient) ListUsers(ctx context.Context) ([]*users.User, error) {
+func (c *Gate4Client) ListUsers(ctx context.Context) ([]*users.User, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.ListUsers(reqCtx, &pb.EmptyMessage{})
@@ -54,7 +54,7 @@ func (c *AdminClient) ListUsers(ctx context.Context) ([]*users.User, error) {
 	return convertInUsers(resp.Users), nil
 }
 
-func (c *AdminClient) CreateUser(ctx context.Context, user *users.User) error {
+func (c *Gate4Client) CreateUser(ctx context.Context, user *users.User) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.CreateUser(reqCtx, convertOutUser(user))
@@ -66,7 +66,7 @@ func (c *AdminClient) CreateUser(ctx context.Context, user *users.User) error {
 	return nil
 }
 
-func (c *AdminClient) DeleteUser(ctx context.Context, userID string) error {
+func (c *Gate4Client) DeleteUser(ctx context.Context, userID string) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.DeleteUser(reqCtx, &pb.UserID{
@@ -75,7 +75,7 @@ func (c *AdminClient) DeleteUser(ctx context.Context, userID string) error {
 	return err
 }
 
-func (c *AdminClient) BlockUser(ctx context.Context, userID string, blocked bool) error {
+func (c *Gate4Client) BlockUser(ctx context.Context, userID string, blocked bool) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.BlockUser(reqCtx, &pb.BlockUserRequest{
@@ -85,7 +85,7 @@ func (c *AdminClient) BlockUser(ctx context.Context, userID string, blocked bool
 	return err
 }
 
-func (c *AdminClient) UpdateUser(ctx context.Context, userID, secret string, expires time.Time) error {
+func (c *Gate4Client) UpdateUser(ctx context.Context, userID, secret string, expires time.Time) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	_, err := c.client.UpdateUser(reqCtx, &pb.UpdateUserRequest{

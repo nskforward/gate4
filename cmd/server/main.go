@@ -8,7 +8,9 @@ import (
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/transport/grpc"
+	"github.com/nskforward/gate4/internal/users"
 )
 
 func main() {
@@ -27,13 +29,20 @@ func main() {
 
 func run(ctx context.Context) error {
 	cfg := config.Load()
-	cfg.Log()
 
-	admin, err := grpc.NewAdminServer(ctx, cfg)
+	userStore, err := users.NewFileStorage()
 	if err != nil {
 		return err
 	}
-	return admin.Run(ctx)
+
+	keychainStore, err := keychain.NewStore(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	server := grpc.NewGate4Server(userStore, keychainStore)
+
+	return server.Run(ctx, "tcp", cfg.Server.TCPAddr)
 }
 
 func setLogLevel(level slog.Leveler) {

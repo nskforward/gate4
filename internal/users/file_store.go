@@ -17,22 +17,19 @@ type FileStore struct {
 	mx       sync.RWMutex
 }
 
-func NewFileStorage() *FileStore {
-	normalized, err := tools.NormalizeFilename("data/users.json")
-	if err != nil {
-		panic(fmt.Errorf("bad users file storage filename path: %w", err))
-	}
+func NewFileStorage() (*FileStore, error) {
+	normalized := tools.Path("data/users.json")
 
 	store := &FileStore{
 		filename: normalized,
 		users:    make(map[string]*User),
 	}
 
-	err = store.load()
+	err := store.load()
 	if err != nil {
-		panic(fmt.Errorf("cannot load users from file storage: %w", err))
+		return nil, err
 	}
-	return store
+	return store, nil
 }
 
 func (store *FileStore) List(ctx context.Context) ([]*User, error) {

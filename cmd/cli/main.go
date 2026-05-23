@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nskforward/gate4/internal/cli"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/transport/cli"
 	"github.com/nskforward/gate4/internal/transport/grpc"
 )
 
@@ -24,20 +24,20 @@ func main() {
 
 func run(ctx context.Context) error {
 	cfg := config.Load()
-	adminClient, err := grpc.NewAdminClient(cfg.Admin.ListenAddr)
+	grpcClient, err := grpc.NewGate4Client(cfg.Server.TCPAddr)
 	if err != nil {
 		return err
 	}
-	defer adminClient.Close()
+	defer grpcClient.Close()
 
 	r := cli.NewRouter()
 	r.Handle("help", cli.Help)
-	r.Handle("cert create", cli.CreateCert(adminClient))
-	r.Handle("user list", cli.ListUsers(adminClient))
-	r.Handle("user create", cli.CreateUser(adminClient))
-	r.Handle("user delete", cli.DeleteUser(adminClient))
-	r.Handle("user block", cli.BlockUser(adminClient))
-	r.Handle("user edit", cli.UpdateUser(adminClient))
+	r.Handle("cert create", cli.CreateCert(grpcClient))
+	r.Handle("user list", cli.ListUsers(grpcClient))
+	r.Handle("user create", cli.CreateUser(grpcClient))
+	r.Handle("user delete", cli.DeleteUser(grpcClient))
+	r.Handle("user block", cli.BlockUser(grpcClient))
+	r.Handle("user edit", cli.UpdateUser(grpcClient))
 
 	return r.Run(ctx)
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func ListUsers(client *grpc.AdminClient) Handler {
+func ListUsers(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		filterActive := true
@@ -82,7 +82,7 @@ func ListUsers(client *grpc.AdminClient) Handler {
 	}
 }
 
-func CreateUser(client *grpc.AdminClient) Handler {
+func CreateUser(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user users.User
 
@@ -130,7 +130,7 @@ func CreateUser(client *grpc.AdminClient) Handler {
 	}
 }
 
-func DeleteUser(client *grpc.AdminClient) Handler {
+func DeleteUser(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -169,7 +169,7 @@ func DeleteUser(client *grpc.AdminClient) Handler {
 	}
 }
 
-func BlockUser(client *grpc.AdminClient) Handler {
+func BlockUser(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -208,7 +208,7 @@ func BlockUser(client *grpc.AdminClient) Handler {
 	}
 }
 
-func UpdateUser(client *grpc.AdminClient) Handler {
+func UpdateUser(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string

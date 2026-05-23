@@ -13,7 +13,7 @@ import (
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func CreateCert(client *grpc.AdminClient) Handler {
+func CreateCert(client *grpc.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		scanner := console.NewScanner()
 		defer scanner.Close()
