@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 func GeneratePrivateKey() (*rsa.PrivateKey, error) {
@@ -35,6 +36,11 @@ func ParsePrivateKey(data []byte) (*rsa.PrivateKey, error) {
 }
 
 func SavePrivateKey(key *rsa.PrivateKey, path string) error {
+	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return err

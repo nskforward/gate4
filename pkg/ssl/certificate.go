@@ -13,6 +13,7 @@ import (
 	math "math/rand"
 	"net"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -69,6 +70,11 @@ func ParseCertificate(data []byte) (*x509.Certificate, error) {
 }
 
 func SaveCertificate(cert *x509.Certificate, path string) error {
+	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	r, err := MarshalCert(cert)
 	if err != nil {
 		return err

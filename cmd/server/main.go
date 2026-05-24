@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/servers"
 )
@@ -29,6 +30,11 @@ func main() {
 
 func run(ctx context.Context) error {
 	cfg := config.Load()
+
+	err := keychain.GenWizard(ctx, cfg)
+	if err != nil {
+		return err
+	}
 
 	gate4Server, err := transport.NewGate4Server(cfg)
 	if err != nil {

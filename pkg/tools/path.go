@@ -18,3 +18,8 @@ func Path(in string) string {
 	}
 	return filepath.Join(wd, in)
 }
+
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}

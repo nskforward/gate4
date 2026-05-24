@@ -29,6 +29,11 @@ func (s *Scanner) Close() {
 	})
 }
 
+func (s *Scanner) Confirm(ctx context.Context, prompt string) bool {
+	result, _ := s.ScanBool(ctx, YellowText(prompt), nil, nil)
+	return result
+}
+
 func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time, dst *time.Time) (time.Time, error) {
 	dstStr := ""
 	if dst != nil {
