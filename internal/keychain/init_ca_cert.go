@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"math/big"
 	math "math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -83,6 +84,8 @@ func generateCertCA(ctx context.Context, path string, key *rsa.PrivateKey) (*x50
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		SignatureAlgorithm:    x509.SHA256WithRSA,
+		IPAddresses:           []net.IP{},
+		DNSNames:              []string{},
 	}
 
 	data, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
