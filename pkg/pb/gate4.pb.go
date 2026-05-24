@@ -445,6 +445,142 @@ func (x *UserID) GetUserId() string {
 	return ""
 }
 
+type SymbolRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Symbol        string                 `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SymbolRequest) Reset() {
+	*x = SymbolRequest{}
+	mi := &file_gate4_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SymbolRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SymbolRequest) ProtoMessage() {}
+
+func (x *SymbolRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gate4_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SymbolRequest.ProtoReflect.Descriptor instead.
+func (*SymbolRequest) Descriptor() ([]byte, []int) {
+	return file_gate4_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SymbolRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SymbolRequest) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+type Quote struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	AskPrice      []string               `protobuf:"bytes,3,rep,name=ask_price,json=askPrice,proto3" json:"ask_price,omitempty"`
+	BidPrice      []string               `protobuf:"bytes,4,rep,name=bid_price,json=bidPrice,proto3" json:"bid_price,omitempty"`
+	AskSize       []string               `protobuf:"bytes,5,rep,name=ask_size,json=askSize,proto3" json:"ask_size,omitempty"`
+	BidSize       []string               `protobuf:"bytes,6,rep,name=bid_size,json=bidSize,proto3" json:"bid_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Quote) Reset() {
+	*x = Quote{}
+	mi := &file_gate4_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Quote) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Quote) ProtoMessage() {}
+
+func (x *Quote) ProtoReflect() protoreflect.Message {
+	mi := &file_gate4_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Quote.ProtoReflect.Descriptor instead.
+func (*Quote) Descriptor() ([]byte, []int) {
+	return file_gate4_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Quote) GetSymbol() string {
+	if x != nil {
+		return x.Symbol
+	}
+	return ""
+}
+
+func (x *Quote) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *Quote) GetAskPrice() []string {
+	if x != nil {
+		return x.AskPrice
+	}
+	return nil
+}
+
+func (x *Quote) GetBidPrice() []string {
+	if x != nil {
+		return x.BidPrice
+	}
+	return nil
+}
+
+func (x *Quote) GetAskSize() []string {
+	if x != nil {
+		return x.AskSize
+	}
+	return nil
+}
+
+func (x *Quote) GetBidSize() []string {
+	if x != nil {
+		return x.BidSize
+	}
+	return nil
+}
+
 var File_gate4_proto protoreflect.FileDescriptor
 
 const file_gate4_proto_rawDesc = "" +
@@ -479,19 +615,30 @@ const file_gate4_proto_rawDesc = "" +
 	"\x06secret\x18\x02 \x01(\tR\x06secret\x12\x18\n" +
 	"\aexpires\x18\x03 \x01(\x03R\aexpires\"!\n" +
 	"\x06UserID\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId2\x86\x03\n" +
-	"\x05Gate4\x12<\n" +
-	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\"\x00\x12(\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"@\n" +
+	"\rSymbolRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\xad\x01\n" +
+	"\x05Quote\x12\x16\n" +
+	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
+	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x1b\n" +
+	"\task_price\x18\x03 \x03(\tR\baskPrice\x12\x1b\n" +
+	"\tbid_price\x18\x04 \x03(\tR\bbidPrice\x12\x19\n" +
+	"\bask_size\x18\x05 \x03(\tR\aaskSize\x12\x19\n" +
+	"\bbid_size\x18\x06 \x03(\tR\abidSize2\xb1\x03\n" +
+	"\x05Gate4\x12:\n" +
+	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\x12&\n" +
 	"\n" +
-	"CreateUser\x12\v.proto.User\x1a\v.proto.User\"\x00\x12(\n" +
-	"\bFindUser\x12\r.proto.UserID\x1a\v.proto.User\"\x00\x122\n" +
+	"CreateUser\x12\v.proto.User\x1a\v.proto.User\x12&\n" +
+	"\bFindUser\x12\r.proto.UserID\x1a\v.proto.User\x120\n" +
 	"\n" +
-	"DeleteUser\x12\r.proto.UserID\x1a\x13.proto.EmptyMessage\"\x00\x12;\n" +
-	"\tBlockUser\x12\x17.proto.BlockUserRequest\x1a\x13.proto.EmptyMessage\"\x00\x125\n" +
+	"DeleteUser\x12\r.proto.UserID\x1a\x13.proto.EmptyMessage\x129\n" +
+	"\tBlockUser\x12\x17.proto.BlockUserRequest\x1a\x13.proto.EmptyMessage\x123\n" +
 	"\n" +
-	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\v.proto.User\"\x00\x12C\n" +
+	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\v.proto.User\x12A\n" +
 	"\n" +
-	"CreateCert\x12\x18.proto.CreateCertRequest\x1a\x19.proto.CreateCertResponse\"\x00B\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"CreateCert\x12\x18.proto.CreateCertRequest\x1a\x19.proto.CreateCertResponse\x127\n" +
+	"\x0fSubscribeQuotes\x12\x14.proto.SymbolRequest\x1a\f.proto.Quote0\x01B\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_gate4_proto_rawDescOnce sync.Once
@@ -505,7 +652,7 @@ func file_gate4_proto_rawDescGZIP() []byte {
 	return file_gate4_proto_rawDescData
 }
 
-var file_gate4_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_gate4_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_gate4_proto_goTypes = []any{
 	(*EmptyMessage)(nil),       // 0: proto.EmptyMessage
 	(*User)(nil),               // 1: proto.User
@@ -515,6 +662,8 @@ var file_gate4_proto_goTypes = []any{
 	(*BlockUserRequest)(nil),   // 5: proto.BlockUserRequest
 	(*UpdateUserRequest)(nil),  // 6: proto.UpdateUserRequest
 	(*UserID)(nil),             // 7: proto.UserID
+	(*SymbolRequest)(nil),      // 8: proto.SymbolRequest
+	(*Quote)(nil),              // 9: proto.Quote
 }
 var file_gate4_proto_depIdxs = []int32{
 	1, // 0: proto.ListUsersResponse.users:type_name -> proto.User
@@ -525,15 +674,17 @@ var file_gate4_proto_depIdxs = []int32{
 	5, // 5: proto.Gate4.BlockUser:input_type -> proto.BlockUserRequest
 	6, // 6: proto.Gate4.UpdateUser:input_type -> proto.UpdateUserRequest
 	2, // 7: proto.Gate4.CreateCert:input_type -> proto.CreateCertRequest
-	4, // 8: proto.Gate4.ListUsers:output_type -> proto.ListUsersResponse
-	1, // 9: proto.Gate4.CreateUser:output_type -> proto.User
-	1, // 10: proto.Gate4.FindUser:output_type -> proto.User
-	0, // 11: proto.Gate4.DeleteUser:output_type -> proto.EmptyMessage
-	0, // 12: proto.Gate4.BlockUser:output_type -> proto.EmptyMessage
-	1, // 13: proto.Gate4.UpdateUser:output_type -> proto.User
-	3, // 14: proto.Gate4.CreateCert:output_type -> proto.CreateCertResponse
-	8, // [8:15] is the sub-list for method output_type
-	1, // [1:8] is the sub-list for method input_type
+	8, // 8: proto.Gate4.SubscribeQuotes:input_type -> proto.SymbolRequest
+	4, // 9: proto.Gate4.ListUsers:output_type -> proto.ListUsersResponse
+	1, // 10: proto.Gate4.CreateUser:output_type -> proto.User
+	1, // 11: proto.Gate4.FindUser:output_type -> proto.User
+	0, // 12: proto.Gate4.DeleteUser:output_type -> proto.EmptyMessage
+	0, // 13: proto.Gate4.BlockUser:output_type -> proto.EmptyMessage
+	1, // 14: proto.Gate4.UpdateUser:output_type -> proto.User
+	3, // 15: proto.Gate4.CreateCert:output_type -> proto.CreateCertResponse
+	9, // 16: proto.Gate4.SubscribeQuotes:output_type -> proto.Quote
+	9, // [9:17] is the sub-list for method output_type
+	1, // [1:9] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -551,7 +702,7 @@ func file_gate4_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gate4_proto_rawDesc), len(file_gate4_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

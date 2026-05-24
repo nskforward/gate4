@@ -2,13 +2,17 @@ package transport
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/nskforward/gate4/internal/brokers"
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/ssl"
+	"github.com/nskforward/gate4/pkg/types"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,6 +21,7 @@ type Gate4Server struct {
 	pb.UnimplementedGate4Server
 	userStore     users.Store
 	keychainStore *keychain.Store
+	brokerPool    *brokers.Pool
 }
 
 func NewGate4Server(cfg config.Config) (*Gate4Server, error) {
@@ -31,6 +36,7 @@ func NewGate4Server(cfg config.Config) (*Gate4Server, error) {
 	return &Gate4Server{
 		userStore:     userStore,
 		keychainStore: keychain.NewStore(caKey, caCert),
+		brokerPool:    brokers.NewPool(),
 	}, nil
 }
 
@@ -102,4 +108,25 @@ func (gate4 *Gate4Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 		return nil, err
 	}
 	return convertOutUser(user), nil
+}
+
+func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.ServerStreamingServer[pb.Quote]) error {
+	user, err := gate4.userStore.Find(stream.Context(), req.UserId)
+	if err != nil {
+		return fmt.Errorf("search user error: %w", err)
+	}
+	client, err := gate4.brokerPool.Get(user)
+	if err != nil {
+		return fmt.Errorf("search broker client error: %w", err)
+	}
+	return client.SubscribeQuotes(stream.Context(), func(q types.Quote) error {
+		return stream.Send(&pb.Quote{
+			Symbol:    q.Symbol,
+			Timestamp: q.Timestamp,
+			AskPrice:  q.AskPrice,
+			BidPrice:  q.BidPrice,
+			AskSize:   q.AskSize,
+			BidSize:   q.BidSize,
+		})
+	})
 }

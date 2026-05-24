@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/nskforward/gate4/internal/brokers"
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
@@ -49,7 +48,7 @@ func convertInUser(user *pb.User) *users.User {
 	}
 	return &users.User{
 		ID:        *user.Id,
-		BrokerID:  brokers.BrokerID(user.BrokerId),
+		BrokerID:  users.BrokerID(user.BrokerId),
 		AccountID: user.AccountId,
 		Expires:   time.Unix(user.Expires, 0),
 		Created:   time.Unix(user.Created, 0),

@@ -5,13 +5,17 @@ package proto;
 option go_package = "gate4/pkg/pb";
 
 service Gate4 {
-  rpc ListUsers(EmptyMessage) returns (ListUsersResponse) {}
-  rpc CreateUser(User) returns (User) {}
-  rpc FindUser(UserID) returns (User) {}
-  rpc DeleteUser(UserID) returns (EmptyMessage) {}
-  rpc BlockUser(BlockUserRequest) returns (EmptyMessage) {}
-  rpc UpdateUser(UpdateUserRequest) returns (User) {}
-  rpc CreateCert(CreateCertRequest) returns (CreateCertResponse) {}
+  // users managment
+  rpc ListUsers(EmptyMessage) returns (ListUsersResponse);
+  rpc CreateUser(User) returns (User);
+  rpc FindUser(UserID) returns (User);
+  rpc DeleteUser(UserID) returns (EmptyMessage);
+  rpc BlockUser(BlockUserRequest) returns (EmptyMessage);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc CreateCert(CreateCertRequest) returns (CreateCertResponse);
+
+  // broker commands
+  rpc SubscribeQuotes(SymbolRequest) returns (stream Quote);
 }
 
 message EmptyMessage {}
@@ -52,4 +56,18 @@ message UpdateUserRequest {
 
 message UserID {
   string user_id = 1;
+}
+
+message SymbolRequest {
+  string user_id = 1;
+  string symbol = 2;
+}
+
+message Quote {
+  string symbol = 1;
+  int64 timestamp = 2;
+  repeated string ask_price = 3;
+  repeated string bid_price = 4;
+  repeated string ask_size = 5;
+  repeated string bid_size = 6;
 }

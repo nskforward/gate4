@@ -15,20 +15,26 @@ import (
 )
 
 func GenWizard(ctx context.Context, cfg config.Config) error {
-	caKey, err := generateCAKey(ctx, cfg.CA.Key)
-	if err != nil {
-		return err
+	if !tools.FileExists(cfg.CA.Key) || !tools.FileExists(cfg.CA.Cert) {
+		caKey, err := generateCAKey(ctx, cfg.CA.Key)
+		if err != nil {
+			return err
+		}
+		if err := generateCACert(ctx, cfg.CA.Cert, caKey); err != nil {
+			return err
+		}
 	}
-	if err := generateCACert(ctx, cfg.CA.Cert, caKey); err != nil {
-		return err
+
+	if !tools.FileExists(cfg.Server.SSL.Key) || !tools.FileExists(cfg.Server.SSL.Cert) {
+		key, err := generateServerKey(ctx, cfg.Server.SSL.Key)
+		if err != nil {
+			return err
+		}
+		if err := generateServerCert(ctx, cfg.Server.SSL.Cert, key); err != nil {
+			return err
+		}
 	}
-	key, err := generateServerKey(ctx, cfg.Server.SSL.Key)
-	if err != nil {
-		return err
-	}
-	if err := generateServerCert(ctx, cfg.Server.SSL.Cert, key); err != nil {
-		return err
-	}
+
 	return nil
 }
 

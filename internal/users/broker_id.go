@@ -1,4 +1,4 @@
-package brokers
+package users
 
 import "fmt"
 

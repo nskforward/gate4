@@ -19,19 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Gate4_ListUsers_FullMethodName  = "/proto.Gate4/ListUsers"
-	Gate4_CreateUser_FullMethodName = "/proto.Gate4/CreateUser"
-	Gate4_FindUser_FullMethodName   = "/proto.Gate4/FindUser"
-	Gate4_DeleteUser_FullMethodName = "/proto.Gate4/DeleteUser"
-	Gate4_BlockUser_FullMethodName  = "/proto.Gate4/BlockUser"
-	Gate4_UpdateUser_FullMethodName = "/proto.Gate4/UpdateUser"
-	Gate4_CreateCert_FullMethodName = "/proto.Gate4/CreateCert"
+	Gate4_ListUsers_FullMethodName       = "/proto.Gate4/ListUsers"
+	Gate4_CreateUser_FullMethodName      = "/proto.Gate4/CreateUser"
+	Gate4_FindUser_FullMethodName        = "/proto.Gate4/FindUser"
+	Gate4_DeleteUser_FullMethodName      = "/proto.Gate4/DeleteUser"
+	Gate4_BlockUser_FullMethodName       = "/proto.Gate4/BlockUser"
+	Gate4_UpdateUser_FullMethodName      = "/proto.Gate4/UpdateUser"
+	Gate4_CreateCert_FullMethodName      = "/proto.Gate4/CreateCert"
+	Gate4_SubscribeQuotes_FullMethodName = "/proto.Gate4/SubscribeQuotes"
 )
 
 // Gate4Client is the client API for Gate4 service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type Gate4Client interface {
+	// users managment
 	ListUsers(ctx context.Context, in *EmptyMessage, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	CreateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 	FindUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
@@ -39,6 +41,8 @@ type Gate4Client interface {
 	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
 	CreateCert(ctx context.Context, in *CreateCertRequest, opts ...grpc.CallOption) (*CreateCertResponse, error)
+	// broker commands
+	SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error)
 }
 
 type gate4Client struct {
@@ -119,10 +123,30 @@ func (c *gate4Client) CreateCert(ctx context.Context, in *CreateCertRequest, opt
 	return out, nil
 }
 
+func (c *gate4Client) SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Gate4_ServiceDesc.Streams[0], Gate4_SubscribeQuotes_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SymbolRequest, Quote]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Gate4_SubscribeQuotesClient = grpc.ServerStreamingClient[Quote]
+
 // Gate4Server is the server API for Gate4 service.
 // All implementations must embed UnimplementedGate4Server
 // for forward compatibility.
 type Gate4Server interface {
+	// users managment
 	ListUsers(context.Context, *EmptyMessage) (*ListUsersResponse, error)
 	CreateUser(context.Context, *User) (*User, error)
 	FindUser(context.Context, *UserID) (*User, error)
@@ -130,6 +154,8 @@ type Gate4Server interface {
 	BlockUser(context.Context, *BlockUserRequest) (*EmptyMessage, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
 	CreateCert(context.Context, *CreateCertRequest) (*CreateCertResponse, error)
+	// broker commands
+	SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error
 	mustEmbedUnimplementedGate4Server()
 }
 
@@ -160,6 +186,9 @@ func (UnimplementedGate4Server) UpdateUser(context.Context, *UpdateUserRequest) 
 }
 func (UnimplementedGate4Server) CreateCert(context.Context, *CreateCertRequest) (*CreateCertResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateCert not implemented")
+}
+func (UnimplementedGate4Server) SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeQuotes not implemented")
 }
 func (UnimplementedGate4Server) mustEmbedUnimplementedGate4Server() {}
 func (UnimplementedGate4Server) testEmbeddedByValue()               {}
@@ -308,6 +337,17 @@ func _Gate4_CreateCert_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Gate4_SubscribeQuotes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SymbolRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(Gate4Server).SubscribeQuotes(m, &grpc.GenericServerStream[SymbolRequest, Quote]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Gate4_SubscribeQuotesServer = grpc.ServerStreamingServer[Quote]
+
 // Gate4_ServiceDesc is the grpc.ServiceDesc for Gate4 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -344,6 +384,12 @@ var Gate4_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Gate4_CreateCert_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeQuotes",
+			Handler:       _Gate4_SubscribeQuotes_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "gate4.proto",
 }

@@ -46,10 +46,10 @@ func (store *FileStore) Find(ctx context.Context, userID string) (*User, error) 
 	store.mx.RLock()
 	defer store.mx.RUnlock()
 	user, ok := store.users[userID]
-	if ok {
-		return user, nil
+	if !ok {
+		return nil, ErrUserNotFound
 	}
-	return nil, nil
+	return user, nil
 }
 
 func (store *FileStore) Create(ctx context.Context, user *User) error {

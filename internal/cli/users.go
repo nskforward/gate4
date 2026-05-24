@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nskforward/gate4/internal/brokers"
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/console"
@@ -93,7 +92,7 @@ func CreateUser(client *transport.Gate4Client) Handler {
 		if err != nil {
 			return err
 		}
-		user.BrokerID = brokers.BrokerID(input)
+		user.BrokerID = users.BrokerID(input)
 		err = user.BrokerID.Validate()
 		if err != nil {
 			return err
