@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
@@ -12,16 +13,25 @@ import (
 )
 
 type Gate4Server struct {
-	pb.UnimplementedAdminServer
+	pb.UnimplementedGate4Server
 	userStore     users.Store
 	keychainStore *keychain.Store
 }
 
-func NewGate4Server(userStore users.Store, keychainStore *keychain.Store) *Gate4Server {
+func NewGate4Server(ctx context.Context, cfg config.Config) (*Gate4Server, error) {
+	userStore, err := users.NewFileStorage()
+	if err != nil {
+		return nil, err
+	}
+	keychainStore, err := keychain.NewStore(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Gate4Server{
 		userStore:     userStore,
 		keychainStore: keychainStore,
-	}
+	}, nil
 }
 
 func (gate4 *Gate4Server) CreateCert(ctx context.Context, req *pb.CreateCertRequest) (*pb.CreateCertResponse, error) {

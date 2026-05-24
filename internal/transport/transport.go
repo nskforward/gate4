@@ -2,44 +2,27 @@ package transport
 
 import (
 	"context"
+	"crypto/tls"
 	"log/slog"
 	"net"
-	"os"
 	"time"
 
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
-type Transport struct {
-	network string
-	address string
-	opts    []grpc.ServerOption
-}
+func Listen(ctx context.Context, listener net.Listener, gate4Server *Gate4Server, tlsConfig *tls.Config) error {
 
-func NewTransport(network, address string, opt ...grpc.ServerOption) *Transport {
-	return &Transport{
-		network: network,
-		address: address,
-		opts:    opt,
-	}
-}
-
-func (socket *Transport) Serve(ctx context.Context, gate4Server *Gate4Server) error {
-
-	listener, err := net.Listen(socket.network, socket.address)
-	if err != nil {
-		return err
+	opts := []grpc.ServerOption{}
+	if tlsConfig != nil {
+		opts = append(opts, grpc.Creds(credentials.NewTLS(tlsConfig)))
 	}
 
-	if socket.network == "unix" {
-		defer os.Remove(socket.address)
-	}
+	grpcServer := grpc.NewServer(opts...)
 
-	grpcServer := grpc.NewServer(socket.opts...)
-	pb.RegisterAdminServer(grpcServer, gate4Server)
-
-	slog.Info("grpc server is ready to serve requests", "network", socket.network, "address", socket.address)
+	pb.RegisterGate4Server(grpcServer, gate4Server)
+	slog.Info("grpc server is ready to serve requests", "network", listener.Addr().Network(), "address", listener.Addr().String())
 
 	errorc := make(chan error, 1)
 	go func() {

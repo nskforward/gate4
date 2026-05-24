@@ -12,7 +12,7 @@ import (
 )
 
 type Gate4Client struct {
-	client pb.AdminClient
+	client pb.Gate4Client
 	conn   *grpc.ClientConn
 }
 
@@ -28,7 +28,7 @@ func NewGate4Client(network, address string) (*Gate4Client, error) {
 	}
 	return &Gate4Client{
 		conn:   conn,
-		client: pb.NewAdminClient(conn),
+		client: pb.NewGate4Client(conn),
 	}, nil
 }
 

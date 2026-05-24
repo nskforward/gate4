@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/transport"
-	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/servers"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -38,34 +35,32 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	gate4Server, err := createGate4Server(ctx, cfg)
+	gate4Server, err := transport.NewGate4Server(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	unixSocket := transport.NewTransport("unix", transport.UnixSocketPath())
-	tcpSocket := transport.NewTransport("tcp", cfg.Server.TCPAddr, grpc.Creds(credentials.NewTLS(tlsConfig)))
-
 	var serverPool servers.Pool
-	serverPool.Add(func(poolCtx context.Context) error {
-		return unixSocket.Serve(poolCtx, gate4Server)
-	})
-	serverPool.Add(func(poolCtx context.Context) error {
-		return tcpSocket.Serve(poolCtx, gate4Server)
-	})
-	return serverPool.Run(ctx)
-}
 
-func createGate4Server(ctx context.Context, cfg config.Config) (*transport.Gate4Server, error) {
-	userStore, err := users.NewFileStorage()
-	if err != nil {
-		return nil, err
-	}
-	keychainStore, err := keychain.NewStore(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return transport.NewGate4Server(userStore, keychainStore), nil
+	serverPool.Add(func(poolCtx context.Context) error {
+		socketPath := transport.UnixSocketPath()
+		listener, err := net.Listen("unix", socketPath)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(socketPath)
+		return transport.Listen(poolCtx, listener, gate4Server, nil)
+	})
+
+	serverPool.Add(func(poolCtx context.Context) error {
+		listener, err := net.Listen("tcp", cfg.Server.TCPAddr)
+		if err != nil {
+			return err
+		}
+		return transport.Listen(poolCtx, listener, gate4Server, tlsConfig)
+	})
+
+	return serverPool.Run(ctx)
 }
 
 func setLogLevel(level slog.Leveler) {
