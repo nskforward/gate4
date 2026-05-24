@@ -37,7 +37,7 @@ func generateCAKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
 	defer scanner.Close()
 	fmt.Print("checking CA ssl key... ")
 	if !tools.FileExists(path) {
-		fmt.Println("not found")
+		printNotFound()
 		fmt.Println("WARNING! A new CA ssl private key will be generated")
 		if !scanner.Confirm(ctx, "continue?") {
 			return nil, errors.New("aborted")
@@ -49,7 +49,7 @@ func generateCAKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
 		err = ssl.SavePrivateKey(caKey, path)
 		return caKey, err
 	}
-	fmt.Println("ok")
+	printOk()
 	return ssl.LoadPrivateKey(path)
 }
 
@@ -58,7 +58,7 @@ func generateCACert(ctx context.Context, path string, key *rsa.PrivateKey) error
 	defer scanner.Close()
 	fmt.Print("checking CA ssl cert... ")
 	if !tools.FileExists(path) {
-		fmt.Println("not found")
+		printNotFound()
 		fmt.Println("WARNING! A new CA ssl cert key will be generated")
 		if !scanner.Confirm(ctx, "continue?") {
 			return errors.New("aborted")
@@ -72,7 +72,7 @@ func generateCACert(ctx context.Context, path string, key *rsa.PrivateKey) error
 		}
 		return ssl.SaveCertificate(cert, path)
 	}
-	fmt.Println("ok")
+	printOk()
 	return nil
 }
 
@@ -81,7 +81,7 @@ func generateServerKey(ctx context.Context, path string) (*rsa.PrivateKey, error
 	defer scanner.Close()
 	fmt.Print("checking server ssl key... ")
 	if !tools.FileExists(path) {
-		fmt.Println("not found")
+		printNotFound()
 		fmt.Println("WARNING! A new server ssl private key will be generated")
 		if !scanner.Confirm(ctx, "continue?") {
 			return nil, errors.New("aborted")
@@ -93,7 +93,7 @@ func generateServerKey(ctx context.Context, path string) (*rsa.PrivateKey, error
 		err = ssl.SavePrivateKey(key, path)
 		return key, err
 	}
-	fmt.Println("ok")
+	printOk()
 	return ssl.LoadPrivateKey(path)
 }
 
@@ -102,7 +102,7 @@ func generateServerCert(ctx context.Context, path string, key *rsa.PrivateKey) e
 	defer scanner.Close()
 	fmt.Print("checking server ssl cert... ")
 	if !tools.FileExists(path) {
-		fmt.Println("not found")
+		printNotFound()
 		fmt.Println("WARNING! A new server ssl cert key will be generated")
 		if !scanner.Confirm(ctx, "continue?") {
 			return errors.New("aborted")
@@ -116,6 +116,14 @@ func generateServerCert(ctx context.Context, path string, key *rsa.PrivateKey) e
 		}
 		return ssl.SaveCertificate(cert, path)
 	}
-	fmt.Println("ok")
+	printOk()
 	return nil
+}
+
+func printNotFound() {
+	fmt.Println(console.FormatText("not found", console.Red))
+}
+
+func printOk() {
+	fmt.Println("ok")
 }

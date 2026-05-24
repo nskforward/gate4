@@ -248,9 +248,9 @@ func UpdateUser(client *transport.Gate4Client) Handler {
 }
 
 func formatStatus(blocked bool, expires time.Time) string {
-	status := console.GreenText("active ")
+	status := console.FormatText("active ", console.Green)
 	if blocked || time.Since(expires) > 0 {
-		status = console.RedText("blocked")
+		status = console.FormatText("blocked", console.Red)
 	}
 	return fmt.Sprintf("%-7s", status)
 }
@@ -259,7 +259,7 @@ func formatDaysLeft(expires time.Time, threshold int) string {
 	daysLeft := int(time.Until(expires).Hours() / 24)
 	text := fmt.Sprintf("%-9d", daysLeft)
 	if daysLeft < threshold {
-		return console.RedText(text)
+		return console.FormatText(text, console.Red)
 	}
 	return text
 }

@@ -30,7 +30,7 @@ func (s *Scanner) Close() {
 }
 
 func (s *Scanner) Confirm(ctx context.Context, prompt string) bool {
-	result, _ := s.ScanBool(ctx, YellowText(prompt), nil, nil)
+	result, _ := s.ScanBool(ctx, FormatText(prompt, Yellow), nil, nil)
 	return result
 }
 
