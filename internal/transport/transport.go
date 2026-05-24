@@ -45,6 +45,7 @@ func Listen(ctx context.Context, listener net.Listener, gate4Server *Gate4Server
 		defer cancel()
 		stopped := make(chan struct{})
 		go func() {
+			gate4Server.Close()
 			grpcServer.GracefulStop()
 			close(stopped)
 		}()

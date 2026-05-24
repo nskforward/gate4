@@ -36,7 +36,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	gate4Server, err := transport.NewGate4Server(cfg)
+	gate4Server, err := transport.NewGate4Server(ctx, cfg)
 	if err != nil {
 		return err
 	}

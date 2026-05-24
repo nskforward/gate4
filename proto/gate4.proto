@@ -66,8 +66,6 @@ message SymbolRequest {
 message Quote {
   string symbol = 1;
   int64 timestamp = 2;
-  repeated string ask_price = 3;
-  repeated string bid_price = 4;
-  repeated string ask_size = 5;
-  repeated string bid_size = 6;
+  string ask = 3;
+  string bid = 4;
 }

@@ -33,17 +33,7 @@ func SubscribeQuotes(client *transport.Gate4Client) Handler {
 		}
 
 		return client.SubscribeQuotes(ctx, userID, symbol, func(quote types.Quote) error {
-			ask := "-"
-			if len(quote.AskPrice) > 0 {
-				ask = quote.AskPrice[0]
-			}
-			bid := "-"
-			if len(quote.BidPrice) > 0 {
-				bid = quote.BidPrice[0]
-			}
-
-			fmt.Println(quote.Timestamp, quote.Symbol, ask, bid)
-
+			fmt.Println(quote.Timestamp, quote.Symbol, quote.Ask, quote.Bid)
 			return nil
 		})
 	}

@@ -53,10 +53,8 @@ func (c *Gate4Client) SubscribeQuotes(ctx context.Context, userID, symbol string
 		err = send(types.Quote{
 			Symbol:    q.Symbol,
 			Timestamp: q.Timestamp,
-			AskPrice:  q.AskPrice,
-			BidPrice:  q.BidPrice,
-			AskSize:   q.AskSize,
-			BidSize:   q.BidSize,
+			Ask:       q.Ask,
+			Bid:       q.Bid,
 		})
 		if err != nil {
 			return err

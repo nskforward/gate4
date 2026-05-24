@@ -10,6 +10,7 @@ import (
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/ssl"
+	"github.com/nskforward/gate4/pkg/tools"
 	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,22 +22,34 @@ type Gate4Server struct {
 	userStore     users.Store
 	keychainStore *keychain.Store
 	brokerPool    *brokers.Pool
+	serverCtx     context.Context
+	cancel        context.CancelFunc
 }
 
-func NewGate4Server(cfg config.Config) (*Gate4Server, error) {
+func NewGate4Server(ctx context.Context, cfg config.Config) (*Gate4Server, error) {
 	userStore, err := users.NewFileStorage()
 	if err != nil {
 		return nil, err
 	}
+
 	caKey, caCert, err := loadCA(cfg)
 	if err != nil {
 		return nil, err
 	}
+
+	serverCtx, cancel := context.WithCancel(ctx)
+
 	return &Gate4Server{
+		serverCtx:     serverCtx,
+		cancel:        cancel,
 		userStore:     userStore,
 		keychainStore: keychain.NewStore(caKey, caCert),
 		brokerPool:    brokers.NewPool(),
 	}, nil
+}
+
+func (gate4 *Gate4Server) Close() {
+	gate4.cancel()
 }
 
 func (gate4 *Gate4Server) CreateCert(ctx context.Context, req *pb.CreateCertRequest) (*pb.CreateCertResponse, error) {
@@ -110,7 +123,11 @@ func (gate4 *Gate4Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 }
 
 func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.ServerStreamingServer[pb.Quote]) error {
-	user, err := gate4.userStore.Find(stream.Context(), req.UserId)
+
+	ctx, cancel := tools.MergeContext(gate4.serverCtx, stream.Context())
+	defer cancel(nil)
+
+	user, err := gate4.userStore.Find(ctx, req.UserId)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -120,14 +137,12 @@ func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.Ser
 		return status.Error(codes.Internal, err.Error())
 	}
 
-	return client.SubscribeQuotes(stream.Context(), func(q types.Quote) error {
+	return client.SubscribeQuotes(ctx, req.Symbol, func(q types.Quote) error {
 		return stream.Send(&pb.Quote{
 			Symbol:    q.Symbol,
 			Timestamp: q.Timestamp,
-			AskPrice:  q.AskPrice,
-			BidPrice:  q.BidPrice,
-			AskSize:   q.AskSize,
-			BidSize:   q.BidSize,
+			Ask:       q.Ask,
+			Bid:       q.Bid,
 		})
 	})
 }

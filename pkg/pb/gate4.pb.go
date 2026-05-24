@@ -501,10 +501,8 @@ type Quote struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Symbol        string                 `protobuf:"bytes,1,opt,name=symbol,proto3" json:"symbol,omitempty"`
 	Timestamp     int64                  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	AskPrice      []string               `protobuf:"bytes,3,rep,name=ask_price,json=askPrice,proto3" json:"ask_price,omitempty"`
-	BidPrice      []string               `protobuf:"bytes,4,rep,name=bid_price,json=bidPrice,proto3" json:"bid_price,omitempty"`
-	AskSize       []string               `protobuf:"bytes,5,rep,name=ask_size,json=askSize,proto3" json:"ask_size,omitempty"`
-	BidSize       []string               `protobuf:"bytes,6,rep,name=bid_size,json=bidSize,proto3" json:"bid_size,omitempty"`
+	Ask           string                 `protobuf:"bytes,3,opt,name=ask,proto3" json:"ask,omitempty"`
+	Bid           string                 `protobuf:"bytes,4,opt,name=bid,proto3" json:"bid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -553,32 +551,18 @@ func (x *Quote) GetTimestamp() int64 {
 	return 0
 }
 
-func (x *Quote) GetAskPrice() []string {
+func (x *Quote) GetAsk() string {
 	if x != nil {
-		return x.AskPrice
+		return x.Ask
 	}
-	return nil
+	return ""
 }
 
-func (x *Quote) GetBidPrice() []string {
+func (x *Quote) GetBid() string {
 	if x != nil {
-		return x.BidPrice
+		return x.Bid
 	}
-	return nil
-}
-
-func (x *Quote) GetAskSize() []string {
-	if x != nil {
-		return x.AskSize
-	}
-	return nil
-}
-
-func (x *Quote) GetBidSize() []string {
-	if x != nil {
-		return x.BidSize
-	}
-	return nil
+	return ""
 }
 
 var File_gate4_proto protoreflect.FileDescriptor
@@ -618,14 +602,12 @@ const file_gate4_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"@\n" +
 	"\rSymbolRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
-	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"\xad\x01\n" +
+	"\x06symbol\x18\x02 \x01(\tR\x06symbol\"a\n" +
 	"\x05Quote\x12\x16\n" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
-	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x1b\n" +
-	"\task_price\x18\x03 \x03(\tR\baskPrice\x12\x1b\n" +
-	"\tbid_price\x18\x04 \x03(\tR\bbidPrice\x12\x19\n" +
-	"\bask_size\x18\x05 \x03(\tR\aaskSize\x12\x19\n" +
-	"\bbid_size\x18\x06 \x03(\tR\abidSize2\xb1\x03\n" +
+	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x10\n" +
+	"\x03ask\x18\x03 \x01(\tR\x03ask\x12\x10\n" +
+	"\x03bid\x18\x04 \x01(\tR\x03bid2\xb1\x03\n" +
 	"\x05Gate4\x12:\n" +
 	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\x12&\n" +
 	"\n" +

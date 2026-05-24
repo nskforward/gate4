@@ -7,5 +7,5 @@ import (
 )
 
 type Client interface {
-	SubscribeQuotes(context.Context, func(types.Quote) error) error
+	SubscribeQuotes(ctx context.Context, symbol string, send func(types.Quote) error) error
 }
