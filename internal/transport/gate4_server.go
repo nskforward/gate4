@@ -2,7 +2,6 @@ package transport
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/nskforward/gate4/internal/brokers"
@@ -113,12 +112,14 @@ func (gate4 *Gate4Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.ServerStreamingServer[pb.Quote]) error {
 	user, err := gate4.userStore.Find(stream.Context(), req.UserId)
 	if err != nil {
-		return fmt.Errorf("search user error: %w", err)
+		return status.Error(codes.InvalidArgument, err.Error())
 	}
+
 	client, err := gate4.brokerPool.Get(user)
 	if err != nil {
-		return fmt.Errorf("search broker client error: %w", err)
+		return status.Error(codes.Internal, err.Error())
 	}
+
 	return client.SubscribeQuotes(stream.Context(), func(q types.Quote) error {
 		return stream.Send(&pb.Quote{
 			Symbol:    q.Symbol,

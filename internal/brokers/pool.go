@@ -18,5 +18,8 @@ func NewPool() *Pool {
 }
 
 func (pool *Pool) Get(user *users.User) (Client, error) {
-	return nil, errors.New("brokers pool not implemented")
+	if user.BrokerID == users.FINAM {
+		return pool.finamClients.Get(user.AccountID, user.Secret)
+	}
+	return nil, errors.New("unknown user broker")
 }
