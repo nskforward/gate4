@@ -1,13 +1,17 @@
 package transport
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/nskforward/gate4/internal/brokers"
+	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/ssl"
 )
 
 func convertInUsers(in []*pb.User) []*users.User {
@@ -56,4 +60,16 @@ func convertInUser(user *pb.User) *users.User {
 
 func UnixSocketPath() string {
 	return filepath.Join(os.TempDir(), "gate4.sock")
+}
+
+func loadCA(cfg config.Config) (*rsa.PrivateKey, *x509.Certificate, error) {
+	key, err := ssl.LoadPrivateKey(cfg.CA.Key)
+	if err != nil {
+		return nil, nil, err
+	}
+	cert, err := ssl.LoadCertificate(cfg.CA.Cert)
+	if err != nil {
+		return nil, nil, err
+	}
+	return key, cert, nil
 }

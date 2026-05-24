@@ -8,6 +8,7 @@ import (
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/ssl"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -18,19 +19,18 @@ type Gate4Server struct {
 	keychainStore *keychain.Store
 }
 
-func NewGate4Server(ctx context.Context, cfg config.Config) (*Gate4Server, error) {
+func NewGate4Server(cfg config.Config) (*Gate4Server, error) {
 	userStore, err := users.NewFileStorage()
 	if err != nil {
 		return nil, err
 	}
-	keychainStore, err := keychain.NewStore(ctx, cfg)
+	caKey, caCert, err := loadCA(cfg)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Gate4Server{
 		userStore:     userStore,
-		keychainStore: keychainStore,
+		keychainStore: keychain.NewStore(caKey, caCert),
 	}, nil
 }
 
@@ -38,13 +38,20 @@ func (gate4 *Gate4Server) CreateCert(ctx context.Context, req *pb.CreateCertRequ
 	if req.CommonName == "" {
 		return nil, status.Error(codes.InvalidArgument, "common name cannot be empty")
 	}
-
-	certData, err := gate4.keychainStore.GenCert(req.CommonName, []byte(req.PrivateKey))
+	key, err := ssl.ParsePrivateKey([]byte(req.PrivateKey))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	cert, err := gate4.keychainStore.Generate(req.CommonName, key)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	buf, err := ssl.MarshalCert(cert)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	return &pb.CreateCertResponse{
-		Cert: string(certData),
+		Cert: buf.String(),
 	}, nil
 }
 

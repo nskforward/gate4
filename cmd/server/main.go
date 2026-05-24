@@ -30,12 +30,12 @@ func main() {
 func run(ctx context.Context) error {
 	cfg := config.Load()
 
-	tlsConfig, err := servers.MTLSConfig(cfg.CA.Cert, cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
+	gate4Server, err := transport.NewGate4Server(cfg)
 	if err != nil {
 		return err
 	}
 
-	gate4Server, err := transport.NewGate4Server(ctx, cfg)
+	tlsConfig, err := servers.MTLSConfig(cfg.CA.Cert, cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
 	if err != nil {
 		return err
 	}

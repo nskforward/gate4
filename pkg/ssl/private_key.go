@@ -20,9 +20,13 @@ func LoadPrivateKey(path string) (*rsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, _ := pem.Decode(b)
+	return ParsePrivateKey(b)
+}
+
+func ParsePrivateKey(data []byte) (*rsa.PrivateKey, error) {
+	v, _ := pem.Decode(data)
 	if v == nil {
-		return nil, fmt.Errorf("cannot decode pem file: %s", path)
+		return nil, fmt.Errorf("cannot decode pem file")
 	}
 	if v.Type != "RSA PRIVATE KEY" {
 		return nil, fmt.Errorf("pem type must be 'RSA PRIVATE KEY'")

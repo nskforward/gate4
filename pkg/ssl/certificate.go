@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func CreateCertificate(isCA bool, subject pkix.Name, expires time.Time, addresses []string) *x509.Certificate {
+func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject pkix.Name) *x509.Certificate {
 	dnsList := []string{}
 	ipList := []net.IP{}
 	for _, addr := range addresses {
@@ -54,30 +54,41 @@ func LoadCertificate(path string) (*x509.Certificate, error) {
 	if err != nil {
 		return nil, err
 	}
+	return ParseCertificate(data)
+}
+
+func ParseCertificate(data []byte) (*x509.Certificate, error) {
 	block, _ := pem.Decode(data)
 	if block == nil {
-		return nil, fmt.Errorf("certificate must be in PEM format: %s", path)
+		return nil, fmt.Errorf("certificate must be in PEM format")
 	}
 	if block.Type != "CERTIFICATE" {
-		return nil, fmt.Errorf("pem file is not certificate: %s", path)
+		return nil, fmt.Errorf("pem file is not certificate")
 	}
 	return x509.ParseCertificate(block.Bytes)
 }
 
 func SaveCertificate(cert *x509.Certificate, path string) error {
+	r, err := MarshalCert(cert)
+	if err != nil {
+		return err
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
+
+	_, err = io.Copy(f, r)
+	return err
+}
+
+func MarshalCert(cert *x509.Certificate) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
-	err = pem.Encode(&buf, &pem.Block{
+	err := pem.Encode(&buf, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: cert.Raw,
 	})
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(f, &buf)
-	return err
+	return &buf, err
 }
