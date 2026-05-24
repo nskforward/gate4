@@ -7,6 +7,7 @@ import (
 
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
+	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -34,6 +35,33 @@ func NewGate4Client(network, address string) (*Gate4Client, error) {
 
 func (c *Gate4Client) Close() {
 	c.conn.Close()
+}
+
+func (c *Gate4Client) SubscribeQuotes(ctx context.Context, userID, symbol string, send func(quote types.Quote) error) error {
+	stream, err := c.client.SubscribeQuotes(ctx, &pb.SymbolRequest{
+		UserId: userID,
+		Symbol: symbol,
+	})
+	if err != nil {
+		return err
+	}
+	for {
+		q, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+		err = send(types.Quote{
+			Symbol:    q.Symbol,
+			Timestamp: q.Timestamp,
+			AskPrice:  q.AskPrice,
+			BidPrice:  q.BidPrice,
+			AskSize:   q.AskSize,
+			BidSize:   q.BidSize,
+		})
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func (c *Gate4Client) CreateCert(ctx context.Context, commonName, privateKey string) (string, error) {

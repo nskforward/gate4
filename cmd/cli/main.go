@@ -29,13 +29,7 @@ func run(ctx context.Context) error {
 	defer grpcClient.Close()
 
 	r := cli.NewRouter()
-	r.Handle("help", cli.Help)
-	r.Handle("cert create", cli.CreateCert(grpcClient))
-	r.Handle("user list", cli.ListUsers(grpcClient))
-	r.Handle("user create", cli.CreateUser(grpcClient))
-	r.Handle("user delete", cli.DeleteUser(grpcClient))
-	r.Handle("user block", cli.BlockUser(grpcClient))
-	r.Handle("user edit", cli.UpdateUser(grpcClient))
+	routes(r, grpcClient)
 
 	return r.Run(ctx)
 }
