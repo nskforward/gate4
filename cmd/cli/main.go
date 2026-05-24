@@ -9,8 +9,7 @@ import (
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/cli"
-	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/transport/grpc"
+	"github.com/nskforward/gate4/internal/transport"
 )
 
 func main() {
@@ -23,8 +22,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	cfg := config.Load()
-	grpcClient, err := grpc.NewGate4Client("unix", cfg.Server.UnixAddr)
+	grpcClient, err := transport.NewGate4Client("unix", transport.UnixSocketPath())
 	if err != nil {
 		return err
 	}

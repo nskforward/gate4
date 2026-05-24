@@ -9,11 +9,11 @@ import (
 	"encoding/pem"
 	"fmt"
 
-	"github.com/nskforward/gate4/internal/transport/grpc"
+	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func CreateCert(client *grpc.Gate4Client) Handler {
+func CreateCert(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		scanner := console.NewScanner()
 		defer scanner.Close()

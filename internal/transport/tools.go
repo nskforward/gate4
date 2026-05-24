@@ -1,6 +1,8 @@
-package grpc
+package transport
 
 import (
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/nskforward/gate4/internal/brokers"
@@ -50,4 +52,8 @@ func convertInUser(user *pb.User) *users.User {
 		Blocked:   user.Blocked,
 		Secret:    secret,
 	}
+}
+
+func UnixSocketPath() string {
+	return filepath.Join(os.TempDir(), "gate4.sock")
 }

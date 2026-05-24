@@ -1,4 +1,4 @@
-package grpc
+package transport
 
 import (
 	"context"
@@ -8,13 +8,12 @@ import (
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
-	transport "google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Gate4Client struct {
 	client pb.AdminClient
-	conn   *transport.ClientConn
+	conn   *grpc.ClientConn
 }
 
 func NewGate4Client(network, address string) (*Gate4Client, error) {

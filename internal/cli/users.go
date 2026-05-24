@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/nskforward/gate4/internal/brokers"
-	"github.com/nskforward/gate4/internal/transport/grpc"
+	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func ListUsers(client *grpc.Gate4Client) Handler {
+func ListUsers(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		filterActive := true
@@ -82,7 +82,7 @@ func ListUsers(client *grpc.Gate4Client) Handler {
 	}
 }
 
-func CreateUser(client *grpc.Gate4Client) Handler {
+func CreateUser(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user users.User
 
@@ -130,7 +130,7 @@ func CreateUser(client *grpc.Gate4Client) Handler {
 	}
 }
 
-func DeleteUser(client *grpc.Gate4Client) Handler {
+func DeleteUser(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -169,7 +169,7 @@ func DeleteUser(client *grpc.Gate4Client) Handler {
 	}
 }
 
-func BlockUser(client *grpc.Gate4Client) Handler {
+func BlockUser(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -208,7 +208,7 @@ func BlockUser(client *grpc.Gate4Client) Handler {
 	}
 }
 
-func UpdateUser(client *grpc.Gate4Client) Handler {
+func UpdateUser(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string

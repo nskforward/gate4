@@ -3,16 +3,14 @@ package config
 import (
 	"flag"
 	"os"
-	"path/filepath"
 
 	"github.com/nskforward/gate4/pkg/tools"
 )
 
 type Config struct {
 	Server struct {
-		UnixAddr string
-		TCPAddr  string
-		SSL      struct {
+		TCPAddr string
+		SSL     struct {
 			Cert string
 			Key  string
 		}
@@ -32,7 +30,6 @@ type Config struct {
 
 func Load() Config {
 	tcpAddr := flag.String("tcp-addr", os.Getenv("GATE4_TCP_ADDR"), "server tcp address to listen")
-	unixAddr := flag.String("unix-addr", os.Getenv("GATE4_UNIX_ADDR"), "server unix address to listen")
 	finamAddr := flag.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
 	storeDir := flag.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
 
@@ -47,7 +44,6 @@ func Load() Config {
 	var cfg Config
 
 	cfg.Server.TCPAddr = useDefault(*tcpAddr, ":443")
-	cfg.Server.UnixAddr = useDefault(*unixAddr, buildUnixAddr())
 	cfg.Finam.APIAddr = useDefault(*finamAddr, "api.finam.ru:443")
 	cfg.FileStorageDir = useDefault(tools.Path(*storeDir), tools.Path("data"))
 	cfg.CA.Key = useDefault(tools.Path(*caKey), tools.Path("data/ssl/ca.key"))
@@ -63,8 +59,4 @@ func useDefault(in string, def string) string {
 		return def
 	}
 	return in
-}
-
-func buildUnixAddr() string {
-	return filepath.Join(os.TempDir(), "gate4.sock")
 }

@@ -9,10 +9,10 @@ import (
 
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/keychain"
-	"github.com/nskforward/gate4/internal/transport/grpc"
+	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/servers"
-	google "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -33,36 +33,39 @@ func main() {
 func run(ctx context.Context) error {
 	cfg := config.Load()
 
-	userStore, err := users.NewFileStorage()
-	if err != nil {
-		return err
-	}
-
-	keychainStore, err := keychain.NewStore(ctx, cfg)
-	if err != nil {
-		return err
-	}
-
 	tlsConfig, err := servers.MTLSConfig(cfg.CA.Cert, cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
 	if err != nil {
 		return err
 	}
 
+	gate4Server, err := createGate4Server(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	unixSocket := transport.NewTransport("unix", transport.UnixSocketPath())
+	tcpSocket := transport.NewTransport("tcp", cfg.Server.TCPAddr, grpc.Creds(credentials.NewTLS(tlsConfig)))
+
 	var serverPool servers.Pool
-
-	tcpServer := grpc.NewGate4Server(userStore, keychainStore, google.Creds(credentials.NewTLS(tlsConfig)))
-
-	unixServer := grpc.NewGate4Server(userStore, keychainStore)
-
 	serverPool.Add(func(poolCtx context.Context) error {
-		return tcpServer.Run(poolCtx, "tcp", cfg.Server.TCPAddr)
+		return unixSocket.Serve(poolCtx, gate4Server)
 	})
-
 	serverPool.Add(func(poolCtx context.Context) error {
-		return unixServer.Run(poolCtx, "unix", cfg.Server.UnixAddr)
+		return tcpSocket.Serve(poolCtx, gate4Server)
 	})
-
 	return serverPool.Run(ctx)
+}
+
+func createGate4Server(ctx context.Context, cfg config.Config) (*transport.Gate4Server, error) {
+	userStore, err := users.NewFileStorage()
+	if err != nil {
+		return nil, err
+	}
+	keychainStore, err := keychain.NewStore(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	return transport.NewGate4Server(userStore, keychainStore), nil
 }
 
 func setLogLevel(level slog.Leveler) {
