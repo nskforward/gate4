@@ -24,7 +24,7 @@ func Help(context.Context, []string) error {
 	fmt.Println(padding, fmt.Sprintf(mask, "user edit [id]"), "- (update the user detailes by id)")
 	fmt.Println(padding, fmt.Sprintf(mask, "user block [id]"), "- (block/unblock a user by id)")
 	fmt.Println()
-	fmt.Println(padding, fmt.Sprintf(mask, "subscribe quotes [symbol]"), "- (subscribe for realtime quotes)")
+	fmt.Println(padding, fmt.Sprintf(mask, "subscribe quotes [-symbol <symbol>] [-id <id>]"), "- (subscribe for realtime quotes)")
 	fmt.Println()
 	return nil
 }
