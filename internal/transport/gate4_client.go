@@ -9,7 +9,9 @@ import (
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
 type Gate4Client struct {
@@ -48,6 +50,12 @@ func (c *Gate4Client) SubscribeQuotes(ctx context.Context, userID, symbol string
 	for {
 		q, err := stream.Recv()
 		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				if st.Code() == codes.Canceled {
+					return nil
+				}
+			}
 			return err
 		}
 		err = send(types.Quote{

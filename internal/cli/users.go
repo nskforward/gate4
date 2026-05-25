@@ -12,22 +12,25 @@ import (
 	"github.com/nskforward/gate4/pkg/console"
 )
 
+// user list [-blocked] [-active]
 func ListUsers(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
-		filterActive := true
-		filterBlocked := true
+		_, activeArg := console.FindArg("-active", args)
+		_, blockedArg := console.FindArg("-blocked", args)
 
-		for _, arg := range args {
-			if arg == "-blocked" {
-				filterBlocked = true
-				filterActive = false
+		/*
+			for _, arg := range args {
+				if arg == "-blocked" {
+					filterBlocked = true
+					filterActive = false
+				}
+				if arg == "-active" {
+					filterBlocked = false
+					filterActive = true
+				}
 			}
-			if arg == "-active" {
-				filterBlocked = false
-				filterActive = true
-			}
-		}
+		*/
 
 		users, err := client.ListUsers(ctx)
 		if err != nil {
@@ -41,10 +44,10 @@ func ListUsers(client *transport.Gate4Client) Handler {
 			if len(user.ID) > maxLenID {
 				maxLenID = len(user.ID)
 			}
-			if user.Blocked && !filterBlocked {
+			if user.Blocked && activeArg && !blockedArg {
 				continue
 			}
-			if !user.Blocked && !filterActive {
+			if !user.Blocked && blockedArg && !activeArg {
 				continue
 			}
 			filtered = append(filtered, user)

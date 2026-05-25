@@ -9,15 +9,12 @@ import (
 	"github.com/nskforward/gate4/pkg/types"
 )
 
+// subscribe quotes [-symbol <symbol>] [-id <id>]
 func SubscribeQuotes(client *transport.Gate4Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
-		var argSymbol, argUserID string
-
-		if len(args) == 1 {
-			argSymbol = args[0]
-			args = args[1:]
-		}
+		argSymbol, _ := console.FindArg("-symbol", args)
+		argID, _ := console.FindArg("-id", args)
 
 		scanner := console.NewScanner()
 		defer scanner.Close()
@@ -27,7 +24,7 @@ func SubscribeQuotes(client *transport.Gate4Client) Handler {
 			return err
 		}
 
-		userID, err := scanner.Scan(ctx, "user id", "", &argUserID)
+		userID, err := scanner.Scan(ctx, "user id", "", &argID)
 		if err != nil {
 			return err
 		}
