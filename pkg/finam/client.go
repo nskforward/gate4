@@ -9,11 +9,10 @@ import (
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
+	"github.com/nskforward/gate4/pkg/tools"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/status"
 )
 
 type Client struct {
@@ -81,40 +80,32 @@ func (c *Client) subscribeTokenRefresh() error {
 				continue
 			}
 
-			st, ok := status.FromError(err)
-			if ok {
-				if st.Code() == codes.Canceled {
-					slog.Debug("finam access token stream exited", "account", c.accountID, "reason", "context cancelled")
-					return
-				}
+			if tools.IsGRPCCancelled(err) {
+				slog.Debug("finam access token stream aborted", "account", c.accountID, "reason", "context cancelled")
+				return
 			}
 
-			slog.Error("finam acceess token stream exited with error", "account", c.accountID, "msg", err.Error())
+			slog.Error("finam acceess token stream aborted", "account", c.accountID, "reason", err.Error())
 
-			attempts := 0
-			sleep := 100 * time.Millisecond
-
-			for {
-				attempts++
-
-				stream, err = c.authService.SubscribeJwtRenewal(c.ctx, &auth.SubscribeJwtRenewalRequest{
+			retry := NewRetry(func() (grpc.ServerStreamingClient[auth.SubscribeJwtRenewalResponse], error) {
+				return c.authService.SubscribeJwtRenewal(c.ctx, &auth.SubscribeJwtRenewalRequest{
 					Secret: c.secret,
 				})
+			})
 
-				if err == nil {
-					slog.Debug("finam access token stream successfully reconnected", "account", c.accountID, "attempts", attempts)
-					break
-				}
+			retry.OnSuccess = func(attempt int) {
+				slog.Debug("finam access token stream successfully connected", "account", c.accountID, "attempt", attempt)
+			}
 
-				slog.Error("cannot reconnect to finam access token stream", "account", c.accountID, "attempt", attempts, "msg", err.Error())
-				if attempts > 10 {
-					slog.Error("finam access token stream reached the max reconnection attempts", "account", c.accountID, "attempts", attempts)
-					c.Close()
-					return
-				}
+			retry.OnFailure = func(err error, attempt int) {
+				slog.Error("finam access token stream connection attempt failed", "account", c.accountID, "attempt", attempt, "msg", err.Error())
+			}
 
-				time.Sleep(sleep)
-				sleep = sleep * 2
+			stream, err = retry.Do(c.ctx)
+			if err != nil {
+				slog.Error("access token stream reached the max reconnection attemps", "account", c.accountID, "last_error", err)
+				c.Close()
+				return
 			}
 		}
 	}()
