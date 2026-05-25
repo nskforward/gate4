@@ -1,6 +1,7 @@
 package brokers
 
 import (
+	"context"
 	"errors"
 
 	"github.com/nskforward/gate4/internal/users"
@@ -11,9 +12,9 @@ type Pool struct {
 	finamClients *finam.Pool
 }
 
-func NewPool() *Pool {
+func NewPool(ctx context.Context) *Pool {
 	return &Pool{
-		finamClients: finam.NewPool(),
+		finamClients: finam.NewPool(ctx),
 	}
 }
 

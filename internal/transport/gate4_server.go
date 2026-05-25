@@ -44,7 +44,7 @@ func NewGate4Server(ctx context.Context, cfg config.Config) (*Gate4Server, error
 		cancel:        cancel,
 		userStore:     userStore,
 		keychainStore: keychain.NewStore(caKey, caCert),
-		brokerPool:    brokers.NewPool(),
+		brokerPool:    brokers.NewPool(ctx),
 	}, nil
 }
 
@@ -125,7 +125,7 @@ func (gate4 *Gate4Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.ServerStreamingServer[pb.Quote]) error {
 
 	ctx, cancel := tools.MergeContext(gate4.serverCtx, stream.Context())
-	defer cancel(nil)
+	defer cancel()
 
 	user, err := gate4.userStore.Find(ctx, req.UserId)
 	if err != nil {

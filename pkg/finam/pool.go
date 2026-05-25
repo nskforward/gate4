@@ -1,16 +1,19 @@
 package finam
 
 import (
+	"context"
 	"sync"
 )
 
 type Pool struct {
+	ctx     context.Context
 	clients map[string]*Client
 	mx      sync.Mutex
 }
 
-func NewPool() *Pool {
+func NewPool(ctx context.Context) *Pool {
 	return &Pool{
+		ctx:     ctx,
 		clients: make(map[string]*Client),
 	}
 }
@@ -24,7 +27,7 @@ func (pool *Pool) Get(accountID, secret string) (*Client, error) {
 		return client, nil
 	}
 
-	client, err := newClient(accountID, secret)
+	client, err := newClient(pool.ctx, accountID, secret)
 	if err != nil {
 		return nil, err
 	}

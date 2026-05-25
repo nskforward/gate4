@@ -2,6 +2,8 @@ package transport
 
 import (
 	"context"
+	"errors"
+	"io"
 	"path/filepath"
 	"time"
 
@@ -50,6 +52,9 @@ func (c *Gate4Client) SubscribeQuotes(ctx context.Context, userID, symbol string
 	for {
 		q, err := stream.Recv()
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
 			st, ok := status.FromError(err)
 			if ok {
 				if st.Code() == codes.Canceled {

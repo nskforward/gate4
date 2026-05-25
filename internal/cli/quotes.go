@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/console"
@@ -30,7 +31,7 @@ func SubscribeQuotes(client *transport.Gate4Client) Handler {
 		}
 
 		return client.SubscribeQuotes(ctx, userID, symbol, func(quote types.Quote) error {
-			fmt.Println(quote.Timestamp, quote.Symbol, quote.Ask, quote.Bid)
+			fmt.Println(time.Unix(quote.Timestamp, 0).Format("2006-01-02 15:04:05"), quote.Symbol, "| ask", quote.Ask, "| bid", quote.Bid)
 			return nil
 		})
 	}
