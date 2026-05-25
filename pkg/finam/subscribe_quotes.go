@@ -2,14 +2,16 @@ package finam
 
 import (
 	"context"
-	"log/slog"
+	"errors"
 
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
-	"github.com/nskforward/gate4/pkg/tools"
 	"github.com/nskforward/gate4/pkg/types"
-	"google.golang.org/grpc"
 )
 
+func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(types.Quote) error) error {
+	return errors.New("not implemented")
+}
+
+/*
 func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(types.Quote) error) error {
 	var reqCtx context.Context
 	var cancel context.CancelFunc
@@ -70,3 +72,4 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 		}
 	}
 }
+*/

@@ -52,8 +52,6 @@ func newClient(ctx context.Context, accountID, secret string) (*Client, error) {
 		return nil, fmt.Errorf("finam client auth error: %w", err)
 	}
 
-	go client.watchToken()
-
 	return client, nil
 }
 

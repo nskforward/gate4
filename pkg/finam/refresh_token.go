@@ -1,15 +1,12 @@
 package finam
 
-import (
-	"context"
-	"errors"
-	"log/slog"
-	"time"
+import "errors"
 
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
-	"github.com/nskforward/gate4/pkg/tools"
-)
+func (c *Client) refreshToken() error {
+	return errors.New("not implemented")
+}
 
+/*
 func (c *Client) watchToken() {
 
 	attempt := 0
@@ -154,3 +151,4 @@ func (c *Client) waitExpiration() error {
 		return nil
 	}
 }
+*/
