@@ -4,37 +4,32 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
-	"github.com/nskforward/gate4/pkg/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 )
 
 type Client struct {
-	accountID         string
-	secret            string
-	tokenStore        *TokenStore
-	authService       auth.AuthServiceClient
-	markedDataService marketdata.MarketDataServiceClient
-	ctx               context.Context
-	cancel            context.CancelFunc
+	ctx        context.Context
+	cancel     context.CancelFunc
+	accountID  string
+	secret     string
+	tokenStore *TokenStore
+	errStore   atomic.Pointer[error]
+	service    struct {
+		auth       auth.AuthServiceClient
+		markeddata marketdata.MarketDataServiceClient
+	}
 }
 
 func newClient(ctx context.Context, accountID, secret string) (*Client, error) {
-	conn, err := grpc.NewClient("api.finam.ru:443",
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})),
-		grpc.WithIdleTimeout(5*time.Minute),
-		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                time.Minute,
-			Timeout:             30 * time.Second,
-			PermitWithoutStream: true,
-		}),
-	)
+
+	conn, err := connect()
 	if err != nil {
 		return nil, fmt.Errorf("finam client dial error: %w", err)
 	}
@@ -42,19 +37,22 @@ func newClient(ctx context.Context, accountID, secret string) (*Client, error) {
 	clientCtx, cancel := context.WithCancel(ctx)
 
 	client := &Client{
-		ctx:               clientCtx,
-		cancel:            cancel,
-		accountID:         accountID,
-		secret:            secret,
-		authService:       auth.NewAuthServiceClient(conn),
-		markedDataService: marketdata.NewMarketDataServiceClient(conn),
-		tokenStore:        NewTokenStore(clientCtx),
+		ctx:        clientCtx,
+		cancel:     cancel,
+		accountID:  accountID,
+		secret:     secret,
+		tokenStore: NewTokenStore(clientCtx),
 	}
 
-	err = client.subscribeTokenRefresh()
+	client.service.auth = auth.NewAuthServiceClient(conn)
+	client.service.markeddata = marketdata.NewMarketDataServiceClient(conn)
+
+	err = client.refreshToken()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("finam client auth error: %w", err)
 	}
+
+	go client.watchToken()
 
 	return client, nil
 }
@@ -63,52 +61,22 @@ func (c *Client) Close() {
 	c.cancel()
 }
 
-func (c *Client) subscribeTokenRefresh() error {
-	stream, err := c.authService.SubscribeJwtRenewal(c.ctx, &auth.SubscribeJwtRenewalRequest{
-		Secret: c.secret,
-	})
+func (c *Client) Err() error {
+	err := c.errStore.Load()
 	if err != nil {
-		return err
+		return *err
 	}
-
-	go func() {
-		for {
-			resp, err := stream.Recv()
-			if err == nil {
-				c.tokenStore.set(resp.GetToken())
-				slog.Debug("refreshed finam token", "account", c.accountID)
-				continue
-			}
-
-			if tools.IsGRPCCancelled(err) {
-				slog.Debug("finam access token stream aborted", "account", c.accountID, "reason", "context cancelled")
-				return
-			}
-
-			slog.Error("finam acceess token stream aborted", "account", c.accountID, "reason", err.Error())
-
-			retry := NewRetry(func() (grpc.ServerStreamingClient[auth.SubscribeJwtRenewalResponse], error) {
-				return c.authService.SubscribeJwtRenewal(c.ctx, &auth.SubscribeJwtRenewalRequest{
-					Secret: c.secret,
-				})
-			})
-
-			retry.OnSuccess = func(attempt int) {
-				slog.Debug("finam access token stream successfully connected", "account", c.accountID, "attempt", attempt)
-			}
-
-			retry.OnFailure = func(err error, attempt int) {
-				slog.Error("finam access token stream connection attempt failed", "account", c.accountID, "attempt", attempt, "msg", err.Error())
-			}
-
-			stream, err = retry.Do(c.ctx)
-			if err != nil {
-				slog.Error("access token stream reached the max reconnection attemps", "account", c.accountID, "last_error", err)
-				c.Close()
-				return
-			}
-		}
-	}()
-
 	return nil
+}
+
+func connect() (*grpc.ClientConn, error) {
+	return grpc.NewClient("api.finam.ru:443",
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})),
+		grpc.WithIdleTimeout(10*time.Minute),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                5 * time.Minute,
+			Timeout:             time.Minute,
+			PermitWithoutStream: true,
+		}),
+	)
 }

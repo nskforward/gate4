@@ -42,7 +42,7 @@ func (c *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(t
 			if err != nil {
 				if tools.IsGRPCCancelled(err) {
 					slog.Debug("finam quote stream aborted", "account", c.accountID, "symbol", symbol, "reason", "context cancelled")
-					return nil
+					return c.Err()
 				}
 				slog.Error("finam quote stream aborted", "account", c.accountID, "symbol", symbol, "msg", err.Error())
 				break

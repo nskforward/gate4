@@ -18,21 +18,21 @@ func NewPool(ctx context.Context) *Pool {
 	}
 }
 
-func (pool *Pool) Get(accountID, secret string) (*Client, error) {
+func (pool *Pool) Get(accountID, secret string) (*Client, bool, error) {
 	pool.mx.Lock()
 	defer pool.mx.Unlock()
 
 	client, ok := pool.clients[accountID]
 	if ok {
-		return client, nil
+		return client, true, nil
 	}
 
 	client, err := newClient(pool.ctx, accountID, secret)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	pool.clients[accountID] = client
 
-	return client, nil
+	return client, false, nil
 }
