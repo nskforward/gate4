@@ -1,4 +1,4 @@
-package retry
+package retries
 
 import "time"
 
@@ -24,15 +24,15 @@ func defaultConfig(r *Retry) config {
 	}
 
 	if cfg.InitialDelay <= 0 {
-		cfg.InitialDelay = 100 * time.Millisecond
+		cfg.InitialDelay = 500 * time.Millisecond
 	}
 
 	if cfg.MaxDelay <= 0 {
-		cfg.MaxDelay = 30 * time.Second
+		cfg.MaxDelay = 10 * time.Second
 	}
 
 	if cfg.MaxJitter <= 0 {
-		cfg.MaxJitter = 0
+		cfg.MaxJitter = 200 * time.Millisecond
 	}
 
 	if cfg.Backoff < 1 {

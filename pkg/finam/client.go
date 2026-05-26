@@ -7,7 +7,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -17,17 +16,15 @@ import (
 type Client struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
-	accountID  string
-	secret     string
+	account    string
 	tokenStore *TokenStore
 	errStore   atomic.Pointer[error]
 	service    struct {
-		auth       auth.AuthServiceClient
-		markeddata marketdata.MarketDataServiceClient
+		marketdata marketdata.MarketDataServiceClient
 	}
 }
 
-func newClient(ctx context.Context, accountID, secret string) (*Client, error) {
+func newClient(ctx context.Context, account, secret string) (*Client, error) {
 
 	conn, err := connect()
 	if err != nil {
@@ -39,13 +36,11 @@ func newClient(ctx context.Context, accountID, secret string) (*Client, error) {
 	client := &Client{
 		ctx:        clientCtx,
 		cancel:     cancel,
-		accountID:  accountID,
-		secret:     secret,
-		tokenStore: NewTokenStore(clientCtx),
+		account:    account,
+		tokenStore: NewTokenStore(clientCtx, cancel, account, secret, conn),
 	}
 
-	client.service.auth = auth.NewAuthServiceClient(conn)
-	client.service.markeddata = marketdata.NewMarketDataServiceClient(conn)
+	client.service.marketdata = marketdata.NewMarketDataServiceClient(conn)
 
 	err = client.refreshToken()
 	if err != nil {
@@ -65,6 +60,14 @@ func (c *Client) Err() error {
 		return *err
 	}
 	return nil
+}
+
+func (c *Client) authCtx(ctx context.Context) (context.Context, context.CancelFunc) {
+	return c.tokenStore.RequestContext(ctx)
+}
+
+func (c *Client) refreshToken() error {
+	return c.tokenStore.RefreshToken()
 }
 
 func connect() (*grpc.ClientConn, error) {
