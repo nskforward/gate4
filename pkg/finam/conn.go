@@ -4,25 +4,24 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/auth"
-	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
-	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 )
 
 type Conn struct {
-	c          *grpc.ClientConn
-	auth       auth.AuthServiceClient
-	marketdata marketdata.MarketDataServiceClient
+	grpcConn *grpc.ClientConn
+	creds    *Creds
+	auth     auth.AuthServiceClient
+	token    *Token
+	tokenMx  sync.Mutex
 }
 
-func Connect() (*Conn, error) {
+func Connect(creds *Creds) (*Conn, error) {
 	c, err := grpc.NewClient("api.finam.ru:443",
 		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{MinVersion: tls.VersionTLS12})),
 		grpc.WithIdleTimeout(10*time.Minute),
@@ -36,100 +35,63 @@ func Connect() (*Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{
-		c:          c,
-		auth:       auth.NewAuthServiceClient(c),
-		marketdata: marketdata.NewMarketDataServiceClient(c),
-	}, nil
-}
-
-func (conn *Conn) Close() {
-	conn.c.Close()
-}
-
-func (conn *Conn) Authorize(ctx context.Context, secret string) (Token, error) {
-
-	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	tokenResp, err := conn.auth.Auth(reqCtx, &auth.AuthRequest{
-		Secret: secret,
-	})
-	if err != nil {
-		return Token{}, err
+	conn := &Conn{
+		grpcConn: c,
+		creds:    creds,
+		auth:     auth.NewAuthServiceClient(c),
 	}
 
-	infoResp, err := conn.auth.TokenDetails(reqCtx, &auth.TokenDetailsRequest{
+	_, err = conn.GetToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func (conn *Conn) Close() error {
+	return conn.grpcConn.Close()
+}
+
+func (conn *Conn) GetToken() (*Token, error) {
+	conn.tokenMx.Lock()
+	defer conn.tokenMx.Unlock()
+
+	if conn.token != nil && time.Until(conn.token.Expires) > time.Minute {
+		return conn.token, nil
+	}
+
+	t, err := conn.createToken()
+	if err != nil {
+		return nil, fmt.Errorf("finam auth failed for account %s: %w", conn.creds.AccountID, err)
+	}
+
+	conn.token = t
+
+	return t, nil
+}
+
+func (conn *Conn) createToken() (*Token, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	tokenResp, err := conn.auth.Auth(ctx, &auth.AuthRequest{
+		Secret: conn.creds.Secret,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	infoResp, err := conn.auth.TokenDetails(ctx, &auth.TokenDetailsRequest{
 		Token: tokenResp.GetToken(),
 	})
 	if err != nil {
-		return Token{}, err
+		return nil, err
 	}
 
-	return NewToken(conn.marketdata, tokenResp.GetToken(), infoResp.GetCreatedAt().AsTime(), infoResp.GetExpiresAt().AsTime()), nil
-}
-
-func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, symbol string, send func(types.Quote) error) error {
-	token, err := tokenStore.GetToken(ctx)
-	if err != nil {
-		if ctx.Err() != nil {
-			return ErrPeerAway
-		}
-		return fmt.Errorf("cannot get finam auth token: %w", err)
-	}
-
-	reqCtx, cancel := token.AutorizedContext(ctx)
-	defer cancel()
-
-	stream, err := conn.marketdata.SubscribeQuote(reqCtx, &marketdata.SubscribeQuoteRequest{
-		Symbols: []string{symbol},
-	})
-	if err != nil {
-		if ctx.Err() != nil {
-			return ErrPeerAway
-		}
-		return fmt.Errorf("cannot subscribe for finam quote stream: %w", err)
-	}
-
-	cache := NewQuoteCache()
-
-	for {
-		resp, err := stream.Recv()
-		if err != nil {
-			if ctx.Err() != nil {
-				return ErrPeerAway
-			}
-			if token.ctx.Err() != nil {
-				return ErrTokenExpired
-			}
-			if strings.Contains(strings.ToLower(err.Error()), "unauthorized") {
-				_, err = tokenStore.RefreshToken(ctx, token)
-				if err != nil {
-					slog.Error("cannot refresh finam auth token", "reason", err.Error())
-				}
-				return ErrUnauthorized
-			}
-			return err // expect reconnect
-		}
-
-		if len(resp.Quote) == 0 {
-			continue
-		}
-
-		q := resp.Quote[0]
-
-		if !cache.Allow(q) {
-			continue
-		}
-
-		err = send(types.Quote{
-			Symbol:    q.Symbol,
-			Timestamp: q.Timestamp.Seconds,
-			Ask:       cache.Ask,
-			Bid:       cache.Bid,
-		})
-		if err != nil {
-			return err
-		}
-	}
+	return &Token{
+		Value:   tokenResp.GetToken(),
+		Created: time.Unix(infoResp.GetCreatedAt().Seconds, 0),
+		Expires: time.Unix(infoResp.GetExpiresAt().Seconds, 0),
+	}, nil
 }

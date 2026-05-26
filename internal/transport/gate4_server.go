@@ -21,7 +21,7 @@ type Gate4Server struct {
 	pb.UnimplementedGate4Server
 	userStore     users.Store
 	keychainStore *keychain.Store
-	brokerPool    *brokers.Pool
+	clientPool    *brokers.ClientPool
 	serverCtx     context.Context
 	cancel        context.CancelFunc
 }
@@ -44,7 +44,7 @@ func NewGate4Server(ctx context.Context, cfg config.Config) (*Gate4Server, error
 		cancel:        cancel,
 		userStore:     userStore,
 		keychainStore: keychain.NewStore(caKey, caCert),
-		brokerPool:    brokers.NewPool(ctx),
+		clientPool:    brokers.NewClientPool(),
 	}, nil
 }
 
@@ -94,7 +94,13 @@ func (gate4 *Gate4Server) ListUsers(ctx context.Context, req *pb.EmptyMessage) (
 
 func (gate4 *Gate4Server) CreateUser(ctx context.Context, req *pb.User) (*pb.User, error) {
 	user := convertInUser(req)
-	err := gate4.userStore.Create(ctx, user)
+
+	_, err := gate4.clientPool.GetOrCreate(user)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	err = gate4.userStore.Create(ctx, user)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -102,7 +108,17 @@ func (gate4 *Gate4Server) CreateUser(ctx context.Context, req *pb.User) (*pb.Use
 }
 
 func (gate4 *Gate4Server) DeleteUser(ctx context.Context, req *pb.UserID) (*pb.EmptyMessage, error) {
-	err := gate4.userStore.Delete(ctx, req.UserId)
+	user, err := gate4.userStore.Find(ctx, req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	err = gate4.clientPool.Delete(user)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	err = gate4.userStore.Delete(ctx, req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -132,7 +148,7 @@ func (gate4 *Gate4Server) SubscribeQuotes(req *pb.SymbolRequest, stream grpc.Ser
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	client, err := gate4.brokerPool.Get(user)
+	client, err := gate4.clientPool.GetOrCreate(user)
 	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
