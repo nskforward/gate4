@@ -48,17 +48,18 @@ func (conn *Conn) Close() {
 }
 
 func (conn *Conn) Authorize(ctx context.Context, secret string) (Token, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+
+	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	tokenResp, err := conn.auth.Auth(ctx, &auth.AuthRequest{
+	tokenResp, err := conn.auth.Auth(reqCtx, &auth.AuthRequest{
 		Secret: secret,
 	})
 	if err != nil {
 		return Token{}, err
 	}
 
-	infoResp, err := conn.auth.TokenDetails(ctx, &auth.TokenDetailsRequest{
+	infoResp, err := conn.auth.TokenDetails(reqCtx, &auth.TokenDetailsRequest{
 		Token: tokenResp.GetToken(),
 	})
 	if err != nil {
@@ -69,7 +70,7 @@ func (conn *Conn) Authorize(ctx context.Context, secret string) (Token, error) {
 }
 
 func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, symbol string, send func(types.Quote) error) error {
-	token, err := tokenStore.GetToken(ctx, 30*time.Minute)
+	token, err := tokenStore.GetToken(ctx)
 	if err != nil {
 		if ctx.Err() != nil {
 			return ErrPeerAway
@@ -105,6 +106,7 @@ func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, s
 				}
 				return ErrUnauthorized
 			}
+			fmt.Println("token ctx:", token.ctx.Err())
 			return err // expect reconnect
 		}
 

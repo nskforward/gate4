@@ -2,7 +2,6 @@ package finam
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -21,11 +20,11 @@ func NewTokenStore(conn *Conn, secret string) *TokenStore {
 	}
 }
 
-func (store *TokenStore) GetToken(ctx context.Context, minLifetime time.Duration) (Token, error) {
+func (store *TokenStore) GetToken(ctx context.Context) (Token, error) {
 	store.mx.Lock()
 	defer store.mx.Unlock()
 
-	if store.token != nil && store.token.BeforeExpiration() > minLifetime && store.token.ctx.Err() == nil {
+	if store.token != nil && store.token.BeforeExpiration() > 5*time.Minute && store.token.ctx.Err() == nil {
 		return *store.token, nil
 	}
 
@@ -35,8 +34,6 @@ func (store *TokenStore) GetToken(ctx context.Context, minLifetime time.Duration
 	}
 
 	store.token = &t
-
-	fmt.Println("token expiration:", t.BeforeExpiration())
 
 	return t, nil
 }
@@ -55,8 +52,6 @@ func (store *TokenStore) RefreshToken(ctx context.Context, prev Token) (Token, e
 	}
 
 	store.token = &t
-
-	fmt.Println("token expiration:", t.BeforeExpiration())
 
 	return t, nil
 }

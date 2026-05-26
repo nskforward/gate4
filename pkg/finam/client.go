@@ -3,6 +3,7 @@ package finam
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -31,14 +32,17 @@ func NewClient(ctx context.Context, account, secret string) (*Client, error) {
 }
 
 func (client *Client) SubscribeQuotes(ctx context.Context, symbol string, send func(types.Quote) error) error {
-	ctx, cancel := joinContext(client.ctx, ctx)
+	reqCtx, cancel := joinContext(client.ctx, ctx)
 	defer cancel()
+
 	for {
-		err := client.conn.SubscribeQuotes(ctx, client.tokenStore, symbol, send)
+		err := client.conn.SubscribeQuotes(reqCtx, client.tokenStore, symbol, send)
 		if errors.Is(err, ErrPeerAway) {
 			slog.Debug("stop finam quote stream", "account", client.account, "symbol", symbol, "reason", err.Error())
 			return nil
 		}
+		fmt.Println("client ctx:", client.ctx.Err())
+		fmt.Println("peer ctx:", ctx.Err())
 		slog.Debug("try to reconnect to finam quote stream", "account", client.account, "symbol", symbol, "reason", err.Error())
 		time.Sleep(time.Second)
 	}
