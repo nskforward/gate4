@@ -2,6 +2,7 @@ package finam
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 )
 
@@ -18,21 +19,23 @@ func NewPool(ctx context.Context) *Pool {
 	}
 }
 
-func (pool *Pool) Get(accountID, secret string) (*Client, error) {
+func (pool *Pool) Get(account, secret string) (*Client, error) {
 	pool.mx.Lock()
 	defer pool.mx.Unlock()
 
-	client, ok := pool.clients[accountID]
+	client, ok := pool.clients[account]
 	if ok {
 		return client, nil
 	}
 
-	client, err := NewClient(pool.ctx, accountID, secret)
+	client, err := NewClient(pool.ctx, account, secret)
 	if err != nil {
 		return nil, err
 	}
 
-	pool.clients[accountID] = client
+	pool.clients[account] = client
+
+	slog.Debug("finam client created", "account", account)
 
 	return client, nil
 }

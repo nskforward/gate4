@@ -66,7 +66,7 @@ func (conn *Conn) Authorize(ctx context.Context, secret string) (Token, error) {
 		return Token{}, err
 	}
 
-	return NewToken(ctx, conn.marketdata, tokenResp.GetToken(), infoResp.GetCreatedAt().AsTime(), infoResp.GetExpiresAt().AsTime()), nil
+	return NewToken(conn.marketdata, tokenResp.GetToken(), infoResp.GetCreatedAt().AsTime(), infoResp.GetExpiresAt().AsTime()), nil
 }
 
 func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, symbol string, send func(types.Quote) error) error {
@@ -99,6 +99,9 @@ func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, s
 			if ctx.Err() != nil {
 				return ErrPeerAway
 			}
+			if token.ctx.Err() != nil {
+				return ErrTokenExpired
+			}
 			if strings.Contains(strings.ToLower(err.Error()), "unauthorized") {
 				_, err = tokenStore.RefreshToken(ctx, token)
 				if err != nil {
@@ -106,7 +109,6 @@ func (conn *Conn) SubscribeQuotes(ctx context.Context, tokenStore *TokenStore, s
 				}
 				return ErrUnauthorized
 			}
-			fmt.Println("token ctx:", token.ctx.Err())
 			return err // expect reconnect
 		}
 

@@ -3,7 +3,6 @@ package finam
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -41,8 +40,6 @@ func (client *Client) SubscribeQuotes(ctx context.Context, symbol string, send f
 			slog.Debug("stop finam quote stream", "account", client.account, "symbol", symbol, "reason", err.Error())
 			return nil
 		}
-		fmt.Println("client ctx:", client.ctx.Err())
-		fmt.Println("peer ctx:", ctx.Err())
 		slog.Debug("try to reconnect to finam quote stream", "account", client.account, "symbol", symbol, "reason", err.Error())
 		time.Sleep(time.Second)
 	}

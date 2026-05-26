@@ -2,6 +2,7 @@ package finam
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/FinamWeb/finam-trade-api/go/grpc/tradeapi/v1/marketdata"
@@ -17,15 +18,29 @@ type Token struct {
 	marketdata marketdata.MarketDataServiceClient
 }
 
-func NewToken(ctx context.Context, marketdata marketdata.MarketDataServiceClient, value string, created, expires time.Time) Token {
-	ctx, cancel := context.WithCancel(ctx)
-	return Token{
+func NewToken(marketdata marketdata.MarketDataServiceClient, value string, created, expires time.Time) Token {
+	ctx, cancel := context.WithCancel(context.Background())
+	t := Token{
 		ctx:        ctx,
 		cancel:     cancel,
 		value:      value,
 		created:    created,
 		expires:    expires,
 		marketdata: marketdata,
+	}
+	go t.watch()
+	slog.Debug("finam auth token created", "expires", time.Unix(expires.Unix(), 0).Format("2006-01-02 15:04"))
+	return t
+}
+
+func (t Token) watch() {
+	defer t.cancel()
+
+	select {
+	case <-t.ctx.Done():
+		return
+	case <-time.After(time.Until(t.expires) - time.Minute):
+		return
 	}
 }
 
@@ -45,9 +60,6 @@ func (t Token) AutorizedContext(ctx context.Context) (context.Context, context.C
 		case <-ctx.Done():
 			return
 		case <-t.ctx.Done():
-			cancel()
-			return
-		case <-time.After(time.Until(t.expires) - time.Second):
 			cancel()
 			return
 		}

@@ -8,6 +8,7 @@ import (
 var (
 	ErrPeerAway     = errors.New("peer is away")
 	ErrUnauthorized = errors.New("unauthorized")
+	ErrTokenExpired = errors.New("token expired")
 )
 
 func joinContext(a, b context.Context) (context.Context, context.CancelFunc) {
