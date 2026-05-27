@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/di"
+	"github.com/nskforward/gate4/pkg/console"
 	"google.golang.org/grpc"
 )
 
@@ -21,6 +22,7 @@ func NewApp() *App {
 		container: di.NewContainer(),
 	}
 	app.initDeps()
+	console.LogInfo("server deps successfully initialized")
 	return app
 }
 

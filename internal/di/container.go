@@ -1,7 +1,9 @@
 package di
 
 import (
+	"crypto"
 	"crypto/tls"
+	"crypto/x509"
 	"log/slog"
 
 	"github.com/nskforward/gate4/internal/api"
@@ -10,6 +12,7 @@ import (
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/ssl"
 	"google.golang.org/grpc"
 )
 
@@ -20,6 +23,10 @@ type Container struct {
 	keychainStore *keychain.Store
 	clientPool    *brokers.ClientPool
 	tlsConfig     *tls.Config
+	caCert        *x509.Certificate
+	caKey         crypto.PrivateKey
+	serverCert    *x509.Certificate
+	serverKey     crypto.PrivateKey
 	apiServer     *api.Server
 	unixServer    *grpc.Server
 	tcpServer     *grpc.Server
@@ -45,10 +52,53 @@ func (c *Container) Logger() *slog.Logger {
 
 func (c *Container) TLSConfig() *tls.Config {
 	if c.tlsConfig == nil {
-		cfg := c.Config()
-		c.tlsConfig = initTLSConfig(cfg)
+		c.tlsConfig = initTLSConfig(c.ServerCert(), c.ServerKey(), c.CACert())
 	}
 	return c.tlsConfig
+}
+
+func (c *Container) CAKey() crypto.PrivateKey {
+	if c.caKey == nil {
+		key, err := ssl.LoadPrivateKey(c.Config().CA.Key)
+		if err != nil {
+			console.LogFatal("cannot load CA private key", err)
+		}
+		c.caKey = key
+	}
+	return c.caKey
+}
+
+func (c *Container) CACert() *x509.Certificate {
+	if c.caCert == nil {
+		cert, err := ssl.LoadCertificate(c.Config().CA.Cert)
+		if err != nil {
+			console.LogFatal("cannot load CA certificate", err)
+		}
+		c.caCert = cert
+	}
+	return c.caCert
+}
+
+func (c *Container) ServerKey() crypto.PrivateKey {
+	if c.serverKey == nil {
+		key, err := ssl.LoadPrivateKey(c.Config().Server.SSL.Key)
+		if err != nil {
+			console.LogFatal("cannot load server private key", err)
+		}
+		c.serverKey = key
+	}
+	return c.serverKey
+}
+
+func (c *Container) ServerCert() *x509.Certificate {
+	if c.serverCert == nil {
+		cert, err := ssl.LoadCertificate(c.Config().Server.SSL.Cert)
+		if err != nil {
+			console.LogFatal("cannot load server certificate", err)
+		}
+		c.serverCert = cert
+	}
+	return c.serverCert
 }
 
 func (c *Container) UserSore() users.Store {
@@ -64,12 +114,7 @@ func (c *Container) UserSore() users.Store {
 
 func (c *Container) KeychainStore() *keychain.Store {
 	if c.keychainStore == nil {
-		cfg := c.Config()
-		store, err := keychain.NewStore(cfg.CA.Key, cfg.CA.Cert)
-		if err != nil {
-			console.LogFatal("cannot init KeychainStore", err)
-		}
-		c.keychainStore = store
+		c.keychainStore = keychain.NewStore(c.CAKey(), c.CACert())
 	}
 	return c.keychainStore
 }

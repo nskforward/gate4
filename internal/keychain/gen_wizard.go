@@ -2,7 +2,7 @@ package keychain
 
 import (
 	"context"
-	"crypto/rsa"
+	"crypto"
 	"crypto/x509/pkix"
 	"errors"
 	"fmt"
@@ -38,7 +38,7 @@ func GenWizard(ctx context.Context, cfg *config.Config) error {
 	return nil
 }
 
-func generateCAKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
+func generateCAKey(ctx context.Context, path string) (crypto.PrivateKey, error) {
 	scanner := console.NewScanner()
 	defer scanner.Close()
 	fmt.Print("checking CA ssl key... ")
@@ -48,18 +48,18 @@ func generateCAKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
 		if !scanner.Confirm(ctx, "continue?") {
 			return nil, errors.New("aborted")
 		}
-		caKey, err := ssl.GeneratePrivateKey()
+		caKey, err := ssl.GeneratePrivateKeyRSA()
 		if err != nil {
 			return nil, err
 		}
-		err = ssl.SavePrivateKey(caKey, path)
+		err = ssl.SavePrivateKeyRSA(caKey, path)
 		return caKey, err
 	}
 	printOk()
 	return ssl.LoadPrivateKey(path)
 }
 
-func generateCACert(ctx context.Context, path string, key *rsa.PrivateKey) error {
+func generateCACert(ctx context.Context, path string, key crypto.PrivateKey) error {
 	scanner := console.NewScanner()
 	defer scanner.Close()
 	fmt.Print("checking CA ssl cert... ")
@@ -72,7 +72,7 @@ func generateCACert(ctx context.Context, path string, key *rsa.PrivateKey) error
 		template := ssl.CreateCertificate(true, time.Now().AddDate(10, 0, 0), nil, pkix.Name{
 			CommonName: "Gate4 Root CA 1",
 		})
-		cert, err := ssl.SignCertificate(template, template, key, key)
+		cert, err := ssl.SignCertificate(template, template, key.(crypto.Signer), key)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func generateCACert(ctx context.Context, path string, key *rsa.PrivateKey) error
 	return nil
 }
 
-func generateServerKey(ctx context.Context, path string) (*rsa.PrivateKey, error) {
+func generateServerKey(ctx context.Context, path string) (crypto.PrivateKey, error) {
 	scanner := console.NewScanner()
 	defer scanner.Close()
 	fmt.Print("checking server ssl key... ")
@@ -92,18 +92,18 @@ func generateServerKey(ctx context.Context, path string) (*rsa.PrivateKey, error
 		if !scanner.Confirm(ctx, "continue?") {
 			return nil, errors.New("aborted")
 		}
-		key, err := ssl.GeneratePrivateKey()
+		key, err := ssl.GeneratePrivateKeyRSA()
 		if err != nil {
 			return nil, err
 		}
-		err = ssl.SavePrivateKey(key, path)
+		err = ssl.SavePrivateKeyRSA(key, path)
 		return key, err
 	}
 	printOk()
 	return ssl.LoadPrivateKey(path)
 }
 
-func generateServerCert(ctx context.Context, path string, key *rsa.PrivateKey) error {
+func generateServerCert(ctx context.Context, path string, key crypto.PrivateKey) error {
 	scanner := console.NewScanner()
 	defer scanner.Close()
 	fmt.Print("checking server ssl cert... ")
@@ -116,7 +116,7 @@ func generateServerCert(ctx context.Context, path string, key *rsa.PrivateKey) e
 		template := ssl.CreateCertificate(true, time.Now().AddDate(10, 0, 0), nil, pkix.Name{
 			CommonName: "Gate4 Server",
 		})
-		cert, err := ssl.SignCertificate(template, template, key, key)
+		cert, err := ssl.SignCertificate(template, template, key.(crypto.Signer), key)
 		if err != nil {
 			return err
 		}

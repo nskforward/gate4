@@ -2,6 +2,7 @@ package ssl
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -10,32 +11,36 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/nskforward/gate4/pkg/tools"
 )
 
-func GeneratePrivateKey() (*rsa.PrivateKey, error) {
+func GeneratePrivateKeyRSA() (*rsa.PrivateKey, error) {
 	return rsa.GenerateKey(rand.Reader, 4096)
 }
 
-func LoadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	b, err := os.ReadFile(path)
+func LoadPrivateKey(path string) (crypto.PrivateKey, error) {
+	data, err := os.ReadFile(tools.Path(path))
 	if err != nil {
 		return nil, err
 	}
-	return ParsePrivateKey(b)
+	return ParsePrivateKey(data)
 }
 
-func ParsePrivateKey(data []byte) (*rsa.PrivateKey, error) {
+func ParsePrivateKey(data []byte) (crypto.PrivateKey, error) {
 	v, _ := pem.Decode(data)
 	if v == nil {
 		return nil, fmt.Errorf("cannot decode pem file")
 	}
-	if v.Type != "RSA PRIVATE KEY" {
-		return nil, fmt.Errorf("pem type must be 'RSA PRIVATE KEY'")
+	switch v.Type {
+	case "RSA PRIVATE KEY":
+		return x509.ParsePKCS1PrivateKey(v.Bytes)
+	default:
+		return nil, fmt.Errorf("unsupported private key type: %s", v.Type)
 	}
-	return x509.ParsePKCS1PrivateKey(v.Bytes)
 }
 
-func SavePrivateKey(key *rsa.PrivateKey, path string) error {
+func SavePrivateKeyRSA(key *rsa.PrivateKey, path string) error {
 	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
 		return err

@@ -2,8 +2,8 @@ package ssl
 
 import (
 	"bytes"
+	"crypto"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -15,6 +15,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/nskforward/gate4/pkg/tools"
 )
 
 func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject pkix.Name) *x509.Certificate {
@@ -42,8 +44,8 @@ func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject
 	}
 }
 
-func SignCertificate(template, ca *x509.Certificate, key, caKey *rsa.PrivateKey) (*x509.Certificate, error) {
-	data, err := x509.CreateCertificate(rand.Reader, template, ca, &key.PublicKey, caKey)
+func SignCertificate(template, ca *x509.Certificate, key crypto.Signer, caKey crypto.PrivateKey) (*x509.Certificate, error) {
+	data, err := x509.CreateCertificate(rand.Reader, template, ca, key.Public(), caKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot sign cert: %w", err)
 	}
@@ -51,7 +53,7 @@ func SignCertificate(template, ca *x509.Certificate, key, caKey *rsa.PrivateKey)
 }
 
 func LoadCertificate(path string) (*x509.Certificate, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(tools.Path(path))
 	if err != nil {
 		return nil, err
 	}

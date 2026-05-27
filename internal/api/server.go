@@ -7,6 +7,7 @@ import (
 	"github.com/nskforward/gate4/internal/brokers"
 	"github.com/nskforward/gate4/internal/keychain"
 	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/ssl"
 	"github.com/nskforward/gate4/pkg/types"
@@ -63,6 +64,7 @@ func (server *Server) FindUser(ctx context.Context, req *pb.UserID) (*pb.User, e
 }
 
 func (server *Server) ListUsers(ctx context.Context, req *pb.EmptyMessage) (*pb.ListUsersResponse, error) {
+	console.LogDebug("api call method ListUsers")
 	users, err := server.userStore.List(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
