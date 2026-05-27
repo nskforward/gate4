@@ -14,7 +14,7 @@ import (
 	"github.com/nskforward/gate4/pkg/tools"
 )
 
-func GenWizard(ctx context.Context, cfg config.Config) error {
+func GenWizard(ctx context.Context, cfg *config.Config) error {
 	if !tools.FileExists(cfg.CA.Key) || !tools.FileExists(cfg.CA.Cert) {
 		caKey, err := generateCAKey(ctx, cfg.CA.Key)
 		if err != nil {

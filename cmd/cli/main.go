@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nskforward/gate4/internal/app/client"
 	"github.com/nskforward/gate4/internal/cli"
-	"github.com/nskforward/gate4/internal/transport"
 )
 
 func main() {
@@ -22,14 +22,14 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	grpcClient, err := transport.NewGate4Client("unix", transport.UnixSocketPath())
+	app, err := client.NewApp()
 	if err != nil {
 		return err
 	}
-	defer grpcClient.Close()
+	defer app.Close()
 
 	r := cli.NewRouter()
-	routes(r, grpcClient)
+	routes(r, app)
 
 	return r.Run(ctx)
 }

@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"time"
 
 	"github.com/nskforward/gate4/pkg/ssl"
@@ -14,11 +15,8 @@ type Store struct {
 	caCert *x509.Certificate
 }
 
-func NewStore(caKey *rsa.PrivateKey, caCert *x509.Certificate) *Store {
-	return &Store{
-		caKey:  caKey,
-		caCert: caCert,
-	}
+func NewStore(caKey, caCert string) (*Store, error) {
+	return &Store{}, errors.New("not implemented")
 }
 
 func (store *Store) Generate(commonName string, key *rsa.PrivateKey) (*x509.Certificate, error) {

@@ -28,7 +28,7 @@ type Config struct {
 	FileStorageDir string
 }
 
-func Load() Config {
+func Load() *Config {
 	tcpAddr := flag.String("tcp-addr", os.Getenv("GATE4_TCP_ADDR"), "server tcp address to listen")
 	finamAddr := flag.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
 	storeDir := flag.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
@@ -51,7 +51,7 @@ func Load() Config {
 	cfg.Server.SSL.Key = useDefault(tools.Path(*serverKey), tools.Path("data/ssl/server.key"))
 	cfg.Server.SSL.Cert = useDefault(tools.Path(*serverCert), tools.Path("data/ssl/server.cert"))
 
-	return cfg
+	return &cfg
 }
 
 func useDefault(in string, def string) string {

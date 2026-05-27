@@ -1,35 +1,29 @@
-package transport
+package api
 
 import (
-	"crypto/rsa"
-	"crypto/x509"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/pb"
-	"github.com/nskforward/gate4/pkg/ssl"
 )
 
-func convertInUsers(in []*pb.User) []*users.User {
+func ConvertInUsers(in []*pb.User) []*users.User {
 	result := make([]*users.User, 0, len(in))
 	for _, user := range in {
-		result = append(result, convertInUser(user))
+		result = append(result, ConvertInUser(user))
 	}
 	return result
 }
 
-func convertOutUsers(in []*users.User) []*pb.User {
+func ConvertOutUsers(in []*users.User) []*pb.User {
 	result := make([]*pb.User, 0, len(in))
 	for _, user := range in {
-		result = append(result, convertOutUser(user))
+		result = append(result, ConvertOutUser(user))
 	}
 	return result
 }
 
-func convertOutUser(user *users.User) *pb.User {
+func ConvertOutUser(user *users.User) *pb.User {
 	return &pb.User{
 		BrokerId:  string(user.BrokerID),
 		AccountId: user.AccountID,
@@ -41,7 +35,7 @@ func convertOutUser(user *users.User) *pb.User {
 	}
 }
 
-func convertInUser(user *pb.User) *users.User {
+func ConvertInUser(user *pb.User) *users.User {
 	secret := ""
 	if user.Secret != nil {
 		secret = *user.Secret
@@ -55,20 +49,4 @@ func convertInUser(user *pb.User) *users.User {
 		Blocked:   user.Blocked,
 		Secret:    secret,
 	}
-}
-
-func UnixSocketPath() string {
-	return filepath.Join(os.TempDir(), "gate4.sock")
-}
-
-func loadCA(cfg config.Config) (*rsa.PrivateKey, *x509.Certificate, error) {
-	key, err := ssl.LoadPrivateKey(cfg.CA.Key)
-	if err != nil {
-		return nil, nil, err
-	}
-	cert, err := ssl.LoadCertificate(cfg.CA.Cert)
-	if err != nil {
-		return nil, nil, err
-	}
-	return key, cert, nil
 }

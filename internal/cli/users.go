@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nskforward/gate4/internal/transport"
+	"github.com/nskforward/gate4/internal/app/client"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
 // user list [-blocked] [-active]
-func ListUsers(client *transport.Gate4Client) Handler {
+func ListUsers(app *client.App) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		_, activeArg := console.FindArg("-active", args)
@@ -32,7 +32,7 @@ func ListUsers(client *transport.Gate4Client) Handler {
 			}
 		*/
 
-		users, err := client.ListUsers(ctx)
+		users, err := app.ListUsers(ctx)
 		if err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func ListUsers(client *transport.Gate4Client) Handler {
 	}
 }
 
-func CreateUser(client *transport.Gate4Client) Handler {
+func CreateUser(app *client.App) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user users.User
 
@@ -121,7 +121,7 @@ func CreateUser(client *transport.Gate4Client) Handler {
 			return err
 		}
 
-		err = client.CreateUser(ctx, &user)
+		err = app.CreateUser(ctx, &user)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func CreateUser(client *transport.Gate4Client) Handler {
 	}
 }
 
-func DeleteUser(client *transport.Gate4Client) Handler {
+func DeleteUser(app *client.App) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -161,7 +161,7 @@ func DeleteUser(client *transport.Gate4Client) Handler {
 			return nil
 		}
 
-		err = client.DeleteUser(ctx, userID)
+		err = app.DeleteUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -171,7 +171,7 @@ func DeleteUser(client *transport.Gate4Client) Handler {
 	}
 }
 
-func BlockUser(client *transport.Gate4Client) Handler {
+func BlockUser(app *client.App) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -194,7 +194,7 @@ func BlockUser(client *transport.Gate4Client) Handler {
 			return err
 		}
 
-		err = client.BlockUser(ctx, userID, blocked)
+		err = app.BlockUser(ctx, userID, blocked)
 		if err != nil {
 			return err
 		}
@@ -210,7 +210,7 @@ func BlockUser(client *transport.Gate4Client) Handler {
 	}
 }
 
-func UpdateUser(client *transport.Gate4Client) Handler {
+func UpdateUser(app *client.App) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -238,7 +238,7 @@ func UpdateUser(client *transport.Gate4Client) Handler {
 			return err
 		}
 
-		err = client.UpdateUser(ctx, userID, secret, validUntil)
+		err = app.UpdateUser(ctx, userID, secret, validUntil)
 		if err != nil {
 			return err
 		}
