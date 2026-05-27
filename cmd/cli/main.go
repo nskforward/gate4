@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nskforward/gate4/cmd/cli/handler"
 	"github.com/nskforward/gate4/internal/api"
-	"github.com/nskforward/gate4/internal/cli"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func run(ctx context.Context) error {
 	}
 	defer client.Close()
 
-	r := cli.NewRouter()
+	r := handler.NewRouter()
 	routes(r, client)
 
 	return r.Run(ctx)

@@ -1,4 +1,4 @@
-package cli
+package handler
 
 import (
 	"context"
@@ -58,7 +58,7 @@ func ListUsers(client *api.Client) Handler {
 		for i, user := range filtered {
 			fmt.Println(
 				fmt.Sprintf("| %d |", i+1),
-				fmt.Sprintf(maskID, user.ID),
+				console.FormatText(fmt.Sprintf(maskID, user.ID), console.White),
 				"|",
 				formatStatus(user.Blocked, user.Expires),
 				"|", user.Created.Format("2006-01-02"),

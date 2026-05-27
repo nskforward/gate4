@@ -1,4 +1,4 @@
-package cli
+package handler
 
 import (
 	"context"
@@ -16,9 +16,10 @@ type Router struct {
 }
 
 func NewRouter() *Router {
-	return &Router{
+	r := &Router{
 		node: new(tree.Node[Handler]),
 	}
+	return r
 }
 
 func (r *Router) Handle(path string, handler Handler) {
