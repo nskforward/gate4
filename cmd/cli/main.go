@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/nskforward/gate4/internal/app/client"
+	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/internal/cli"
 )
 
@@ -22,14 +22,14 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	app, err := client.NewApp()
+	client, err := api.NewClient()
 	if err != nil {
 		return err
 	}
-	defer app.Close()
+	defer client.Close()
 
 	r := cli.NewRouter()
-	routes(r, app)
+	routes(r, client)
 
 	return r.Run(ctx)
 }

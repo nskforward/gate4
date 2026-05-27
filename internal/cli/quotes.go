@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nskforward/gate4/internal/app/client"
+	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/types"
 )
 
 // subscribe quotes [-symbol <symbol>] [-id <id>]
-func SubscribeQuotes(app *client.App) Handler {
+func SubscribeQuotes(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		argSymbol, _ := console.FindArg("-symbol", args)
@@ -30,7 +30,7 @@ func SubscribeQuotes(app *client.App) Handler {
 			return err
 		}
 
-		return app.SubscribeQuotes(ctx, userID, symbol, func(quote types.Quote) error {
+		return client.SubscribeQuotes(ctx, userID, symbol, func(quote types.Quote) error {
 			fmt.Println(time.Unix(quote.Timestamp, 0).Format("2006-01-02 15:04:05"), quote.Symbol, "| ask", quote.Ask, "| bid", quote.Bid)
 			return nil
 		})

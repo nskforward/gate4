@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"context"
@@ -14,10 +14,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	UnixSocketPath = filepath.Join(os.TempDir(), "gate4.sock")
-)
-
 type UnixServer struct {
 	s          *grpc.Server
 	l          net.Listener
@@ -26,7 +22,8 @@ type UnixServer struct {
 }
 
 func NewUnixServer(apiServer *api.Server) *UnixServer {
-	l, err := net.Listen("unix", UnixSocketPath)
+	socketPath := filepath.Join(os.TempDir(), "gate4.sock")
+	l, err := net.Listen("unix", socketPath)
 	if err != nil {
 		console.LogFatal("cannot listen unix socket address", err)
 	}
@@ -36,7 +33,7 @@ func NewUnixServer(apiServer *api.Server) *UnixServer {
 	return &UnixServer{
 		s:          s,
 		l:          l,
-		socketPath: UnixSocketPath,
+		socketPath: socketPath,
 	}
 }
 

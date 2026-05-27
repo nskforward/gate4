@@ -7,32 +7,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nskforward/gate4/internal/app/client"
+	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/internal/users"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
 // user list [-blocked] [-active]
-func ListUsers(app *client.App) Handler {
+func ListUsers(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		_, activeArg := console.FindArg("-active", args)
 		_, blockedArg := console.FindArg("-blocked", args)
 
-		/*
-			for _, arg := range args {
-				if arg == "-blocked" {
-					filterBlocked = true
-					filterActive = false
-				}
-				if arg == "-active" {
-					filterBlocked = false
-					filterActive = true
-				}
-			}
-		*/
-
-		users, err := app.ListUsers(ctx)
+		users, err := client.ListUsers(ctx)
 		if err != nil {
 			return err
 		}
@@ -84,7 +71,7 @@ func ListUsers(app *client.App) Handler {
 	}
 }
 
-func CreateUser(app *client.App) Handler {
+func CreateUser(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user users.User
 
@@ -121,7 +108,7 @@ func CreateUser(app *client.App) Handler {
 			return err
 		}
 
-		err = app.CreateUser(ctx, &user)
+		err = client.CreateUser(ctx, &user)
 		if err != nil {
 			return err
 		}
@@ -132,7 +119,7 @@ func CreateUser(app *client.App) Handler {
 	}
 }
 
-func DeleteUser(app *client.App) Handler {
+func DeleteUser(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -150,7 +137,7 @@ func DeleteUser(app *client.App) Handler {
 			return err
 		}
 
-		fmt.Println("WARNING! user will be permanently removed")
+		fmt.Println(console.FormatText("WARNING!", console.Red, console.Bold), "user will be permanently removed")
 		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
 		if err != nil {
 			return err
@@ -161,7 +148,7 @@ func DeleteUser(app *client.App) Handler {
 			return nil
 		}
 
-		err = app.DeleteUser(ctx, userID)
+		err = client.DeleteUser(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -171,7 +158,7 @@ func DeleteUser(app *client.App) Handler {
 	}
 }
 
-func BlockUser(app *client.App) Handler {
+func BlockUser(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -194,7 +181,7 @@ func BlockUser(app *client.App) Handler {
 			return err
 		}
 
-		err = app.BlockUser(ctx, userID, blocked)
+		err = client.BlockUser(ctx, userID, blocked)
 		if err != nil {
 			return err
 		}
@@ -210,7 +197,7 @@ func BlockUser(app *client.App) Handler {
 	}
 }
 
-func UpdateUser(app *client.App) Handler {
+func UpdateUser(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -238,7 +225,7 @@ func UpdateUser(app *client.App) Handler {
 			return err
 		}
 
-		err = app.UpdateUser(ctx, userID, secret, validUntil)
+		err = client.UpdateUser(ctx, userID, secret, validUntil)
 		if err != nil {
 			return err
 		}

@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"context"
@@ -18,15 +18,14 @@ type App struct {
 }
 
 func NewApp() *App {
-	app := &App{
+	a := &App{
 		container: di.NewContainer(),
 	}
-	app.initDeps()
-	console.LogInfo("server deps successfully initialized")
-	return app
+	a.initDeps()
+	return a
 }
 
-func (app *App) Run() error {
+func (a *App) Run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -38,7 +37,7 @@ func (app *App) Run() error {
 
 	go func() {
 		defer wg.Done()
-		err := app.unixServer.Serve()
+		err := a.unixServer.Serve()
 		if err != nil && err != grpc.ErrServerStopped {
 			errorc <- err
 		}
@@ -46,21 +45,23 @@ func (app *App) Run() error {
 
 	go func() {
 		defer wg.Done()
-		err := app.tcpServer.Serve()
+		err := a.tcpServer.Serve()
 		if err != nil && err != grpc.ErrServerStopped {
 			errorc <- err
 		}
 	}()
 
+	console.LogInfo("application started")
+
 	select {
 	case err := <-errorc:
-		app.unixServer.Close()
-		app.tcpServer.Close()
+		a.unixServer.Close()
+		a.tcpServer.Close()
 		return err
 
 	case <-ctx.Done():
-		app.unixServer.Close()
-		app.tcpServer.Close()
+		a.unixServer.Close()
+		a.tcpServer.Close()
 		return nil
 	}
 }

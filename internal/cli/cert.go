@@ -9,11 +9,11 @@ import (
 	"encoding/pem"
 	"fmt"
 
-	"github.com/nskforward/gate4/internal/app/client"
+	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
-func CreateCert(app *client.App) Handler {
+func CreateCert(client *api.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		scanner := console.NewScanner()
 		defer scanner.Close()
@@ -39,7 +39,7 @@ func CreateCert(app *client.App) Handler {
 
 		privateKey := buf.String()
 
-		cert, err := app.CreateCert(ctx, commonName, privateKey)
+		cert, err := client.CreateCert(ctx, commonName, privateKey)
 		if err != nil {
 			return err
 		}
