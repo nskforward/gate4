@@ -2,12 +2,12 @@ package app
 
 import (
 	"context"
+	"log/slog"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/nskforward/gate4/internal/di"
-	"github.com/nskforward/gate4/pkg/console"
 	"google.golang.org/grpc"
 )
 
@@ -51,7 +51,9 @@ func (a *App) Run() error {
 		}
 	}()
 
-	console.LogInfo("application started")
+	slog.Info("application started",
+		slog.String("tcp-addr", a.container.Config().Server.TCPAddr),
+	)
 
 	select {
 	case err := <-errorc:

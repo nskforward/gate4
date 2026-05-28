@@ -15,4 +15,6 @@ var (
 	Magenta = Color{255, 0, 255}
 	White   = Color{255, 255, 255}
 	Black   = Color{0, 0, 0}
+	Gray100 = Color{100, 100, 100}
+	Gray200 = Color{200, 200, 200}
 )

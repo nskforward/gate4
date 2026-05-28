@@ -132,17 +132,3 @@ func (c *Container) APIServer() *api.Server {
 	}
 	return c.apiServer
 }
-
-func (c *Container) UnixServer() *grpc.Server {
-	if c.unixServer == nil {
-		c.unixServer = NewUnixServer(c.APIServer())
-	}
-	return c.unixServer
-}
-
-func (c *Container) TCPServer() *grpc.Server {
-	if c.tcpServer == nil {
-		c.tcpServer = NewTCPServer(c.APIServer(), c.TLSConfig())
-	}
-	return c.tcpServer
-}

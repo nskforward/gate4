@@ -27,7 +27,12 @@ func NewUnixServer(apiServer *api.Server) *UnixServer {
 	if err != nil {
 		console.LogFatal("cannot listen unix socket address", err)
 	}
-	s := grpc.NewServer()
+
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		api.LoggingInterceptor,
+		api.RecoveryInterceptor,
+	))
+
 	pb.RegisterGate4Server(s, apiServer)
 
 	return &UnixServer{
