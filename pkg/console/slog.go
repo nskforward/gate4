@@ -20,12 +20,14 @@ var (
 	logTimePrefix = buildPrefix(Blue)
 	logMsgPrefix  = buildPrefix(White, Bold)
 	logKeyPrefix  = buildPrefix(Gray100)
+
+	logPadding = "    "
 )
 
 var (
 	bufferPool = sync.Pool{
 		New: func() any {
-			return bytes.NewBuffer(make([]byte, 2048))
+			return bytes.NewBuffer(make([]byte, 0, 2048))
 		},
 	}
 )
@@ -85,14 +87,17 @@ func (h *LoggerHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf.WriteString(resetCode)
 	buf.WriteByte('\n')
 
-	attrs := make([]slog.Attr, 0, len(h.attrs)+r.NumAttrs()+1)
-	file := r.Source().File
-	file = strings.TrimPrefix(file, h.wd)
-	src := file + ":" + strconv.Itoa(r.Source().Line)
-	attrs = append(attrs, slog.Attr{
-		Key:   "src",
-		Value: slog.StringValue(src),
-	})
+	attrs := make([]slog.Attr, 0, len(h.attrs)+r.NumAttrs())
+
+	if r.PC != 0 {
+		file := strings.TrimPrefix(r.Source().File, h.wd)
+		srcBuf := make([]byte, 0, len(file)+6) // максимум 5 цифр на номер строки
+		srcBuf = append(srcBuf, file...)
+		srcBuf = append(srcBuf, ':')
+		srcBuf = strconv.AppendInt(srcBuf, int64(r.Source().Line), 10)
+		attrs = append(attrs, slog.Attr{Key: "src", Value: slog.StringValue(string(srcBuf))})
+	}
+
 	attrs = append(attrs, h.attrs...)
 	r.Attrs(func(a slog.Attr) bool {
 		attrs = append(attrs, a)
@@ -102,7 +107,7 @@ func (h *LoggerHandler) Handle(ctx context.Context, r slog.Record) error {
 	writeAttrs(buf, attrs, 1)
 	buf.WriteByte('\n')
 
-	_, err := h.w.Write(buf.Bytes())
+	_, err := buf.WriteTo(h.w)
 	return err
 }
 
@@ -114,10 +119,9 @@ func writeAttrs(buf *bytes.Buffer, attrs []slog.Attr, padding int) {
 		}
 	}
 
-ATTR_RANGE:
 	for _, a := range attrs {
 		for range padding {
-			buf.WriteString("    ")
+			buf.WriteString(logPadding)
 		}
 		buf.WriteString(logKeyPrefix)
 		buf.WriteString(a.Key)
@@ -130,14 +134,14 @@ ATTR_RANGE:
 		switch a.Value.Kind() {
 		case slog.KindString:
 			buf.WriteString(a.Value.String())
+			buf.WriteByte('\n')
 		case slog.KindGroup:
 			buf.WriteByte('\n')
 			writeAttrs(buf, a.Value.Group(), padding+1)
-			continue ATTR_RANGE
 		default:
 			buf.WriteString(a.Value.String())
+			buf.WriteByte('\n')
 		}
-		buf.WriteByte('\n')
 	}
 }
 
