@@ -20,17 +20,17 @@ func Recovery(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler 
 			}
 
 			slog.Error("panic recovered",
-				slog.String("request-id", reqID),
+				slog.String("req-id", reqID),
 				slog.String("method", info.FullMethod),
 				slog.String("reason", fmt.Sprint(r)),
 			)
 
-			desc := "internal server error"
 			if ok {
-				desc = fmt.Sprintf("request-id:%s", reqID)
+				err = status.Errorf(codes.Internal, "req-id:%s", reqID)
+				return
 			}
 
-			err = status.Errorf(codes.Internal, desc)
+			err = status.Error(codes.Internal, "internal server error")
 		}
 	}()
 
