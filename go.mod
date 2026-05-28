@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/FinamWeb/finam-trade-api/go v0.0.0-20260515113458-48d0c249ba30
+	github.com/google/uuid v1.6.0
 	golang.org/x/term v0.43.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11

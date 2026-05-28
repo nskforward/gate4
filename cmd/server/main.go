@@ -1,8 +1,9 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/nskforward/gate4/internal/app"
-	"github.com/nskforward/gate4/pkg/console"
 )
 
 func main() {
@@ -10,6 +11,6 @@ func main() {
 
 	err := a.Run()
 	if err != nil {
-		console.LogError("server app exited", err)
+		slog.Error("server app exited", "reason", err.Error())
 	}
 }

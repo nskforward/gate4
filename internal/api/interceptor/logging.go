@@ -1,0 +1,37 @@
+package interceptor
+
+import (
+	"context"
+	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
+)
+
+func Logging(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	reqID := uuid.NewString()
+
+	start := time.Now()
+
+	nextCtx := context.WithValue(ctx, CtxReqID, reqID)
+	resp, err := handler(nextCtx, req)
+
+	duration := time.Since(start)
+	if err != nil {
+		slog.Warn("failed api call",
+			slog.String("request-id", reqID),
+			slog.String("method", info.FullMethod),
+			slog.Int64("time-ms", duration.Milliseconds()),
+			slog.String("reason", err.Error()),
+		)
+	} else {
+		slog.Info("successful api call",
+			slog.String("request-id", reqID),
+			slog.String("method", info.FullMethod),
+			slog.Int64("time-ms", duration.Milliseconds()),
+		)
+	}
+
+	return resp, err
+}

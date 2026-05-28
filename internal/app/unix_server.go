@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/nskforward/gate4/internal/api"
+	"github.com/nskforward/gate4/internal/api/interceptor"
 	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
@@ -29,8 +30,8 @@ func NewUnixServer(apiServer *api.Server) *UnixServer {
 	}
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		api.LoggingInterceptor,
-		api.RecoveryInterceptor,
+		interceptor.Logging,
+		interceptor.Recovery,
 	))
 
 	pb.RegisterGate4Server(s, apiServer)

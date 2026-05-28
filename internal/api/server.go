@@ -71,7 +71,6 @@ func (server *Server) ListUsers(ctx context.Context, req *pb.EmptyMessage) (*pb.
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	panic("some test: 123")
 	return &pb.ListUsersResponse{Users: ConvertOutUsers(users)}, nil
 }
 
