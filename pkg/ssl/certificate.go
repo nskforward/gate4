@@ -15,8 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/nskforward/gate4/pkg/common"
 )
 
 func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject pkix.Name) *x509.Certificate {
@@ -53,7 +51,12 @@ func SignCertificate(template, ca *x509.Certificate, key crypto.Signer, caKey cr
 }
 
 func LoadCertificate(path string) (*x509.Certificate, error) {
-	data, err := os.ReadFile(common.Path(path))
+	normalizedPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := os.ReadFile(normalizedPath)
 	if err != nil {
 		return nil, err
 	}

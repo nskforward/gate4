@@ -6,8 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
-
-	"github.com/nskforward/gate4/pkg/common"
+	"path/filepath"
 )
 
 type FileStorage struct {
@@ -15,8 +14,12 @@ type FileStorage struct {
 }
 
 func NewFileStorage(rootDir string) *FileStorage {
-	normalized := common.Path(rootDir)
-	err := os.MkdirAll(normalized, os.ModePerm)
+	normalized, err := filepath.Abs(rootDir)
+	if err != nil {
+		slog.Error("storage.fs: cannot normalize the root dir path", "path", rootDir, "reason", err.Error())
+		os.Exit(1)
+	}
+	err = os.MkdirAll(normalized, os.ModePerm)
 	if err != nil {
 		slog.Error("storage.fs: cannot create the root dir", "path", normalized, "reason", err.Error())
 		os.Exit(1)
