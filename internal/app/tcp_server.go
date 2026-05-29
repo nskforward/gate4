@@ -3,13 +3,14 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"log/slog"
 	"net"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/internal/api/interceptor"
-	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,7 +25,8 @@ type TCPServer struct {
 func NewTCPServer(apiServer *api.Server, tlsConfig *tls.Config, tcpAddr string) *TCPServer {
 	l, err := net.Listen("tcp", tcpAddr)
 	if err != nil {
-		console.LogFatal("cannot listen tcp address", err)
+		slog.Error("cannot listen tcp address", "reason", err)
+		os.Exit(1)
 	}
 	s := grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(tlsConfig)),

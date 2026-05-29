@@ -2,12 +2,12 @@ package app
 
 import (
 	"crypto/tls"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
 
 	"github.com/nskforward/gate4/internal/api"
-	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -18,7 +18,8 @@ func GetStartUnixServer(apiServer *api.Server) func() error {
 
 	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
-		console.LogFatal("cannot listen unix socket address", err)
+		slog.Error("cannot listen unix socket address", "reason", err.Error())
+		os.Exit(1)
 	}
 
 	transport := grpc.NewServer()
@@ -33,7 +34,8 @@ func GetStartUnixServer(apiServer *api.Server) func() error {
 func GetStartTCPServer(apiServer *api.Server, tlsConfig *tls.Config, tcpAddr string) func() error {
 	listener, err := net.Listen("tcp", tcpAddr)
 	if err != nil {
-		console.LogFatal("cannot listen tcp address", err)
+		slog.Error("cannot listen tcp address", "reason", err)
+		os.Exit(1)
 	}
 
 	transport := grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))

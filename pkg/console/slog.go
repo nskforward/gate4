@@ -22,7 +22,7 @@ var (
 	logWarnStr  = FormatText("WARN", Yellow, Bold)
 	logErrorStr = FormatText("ERROR", Red, Bold)
 
-	logTimePrefix = BuildPrefix(Blue)
+	logTimePrefix = BuildPrefix(Cyan)
 	logMsgPrefix  = BuildPrefix(White, Bold)
 	logKeyPrefix  = BuildPrefix(Gray100)
 )

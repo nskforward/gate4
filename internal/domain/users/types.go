@@ -2,10 +2,15 @@ package users
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
-type Store interface {
+var (
+	ErrUserNotFound = errors.New("user not found")
+)
+
+type UserStore interface {
 	Create(ctx context.Context, user *User) error
 	Find(ctx context.Context, userID string) (*User, error)
 	List(ctx context.Context) ([]*User, error)

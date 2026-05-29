@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/internal/api/interceptor"
-	"github.com/nskforward/gate4/pkg/console"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 )
@@ -26,7 +26,8 @@ func NewUnixServer(apiServer *api.Server) *UnixServer {
 	socketPath := filepath.Join(os.TempDir(), "gate4.sock")
 	l, err := net.Listen("unix", socketPath)
 	if err != nil {
-		console.LogFatal("cannot listen unix socket address", err)
+		slog.Error("cannot listen unix socket address", "reason", err)
+		os.Exit(1)
 	}
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(

@@ -3,19 +3,19 @@ package api
 import (
 	"time"
 
-	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/internal/domain/users"
 	"github.com/nskforward/gate4/pkg/pb"
 )
 
-func ConvertInUsers(in []*pb.User) []*users.User {
-	result := make([]*users.User, 0, len(in))
+func ConvertInUsers(in []*pb.User) []users.User {
+	result := make([]users.User, 0, len(in))
 	for _, user := range in {
 		result = append(result, ConvertInUser(user))
 	}
 	return result
 }
 
-func ConvertOutUsers(in []*users.User) []*pb.User {
+func ConvertOutUsers(in []users.User) []*pb.User {
 	result := make([]*pb.User, 0, len(in))
 	for _, user := range in {
 		result = append(result, ConvertOutUser(user))
@@ -23,7 +23,7 @@ func ConvertOutUsers(in []*users.User) []*pb.User {
 	return result
 }
 
-func ConvertOutUser(user *users.User) *pb.User {
+func ConvertOutUser(user users.User) *pb.User {
 	return &pb.User{
 		BrokerId:  string(user.BrokerID),
 		AccountId: user.AccountID,
@@ -35,12 +35,12 @@ func ConvertOutUser(user *users.User) *pb.User {
 	}
 }
 
-func ConvertInUser(user *pb.User) *users.User {
+func ConvertInUser(user *pb.User) users.User {
 	secret := ""
 	if user.Secret != nil {
 		secret = *user.Secret
 	}
-	return &users.User{
+	return users.User{
 		ID:        *user.Id,
 		BrokerID:  users.BrokerID(user.BrokerId),
 		AccountID: user.AccountId,

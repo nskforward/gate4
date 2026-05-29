@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/internal/domain/users"
 	"github.com/nskforward/gate4/pkg/pb"
 	"github.com/nskforward/gate4/pkg/types"
 	"google.golang.org/grpc"
@@ -86,7 +86,7 @@ func (c *Client) CreateCert(ctx context.Context, commonName, privateKey string) 
 	return resp.Cert, nil
 }
 
-func (c *Client) ListUsers(ctx context.Context) ([]*users.User, error) {
+func (c *Client) ListUsers(ctx context.Context) ([]users.User, error) {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	resp, err := c.client.ListUsers(reqCtx, &pb.EmptyMessage{})
@@ -99,7 +99,7 @@ func (c *Client) ListUsers(ctx context.Context) ([]*users.User, error) {
 func (c *Client) CreateUser(ctx context.Context, user *users.User) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := c.client.CreateUser(reqCtx, ConvertOutUser(user))
+	resp, err := c.client.CreateUser(reqCtx, ConvertOutUser(*user))
 	if err != nil {
 		return err
 	}
@@ -117,6 +117,7 @@ func (c *Client) DeleteUser(ctx context.Context, userID string) error {
 	return err
 }
 
+/*
 func (c *Client) BlockUser(ctx context.Context, userID string, blocked bool) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -126,14 +127,11 @@ func (c *Client) BlockUser(ctx context.Context, userID string, blocked bool) err
 	})
 	return err
 }
+*/
 
-func (c *Client) UpdateUser(ctx context.Context, userID, secret string, expires time.Time) error {
+func (c *Client) UpdateUser(ctx context.Context, user users.User) error {
 	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	_, err := c.client.UpdateUser(reqCtx, &pb.UpdateUserRequest{
-		UserId:  userID,
-		Secret:  secret,
-		Expires: expires.Unix(),
-	})
+	_, err := c.client.UpdateUser(reqCtx, ConvertOutUser(user))
 	return err
 }

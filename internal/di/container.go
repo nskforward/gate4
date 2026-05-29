@@ -5,13 +5,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"log/slog"
+	"os"
 
 	"github.com/nskforward/gate4/internal/api"
 	"github.com/nskforward/gate4/internal/brokers"
 	"github.com/nskforward/gate4/internal/config"
+	"github.com/nskforward/gate4/internal/domain/users"
 	"github.com/nskforward/gate4/internal/keychain"
-	"github.com/nskforward/gate4/internal/users"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/internal/storage"
 	"github.com/nskforward/gate4/pkg/ssl"
 	"google.golang.org/grpc"
 )
@@ -19,7 +20,8 @@ import (
 type Container struct {
 	config        *config.Config
 	logger        *slog.Logger
-	userStore     users.Store
+	objectStorage storage.ObjectStorage
+	userStorage   *users.UserStorage
 	keychainStore *keychain.Store
 	clientPool    *brokers.ClientPool
 	tlsConfig     *tls.Config
@@ -61,7 +63,8 @@ func (c *Container) CAKey() crypto.PrivateKey {
 	if c.caKey == nil {
 		key, err := ssl.LoadPrivateKey(c.Config().CA.Key)
 		if err != nil {
-			console.LogFatal("cannot load CA private key", err)
+			slog.Error("cannot load CA private key", "reason", err)
+			os.Exit(1)
 		}
 		c.caKey = key
 	}
@@ -72,7 +75,8 @@ func (c *Container) CACert() *x509.Certificate {
 	if c.caCert == nil {
 		cert, err := ssl.LoadCertificate(c.Config().CA.Cert)
 		if err != nil {
-			console.LogFatal("cannot load CA certificate", err)
+			slog.Error("cannot load CA certificate", "reason", err)
+			os.Exit(1)
 		}
 		c.caCert = cert
 	}
@@ -83,7 +87,8 @@ func (c *Container) ServerKey() crypto.PrivateKey {
 	if c.serverKey == nil {
 		key, err := ssl.LoadPrivateKey(c.Config().Server.SSL.Key)
 		if err != nil {
-			console.LogFatal("cannot load server private key", err)
+			slog.Error("cannot load server private key", "reason", err)
+			os.Exit(1)
 		}
 		c.serverKey = key
 	}
@@ -94,22 +99,26 @@ func (c *Container) ServerCert() *x509.Certificate {
 	if c.serverCert == nil {
 		cert, err := ssl.LoadCertificate(c.Config().Server.SSL.Cert)
 		if err != nil {
-			console.LogFatal("cannot load server certificate", err)
+			slog.Error("cannot load server certificate", "reason", err)
+			os.Exit(1)
 		}
 		c.serverCert = cert
 	}
 	return c.serverCert
 }
 
-func (c *Container) UserSore() users.Store {
-	if c.userStore == nil {
-		storage, err := users.NewFileStorage()
-		if err != nil {
-			console.LogFatal("cannot init UserStore", err)
-		}
-		c.userStore = storage
+func (c *Container) ObjectStorage() storage.ObjectStorage {
+	if c.objectStorage == nil {
+		c.objectStorage = storage.NewFileObjectStorage(c.Config().FileStorageDir)
 	}
-	return c.userStore
+	return c.objectStorage
+}
+
+func (c *Container) UserStorage() *users.UserStorage {
+	if c.userStorage == nil {
+		c.userStorage = users.NewUserStorage(c.ObjectStorage())
+	}
+	return c.userStorage
 }
 
 func (c *Container) KeychainStore() *keychain.Store {
@@ -128,7 +137,7 @@ func (c *Container) ClientPool() *brokers.ClientPool {
 
 func (c *Container) APIServer() *api.Server {
 	if c.apiServer == nil {
-		c.apiServer = api.NewServer(c.UserSore(), c.KeychainStore(), c.ClientPool())
+		c.apiServer = api.NewServer(c.UserStorage(), c.KeychainStore(), c.ClientPool())
 	}
 	return c.apiServer
 }

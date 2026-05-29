@@ -10,8 +10,7 @@ service Gate4 {
   rpc CreateUser(User) returns (User);
   rpc FindUser(UserID) returns (User);
   rpc DeleteUser(UserID) returns (EmptyMessage);
-  rpc BlockUser(BlockUserRequest) returns (EmptyMessage);
-  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc UpdateUser(User) returns (EmptyMessage);
   rpc CreateCert(CreateCertRequest) returns (CreateCertResponse);
 
   // broker commands
@@ -41,17 +40,6 @@ message CreateCertResponse {
 
 message ListUsersResponse {
   repeated User users = 1;
-}
-
-message BlockUserRequest {
-  string user_id = 1;
-  bool blocked = 2;
-}
-
-message UpdateUserRequest {
-  string user_id = 1;
-  string secret = 2;
-  int64 expires = 3;
 }
 
 message UserID {

@@ -289,118 +289,6 @@ func (x *ListUsersResponse) GetUsers() []*User {
 	return nil
 }
 
-type BlockUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Blocked       bool                   `protobuf:"varint,2,opt,name=blocked,proto3" json:"blocked,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BlockUserRequest) Reset() {
-	*x = BlockUserRequest{}
-	mi := &file_gate4_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BlockUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BlockUserRequest) ProtoMessage() {}
-
-func (x *BlockUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gate4_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BlockUserRequest.ProtoReflect.Descriptor instead.
-func (*BlockUserRequest) Descriptor() ([]byte, []int) {
-	return file_gate4_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *BlockUserRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *BlockUserRequest) GetBlocked() bool {
-	if x != nil {
-		return x.Blocked
-	}
-	return false
-}
-
-type UpdateUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Secret        string                 `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
-	Expires       int64                  `protobuf:"varint,3,opt,name=expires,proto3" json:"expires,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpdateUserRequest) Reset() {
-	*x = UpdateUserRequest{}
-	mi := &file_gate4_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpdateUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdateUserRequest) ProtoMessage() {}
-
-func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gate4_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
-func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_gate4_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *UpdateUserRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *UpdateUserRequest) GetSecret() string {
-	if x != nil {
-		return x.Secret
-	}
-	return ""
-}
-
-func (x *UpdateUserRequest) GetExpires() int64 {
-	if x != nil {
-		return x.Expires
-	}
-	return 0
-}
-
 type UserID struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -410,7 +298,7 @@ type UserID struct {
 
 func (x *UserID) Reset() {
 	*x = UserID{}
-	mi := &file_gate4_proto_msgTypes[7]
+	mi := &file_gate4_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -422,7 +310,7 @@ func (x *UserID) String() string {
 func (*UserID) ProtoMessage() {}
 
 func (x *UserID) ProtoReflect() protoreflect.Message {
-	mi := &file_gate4_proto_msgTypes[7]
+	mi := &file_gate4_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -435,7 +323,7 @@ func (x *UserID) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserID.ProtoReflect.Descriptor instead.
 func (*UserID) Descriptor() ([]byte, []int) {
-	return file_gate4_proto_rawDescGZIP(), []int{7}
+	return file_gate4_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UserID) GetUserId() string {
@@ -455,7 +343,7 @@ type SymbolRequest struct {
 
 func (x *SymbolRequest) Reset() {
 	*x = SymbolRequest{}
-	mi := &file_gate4_proto_msgTypes[8]
+	mi := &file_gate4_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -467,7 +355,7 @@ func (x *SymbolRequest) String() string {
 func (*SymbolRequest) ProtoMessage() {}
 
 func (x *SymbolRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gate4_proto_msgTypes[8]
+	mi := &file_gate4_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -480,7 +368,7 @@ func (x *SymbolRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SymbolRequest.ProtoReflect.Descriptor instead.
 func (*SymbolRequest) Descriptor() ([]byte, []int) {
-	return file_gate4_proto_rawDescGZIP(), []int{8}
+	return file_gate4_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SymbolRequest) GetUserId() string {
@@ -509,7 +397,7 @@ type Quote struct {
 
 func (x *Quote) Reset() {
 	*x = Quote{}
-	mi := &file_gate4_proto_msgTypes[9]
+	mi := &file_gate4_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -521,7 +409,7 @@ func (x *Quote) String() string {
 func (*Quote) ProtoMessage() {}
 
 func (x *Quote) ProtoReflect() protoreflect.Message {
-	mi := &file_gate4_proto_msgTypes[9]
+	mi := &file_gate4_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -534,7 +422,7 @@ func (x *Quote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Quote.ProtoReflect.Descriptor instead.
 func (*Quote) Descriptor() ([]byte, []int) {
-	return file_gate4_proto_rawDescGZIP(), []int{9}
+	return file_gate4_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Quote) GetSymbol() string {
@@ -590,14 +478,7 @@ const file_gate4_proto_rawDesc = "" +
 	"\x12CreateCertResponse\x12\x12\n" +
 	"\x04cert\x18\x01 \x01(\tR\x04cert\"6\n" +
 	"\x11ListUsersResponse\x12!\n" +
-	"\x05users\x18\x01 \x03(\v2\v.proto.UserR\x05users\"E\n" +
-	"\x10BlockUserRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
-	"\ablocked\x18\x02 \x01(\bR\ablocked\"^\n" +
-	"\x11UpdateUserRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
-	"\x06secret\x18\x02 \x01(\tR\x06secret\x12\x18\n" +
-	"\aexpires\x18\x03 \x01(\x03R\aexpires\"!\n" +
+	"\x05users\x18\x01 \x03(\v2\v.proto.UserR\x05users\"!\n" +
 	"\x06UserID\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"@\n" +
 	"\rSymbolRequest\x12\x17\n" +
@@ -607,17 +488,16 @@ const file_gate4_proto_rawDesc = "" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x10\n" +
 	"\x03ask\x18\x03 \x01(\tR\x03ask\x12\x10\n" +
-	"\x03bid\x18\x04 \x01(\tR\x03bid2\xb1\x03\n" +
+	"\x03bid\x18\x04 \x01(\tR\x03bid2\xf1\x02\n" +
 	"\x05Gate4\x12:\n" +
 	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x18.proto.ListUsersResponse\x12&\n" +
 	"\n" +
 	"CreateUser\x12\v.proto.User\x1a\v.proto.User\x12&\n" +
 	"\bFindUser\x12\r.proto.UserID\x1a\v.proto.User\x120\n" +
 	"\n" +
-	"DeleteUser\x12\r.proto.UserID\x1a\x13.proto.EmptyMessage\x129\n" +
-	"\tBlockUser\x12\x17.proto.BlockUserRequest\x1a\x13.proto.EmptyMessage\x123\n" +
+	"DeleteUser\x12\r.proto.UserID\x1a\x13.proto.EmptyMessage\x12.\n" +
 	"\n" +
-	"UpdateUser\x12\x18.proto.UpdateUserRequest\x1a\v.proto.User\x12A\n" +
+	"UpdateUser\x12\v.proto.User\x1a\x13.proto.EmptyMessage\x12A\n" +
 	"\n" +
 	"CreateCert\x12\x18.proto.CreateCertRequest\x1a\x19.proto.CreateCertResponse\x127\n" +
 	"\x0fSubscribeQuotes\x12\x14.proto.SymbolRequest\x1a\f.proto.Quote0\x01B\x0eZ\fgate4/pkg/pbb\x06proto3"
@@ -634,39 +514,35 @@ func file_gate4_proto_rawDescGZIP() []byte {
 	return file_gate4_proto_rawDescData
 }
 
-var file_gate4_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_gate4_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_gate4_proto_goTypes = []any{
 	(*EmptyMessage)(nil),       // 0: proto.EmptyMessage
 	(*User)(nil),               // 1: proto.User
 	(*CreateCertRequest)(nil),  // 2: proto.CreateCertRequest
 	(*CreateCertResponse)(nil), // 3: proto.CreateCertResponse
 	(*ListUsersResponse)(nil),  // 4: proto.ListUsersResponse
-	(*BlockUserRequest)(nil),   // 5: proto.BlockUserRequest
-	(*UpdateUserRequest)(nil),  // 6: proto.UpdateUserRequest
-	(*UserID)(nil),             // 7: proto.UserID
-	(*SymbolRequest)(nil),      // 8: proto.SymbolRequest
-	(*Quote)(nil),              // 9: proto.Quote
+	(*UserID)(nil),             // 5: proto.UserID
+	(*SymbolRequest)(nil),      // 6: proto.SymbolRequest
+	(*Quote)(nil),              // 7: proto.Quote
 }
 var file_gate4_proto_depIdxs = []int32{
 	1, // 0: proto.ListUsersResponse.users:type_name -> proto.User
 	0, // 1: proto.Gate4.ListUsers:input_type -> proto.EmptyMessage
 	1, // 2: proto.Gate4.CreateUser:input_type -> proto.User
-	7, // 3: proto.Gate4.FindUser:input_type -> proto.UserID
-	7, // 4: proto.Gate4.DeleteUser:input_type -> proto.UserID
-	5, // 5: proto.Gate4.BlockUser:input_type -> proto.BlockUserRequest
-	6, // 6: proto.Gate4.UpdateUser:input_type -> proto.UpdateUserRequest
-	2, // 7: proto.Gate4.CreateCert:input_type -> proto.CreateCertRequest
-	8, // 8: proto.Gate4.SubscribeQuotes:input_type -> proto.SymbolRequest
-	4, // 9: proto.Gate4.ListUsers:output_type -> proto.ListUsersResponse
-	1, // 10: proto.Gate4.CreateUser:output_type -> proto.User
-	1, // 11: proto.Gate4.FindUser:output_type -> proto.User
-	0, // 12: proto.Gate4.DeleteUser:output_type -> proto.EmptyMessage
-	0, // 13: proto.Gate4.BlockUser:output_type -> proto.EmptyMessage
-	1, // 14: proto.Gate4.UpdateUser:output_type -> proto.User
-	3, // 15: proto.Gate4.CreateCert:output_type -> proto.CreateCertResponse
-	9, // 16: proto.Gate4.SubscribeQuotes:output_type -> proto.Quote
-	9, // [9:17] is the sub-list for method output_type
-	1, // [1:9] is the sub-list for method input_type
+	5, // 3: proto.Gate4.FindUser:input_type -> proto.UserID
+	5, // 4: proto.Gate4.DeleteUser:input_type -> proto.UserID
+	1, // 5: proto.Gate4.UpdateUser:input_type -> proto.User
+	2, // 6: proto.Gate4.CreateCert:input_type -> proto.CreateCertRequest
+	6, // 7: proto.Gate4.SubscribeQuotes:input_type -> proto.SymbolRequest
+	4, // 8: proto.Gate4.ListUsers:output_type -> proto.ListUsersResponse
+	1, // 9: proto.Gate4.CreateUser:output_type -> proto.User
+	1, // 10: proto.Gate4.FindUser:output_type -> proto.User
+	0, // 11: proto.Gate4.DeleteUser:output_type -> proto.EmptyMessage
+	0, // 12: proto.Gate4.UpdateUser:output_type -> proto.EmptyMessage
+	3, // 13: proto.Gate4.CreateCert:output_type -> proto.CreateCertResponse
+	7, // 14: proto.Gate4.SubscribeQuotes:output_type -> proto.Quote
+	8, // [8:15] is the sub-list for method output_type
+	1, // [1:8] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -684,7 +560,7 @@ func file_gate4_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gate4_proto_rawDesc), len(file_gate4_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

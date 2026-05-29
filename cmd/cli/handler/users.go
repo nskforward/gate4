@@ -2,13 +2,14 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/nskforward/gate4/internal/api"
-	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/internal/domain/users"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
@@ -181,10 +182,13 @@ func BlockUser(client *api.Client) Handler {
 			return err
 		}
 
-		err = client.BlockUser(ctx, userID, blocked)
-		if err != nil {
-			return err
-		}
+		return errors.New("not implemented")
+		/*
+			err = client.BlockUser(ctx, userID, blocked)
+			if err != nil {
+				return err
+			}
+		*/
 
 		op := "blocked"
 		if !blocked {
@@ -225,10 +229,16 @@ func UpdateUser(client *api.Client) Handler {
 			return err
 		}
 
-		err = client.UpdateUser(ctx, userID, secret, validUntil)
-		if err != nil {
-			return err
-		}
+		_ = secret
+		_ = validUntil
+
+		return errors.New("not implemented")
+		/*
+			err = client.UpdateUser(ctx, userID, secret, validUntil)
+			if err != nil {
+				return err
+			}
+		*/
 
 		fmt.Println("success: user update with id", userID)
 

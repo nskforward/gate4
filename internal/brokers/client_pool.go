@@ -3,7 +3,7 @@ package brokers
 import (
 	"errors"
 
-	"github.com/nskforward/gate4/internal/users"
+	"github.com/nskforward/gate4/internal/domain/users"
 	"github.com/nskforward/gate4/pkg/finam"
 )
 

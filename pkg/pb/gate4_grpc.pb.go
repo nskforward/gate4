@@ -23,7 +23,6 @@ const (
 	Gate4_CreateUser_FullMethodName      = "/proto.Gate4/CreateUser"
 	Gate4_FindUser_FullMethodName        = "/proto.Gate4/FindUser"
 	Gate4_DeleteUser_FullMethodName      = "/proto.Gate4/DeleteUser"
-	Gate4_BlockUser_FullMethodName       = "/proto.Gate4/BlockUser"
 	Gate4_UpdateUser_FullMethodName      = "/proto.Gate4/UpdateUser"
 	Gate4_CreateCert_FullMethodName      = "/proto.Gate4/CreateCert"
 	Gate4_SubscribeQuotes_FullMethodName = "/proto.Gate4/SubscribeQuotes"
@@ -38,8 +37,7 @@ type Gate4Client interface {
 	CreateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 	FindUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
 	DeleteUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*EmptyMessage, error)
-	BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error)
-	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
+	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*EmptyMessage, error)
 	CreateCert(ctx context.Context, in *CreateCertRequest, opts ...grpc.CallOption) (*CreateCertResponse, error)
 	// broker commands
 	SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error)
@@ -93,19 +91,9 @@ func (c *gate4Client) DeleteUser(ctx context.Context, in *UserID, opts ...grpc.C
 	return out, nil
 }
 
-func (c *gate4Client) BlockUser(ctx context.Context, in *BlockUserRequest, opts ...grpc.CallOption) (*EmptyMessage, error) {
+func (c *gate4Client) UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*EmptyMessage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyMessage)
-	err := c.cc.Invoke(ctx, Gate4_BlockUser_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gate4Client) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(User)
 	err := c.cc.Invoke(ctx, Gate4_UpdateUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -151,8 +139,7 @@ type Gate4Server interface {
 	CreateUser(context.Context, *User) (*User, error)
 	FindUser(context.Context, *UserID) (*User, error)
 	DeleteUser(context.Context, *UserID) (*EmptyMessage, error)
-	BlockUser(context.Context, *BlockUserRequest) (*EmptyMessage, error)
-	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
+	UpdateUser(context.Context, *User) (*EmptyMessage, error)
 	CreateCert(context.Context, *CreateCertRequest) (*CreateCertResponse, error)
 	// broker commands
 	SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error
@@ -178,10 +165,7 @@ func (UnimplementedGate4Server) FindUser(context.Context, *UserID) (*User, error
 func (UnimplementedGate4Server) DeleteUser(context.Context, *UserID) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedGate4Server) BlockUser(context.Context, *BlockUserRequest) (*EmptyMessage, error) {
-	return nil, status.Error(codes.Unimplemented, "method BlockUser not implemented")
-}
-func (UnimplementedGate4Server) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
+func (UnimplementedGate4Server) UpdateUser(context.Context, *User) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedGate4Server) CreateCert(context.Context, *CreateCertRequest) (*CreateCertResponse, error) {
@@ -283,26 +267,8 @@ func _Gate4_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Gate4_BlockUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BlockUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(Gate4Server).BlockUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Gate4_BlockUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Gate4Server).BlockUser(ctx, req.(*BlockUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Gate4_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserRequest)
+	in := new(User)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -314,7 +280,7 @@ func _Gate4_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: Gate4_UpdateUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(Gate4Server).UpdateUser(ctx, req.(*UpdateUserRequest))
+		return srv.(Gate4Server).UpdateUser(ctx, req.(*User))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -370,10 +336,6 @@ var Gate4_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteUser",
 			Handler:    _Gate4_DeleteUser_Handler,
-		},
-		{
-			MethodName: "BlockUser",
-			Handler:    _Gate4_BlockUser_Handler,
 		},
 		{
 			MethodName: "UpdateUser",
