@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nskforward/gate4/pkg/tools"
+	"github.com/nskforward/gate4/pkg/common"
 )
 
 func GeneratePrivateKeyRSA() (*rsa.PrivateKey, error) {
@@ -20,7 +20,7 @@ func GeneratePrivateKeyRSA() (*rsa.PrivateKey, error) {
 }
 
 func LoadPrivateKey(path string) (crypto.PrivateKey, error) {
-	data, err := os.ReadFile(tools.Path(path))
+	data, err := os.ReadFile(common.Path(path))
 	if err != nil {
 		return nil, err
 	}

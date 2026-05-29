@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "gate4/pkg/pb";
+
+import "common.proto";
+
+service UserService {
+    rpc ListUsers(EmptyMessage) returns (UserList);
+    rpc CreateUser(User) returns (User);
+    rpc GetUser(UserID) returns (User);
+    rpc FindUser(UserID) returns (User);
+    rpc DeleteUser(UserID) returns (EmptyMessage);
+    rpc UpdateUser(User) returns (EmptyMessage);
+    rpc CreateCert(CreateCertRequest) returns (CreateCertResponse);
+}
+
+message User {
+    string id       = 1;
+    string email    = 2;
+    int64 created   = 3;
+    bool blocked    = 4;
+}
+
+message UserList {
+  repeated User users = 1;
+}
+
+message UserID {
+  string user_id = 1;
+}
+
+message CreateCertRequest {
+    string user_id = 1;
+    string public_key = 2;
+}
+
+message CreateCertResponse {
+  string cert = 1;
+}

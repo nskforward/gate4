@@ -3,14 +3,18 @@ package main
 import (
 	"log/slog"
 
-	"github.com/nskforward/gate4/internal/app"
+	"github.com/nskforward/gate4/internal/apps"
+	"github.com/nskforward/gate4/pkg/di"
 )
 
 func main() {
-	a := app.NewApp()
+	c := di.NewContainer()
+	di.Provide[*apps.App](c, apps.NewApp)
 
-	err := a.Run()
+	app := di.Resolve[*apps.App](c)
+
+	err := app.Start()
 	if err != nil {
-		slog.Error("server app exited", "reason", err.Error())
+		slog.Error("cannot start app", "reason", err.Error())
 	}
 }
