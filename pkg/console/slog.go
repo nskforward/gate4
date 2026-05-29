@@ -22,9 +22,9 @@ var (
 	logWarnStr  = FormatText("WARN", Yellow, Bold)
 	logErrorStr = FormatText("ERROR", Red, Bold)
 
-	logTimePrefix = buildPrefix(Blue)
-	logMsgPrefix  = buildPrefix(White, Bold)
-	logKeyPrefix  = buildPrefix(Gray100)
+	logTimePrefix = BuildPrefix(Blue)
+	logMsgPrefix  = BuildPrefix(White, Bold)
+	logKeyPrefix  = BuildPrefix(Gray100)
 )
 
 var (
@@ -81,13 +81,13 @@ func (h *LoggerHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	buf.WriteString(logTimePrefix)
 	buf.WriteString(r.Time.Format(timeFormat))
-	buf.WriteString(resetCode)
+	buf.WriteString(Reset)
 	buf.WriteByte(' ')
 	buf.WriteString(formatLevel(r.Level))
 	buf.WriteByte(' ')
 	buf.WriteString(logMsgPrefix)
 	buf.WriteString(r.Message)
-	buf.WriteString(resetCode)
+	buf.WriteString(Reset)
 	buf.WriteByte('\n')
 
 	attrs := make([]slog.Attr, 0, len(h.attrs)+r.NumAttrs())
@@ -129,7 +129,7 @@ func writeAttrs(buf *bytes.Buffer, attrs []slog.Attr, padding int) {
 		buf.WriteString(logKeyPrefix)
 		buf.WriteString(a.Key)
 		buf.WriteByte(':')
-		buf.WriteString(resetCode)
+		buf.WriteString(Reset)
 		for range maxKey - len(a.Key) + 1 {
 			buf.WriteByte(' ')
 		}

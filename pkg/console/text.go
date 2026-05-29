@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-const resetCode = "\033[0m"
+const Reset = "\033[0m"
 
 func FormatText(text string, color Color, styles ...Style) string {
-	return buildPrefix(color, styles...) + text + resetCode
+	return BuildPrefix(color, styles...) + text + Reset
 }
 
-func buildPrefix(color Color, styles ...Style) string {
+func BuildPrefix(color Color, styles ...Style) string {
 	codes := make([]string, 0, len(styles)+1)
 	for _, s := range styles {
 		codes = append(codes, fmt.Sprint(int(s)))
