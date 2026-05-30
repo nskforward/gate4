@@ -273,8 +273,8 @@ const file_accounts_proto_rawDesc = "" +
 	"\x06secret\x18\x03 \x01(\tR\x06secret\"*\n" +
 	"\tAccountID\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x01 \x01(\tR\taccountId2\x91\x02\n" +
-	"\x0eAccountService\x121\n" +
+	"account_id\x18\x01 \x01(\tR\taccountId2\x8b\x02\n" +
+	"\bAccounts\x121\n" +
 	"\fListAccounts\x12\r.proto.UserID\x1a\x12.proto.AccountList\x12.\n" +
 	"\rCreateAccount\x12\r.proto.UserID\x1a\x0e.proto.Account\x12.\n" +
 	"\n" +
@@ -306,16 +306,16 @@ var file_accounts_proto_goTypes = []any{
 var file_accounts_proto_depIdxs = []int32{
 	2, // 0: proto.Account.broker:type_name -> proto.Broker
 	0, // 1: proto.AccountList.accounts:type_name -> proto.Account
-	4, // 2: proto.AccountService.ListAccounts:input_type -> proto.UserID
-	4, // 3: proto.AccountService.CreateAccount:input_type -> proto.UserID
-	3, // 4: proto.AccountService.GetAccount:input_type -> proto.AccountID
-	3, // 5: proto.AccountService.DeleteAccount:input_type -> proto.AccountID
-	0, // 6: proto.AccountService.UpdateAccount:input_type -> proto.Account
-	1, // 7: proto.AccountService.ListAccounts:output_type -> proto.AccountList
-	0, // 8: proto.AccountService.CreateAccount:output_type -> proto.Account
-	0, // 9: proto.AccountService.GetAccount:output_type -> proto.Account
-	5, // 10: proto.AccountService.DeleteAccount:output_type -> proto.EmptyMessage
-	5, // 11: proto.AccountService.UpdateAccount:output_type -> proto.EmptyMessage
+	4, // 2: proto.Accounts.ListAccounts:input_type -> proto.UserID
+	4, // 3: proto.Accounts.CreateAccount:input_type -> proto.UserID
+	3, // 4: proto.Accounts.GetAccount:input_type -> proto.AccountID
+	3, // 5: proto.Accounts.DeleteAccount:input_type -> proto.AccountID
+	0, // 6: proto.Accounts.UpdateAccount:input_type -> proto.Account
+	1, // 7: proto.Accounts.ListAccounts:output_type -> proto.AccountList
+	0, // 8: proto.Accounts.CreateAccount:output_type -> proto.Account
+	0, // 9: proto.Accounts.GetAccount:output_type -> proto.Account
+	5, // 10: proto.Accounts.DeleteAccount:output_type -> proto.EmptyMessage
+	5, // 11: proto.Accounts.UpdateAccount:output_type -> proto.EmptyMessage
 	7, // [7:12] is the sub-list for method output_type
 	2, // [2:7] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

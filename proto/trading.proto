@@ -4,7 +4,7 @@ package proto;
 
 option go_package = "gate4/pkg/pb";
 
-service TradingService {
+service Trading {
   rpc SubscribeQuotes(SymbolRequest) returns (stream Quote);
 }
 

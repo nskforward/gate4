@@ -6,7 +6,7 @@ option go_package = "gate4/pkg/pb";
 
 import "common.proto";
 
-service UserService {
+service Users {
     rpc ListUsers(EmptyMessage) returns (UserList);
     rpc CreateUser(User) returns (User);
     rpc GetUser(UserID) returns (User);

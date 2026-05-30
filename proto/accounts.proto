@@ -7,7 +7,7 @@ option go_package = "gate4/pkg/pb";
 import "common.proto";
 import "users.proto";
 
-service AccountService {
+service Accounts {
     rpc ListAccounts(UserID) returns (AccountList);
     rpc CreateAccount(UserID) returns (Account);
     rpc GetAccount(AccountID) returns (Account);

@@ -292,8 +292,8 @@ const file_users_proto_rawDesc = "" +
 	"\n" +
 	"public_key\x18\x02 \x01(\tR\tpublicKey\"(\n" +
 	"\x12CreateCertResponse\x12\x12\n" +
-	"\x04cert\x18\x01 \x01(\tR\x04cert2\xdc\x02\n" +
-	"\vUserService\x121\n" +
+	"\x04cert\x18\x01 \x01(\tR\x04cert2\xd6\x02\n" +
+	"\x05Users\x121\n" +
 	"\tListUsers\x12\x13.proto.EmptyMessage\x1a\x0f.proto.UserList\x12&\n" +
 	"\n" +
 	"CreateUser\x12\v.proto.User\x1a\v.proto.User\x12%\n" +
@@ -329,20 +329,20 @@ var file_users_proto_goTypes = []any{
 }
 var file_users_proto_depIdxs = []int32{
 	0, // 0: proto.UserList.users:type_name -> proto.User
-	5, // 1: proto.UserService.ListUsers:input_type -> proto.EmptyMessage
-	0, // 2: proto.UserService.CreateUser:input_type -> proto.User
-	2, // 3: proto.UserService.GetUser:input_type -> proto.UserID
-	2, // 4: proto.UserService.FindUser:input_type -> proto.UserID
-	2, // 5: proto.UserService.DeleteUser:input_type -> proto.UserID
-	0, // 6: proto.UserService.UpdateUser:input_type -> proto.User
-	3, // 7: proto.UserService.CreateCert:input_type -> proto.CreateCertRequest
-	1, // 8: proto.UserService.ListUsers:output_type -> proto.UserList
-	0, // 9: proto.UserService.CreateUser:output_type -> proto.User
-	0, // 10: proto.UserService.GetUser:output_type -> proto.User
-	0, // 11: proto.UserService.FindUser:output_type -> proto.User
-	5, // 12: proto.UserService.DeleteUser:output_type -> proto.EmptyMessage
-	5, // 13: proto.UserService.UpdateUser:output_type -> proto.EmptyMessage
-	4, // 14: proto.UserService.CreateCert:output_type -> proto.CreateCertResponse
+	5, // 1: proto.Users.ListUsers:input_type -> proto.EmptyMessage
+	0, // 2: proto.Users.CreateUser:input_type -> proto.User
+	2, // 3: proto.Users.GetUser:input_type -> proto.UserID
+	2, // 4: proto.Users.FindUser:input_type -> proto.UserID
+	2, // 5: proto.Users.DeleteUser:input_type -> proto.UserID
+	0, // 6: proto.Users.UpdateUser:input_type -> proto.User
+	3, // 7: proto.Users.CreateCert:input_type -> proto.CreateCertRequest
+	1, // 8: proto.Users.ListUsers:output_type -> proto.UserList
+	0, // 9: proto.Users.CreateUser:output_type -> proto.User
+	0, // 10: proto.Users.GetUser:output_type -> proto.User
+	0, // 11: proto.Users.FindUser:output_type -> proto.User
+	5, // 12: proto.Users.DeleteUser:output_type -> proto.EmptyMessage
+	5, // 13: proto.Users.UpdateUser:output_type -> proto.EmptyMessage
+	4, // 14: proto.Users.CreateCert:output_type -> proto.CreateCertResponse
 	8, // [8:15] is the sub-list for method output_type
 	1, // [1:8] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

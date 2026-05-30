@@ -154,8 +154,8 @@ const file_trading_proto_rawDesc = "" +
 	"\x06symbol\x18\x01 \x01(\tR\x06symbol\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x10\n" +
 	"\x03ask\x18\x03 \x01(\tR\x03ask\x12\x10\n" +
-	"\x03bid\x18\x04 \x01(\tR\x03bid2I\n" +
-	"\x0eTradingService\x127\n" +
+	"\x03bid\x18\x04 \x01(\tR\x03bid2B\n" +
+	"\aTrading\x127\n" +
 	"\x0fSubscribeQuotes\x12\x14.proto.SymbolRequest\x1a\f.proto.Quote0\x01B\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
@@ -176,8 +176,8 @@ var file_trading_proto_goTypes = []any{
 	(*Quote)(nil),         // 1: proto.Quote
 }
 var file_trading_proto_depIdxs = []int32{
-	0, // 0: proto.TradingService.SubscribeQuotes:input_type -> proto.SymbolRequest
-	1, // 1: proto.TradingService.SubscribeQuotes:output_type -> proto.Quote
+	0, // 0: proto.Trading.SubscribeQuotes:input_type -> proto.SymbolRequest
+	1, // 1: proto.Trading.SubscribeQuotes:output_type -> proto.Quote
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

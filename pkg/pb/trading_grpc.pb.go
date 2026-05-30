@@ -19,27 +19,27 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TradingService_SubscribeQuotes_FullMethodName = "/proto.TradingService/SubscribeQuotes"
+	Trading_SubscribeQuotes_FullMethodName = "/proto.Trading/SubscribeQuotes"
 )
 
-// TradingServiceClient is the client API for TradingService service.
+// TradingClient is the client API for Trading service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TradingServiceClient interface {
+type TradingClient interface {
 	SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error)
 }
 
-type tradingServiceClient struct {
+type tradingClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewTradingServiceClient(cc grpc.ClientConnInterface) TradingServiceClient {
-	return &tradingServiceClient{cc}
+func NewTradingClient(cc grpc.ClientConnInterface) TradingClient {
+	return &tradingClient{cc}
 }
 
-func (c *tradingServiceClient) SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error) {
+func (c *tradingClient) SubscribeQuotes(ctx context.Context, in *SymbolRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Quote], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &TradingService_ServiceDesc.Streams[0], TradingService_SubscribeQuotes_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Trading_ServiceDesc.Streams[0], Trading_SubscribeQuotes_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,69 +54,69 @@ func (c *tradingServiceClient) SubscribeQuotes(ctx context.Context, in *SymbolRe
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type TradingService_SubscribeQuotesClient = grpc.ServerStreamingClient[Quote]
+type Trading_SubscribeQuotesClient = grpc.ServerStreamingClient[Quote]
 
-// TradingServiceServer is the server API for TradingService service.
-// All implementations must embed UnimplementedTradingServiceServer
+// TradingServer is the server API for Trading service.
+// All implementations must embed UnimplementedTradingServer
 // for forward compatibility.
-type TradingServiceServer interface {
+type TradingServer interface {
 	SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error
-	mustEmbedUnimplementedTradingServiceServer()
+	mustEmbedUnimplementedTradingServer()
 }
 
-// UnimplementedTradingServiceServer must be embedded to have
+// UnimplementedTradingServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedTradingServiceServer struct{}
+type UnimplementedTradingServer struct{}
 
-func (UnimplementedTradingServiceServer) SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error {
+func (UnimplementedTradingServer) SubscribeQuotes(*SymbolRequest, grpc.ServerStreamingServer[Quote]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeQuotes not implemented")
 }
-func (UnimplementedTradingServiceServer) mustEmbedUnimplementedTradingServiceServer() {}
-func (UnimplementedTradingServiceServer) testEmbeddedByValue()                        {}
+func (UnimplementedTradingServer) mustEmbedUnimplementedTradingServer() {}
+func (UnimplementedTradingServer) testEmbeddedByValue()                 {}
 
-// UnsafeTradingServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TradingServiceServer will
+// UnsafeTradingServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TradingServer will
 // result in compilation errors.
-type UnsafeTradingServiceServer interface {
-	mustEmbedUnimplementedTradingServiceServer()
+type UnsafeTradingServer interface {
+	mustEmbedUnimplementedTradingServer()
 }
 
-func RegisterTradingServiceServer(s grpc.ServiceRegistrar, srv TradingServiceServer) {
-	// If the following call panics, it indicates UnimplementedTradingServiceServer was
+func RegisterTradingServer(s grpc.ServiceRegistrar, srv TradingServer) {
+	// If the following call panics, it indicates UnimplementedTradingServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&TradingService_ServiceDesc, srv)
+	s.RegisterService(&Trading_ServiceDesc, srv)
 }
 
-func _TradingService_SubscribeQuotes_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Trading_SubscribeQuotes_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(SymbolRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(TradingServiceServer).SubscribeQuotes(m, &grpc.GenericServerStream[SymbolRequest, Quote]{ServerStream: stream})
+	return srv.(TradingServer).SubscribeQuotes(m, &grpc.GenericServerStream[SymbolRequest, Quote]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type TradingService_SubscribeQuotesServer = grpc.ServerStreamingServer[Quote]
+type Trading_SubscribeQuotesServer = grpc.ServerStreamingServer[Quote]
 
-// TradingService_ServiceDesc is the grpc.ServiceDesc for TradingService service.
+// Trading_ServiceDesc is the grpc.ServiceDesc for Trading service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var TradingService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.TradingService",
-	HandlerType: (*TradingServiceServer)(nil),
+var Trading_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "proto.Trading",
+	HandlerType: (*TradingServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "SubscribeQuotes",
-			Handler:       _TradingService_SubscribeQuotes_Handler,
+			Handler:       _Trading_SubscribeQuotes_Handler,
 			ServerStreams: true,
 		},
 	},
