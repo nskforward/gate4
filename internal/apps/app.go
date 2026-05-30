@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/nskforward/gate4/internal/domain/handler"
+	handler "github.com/nskforward/gate4/internal/domain/handler/user"
 	"github.com/nskforward/gate4/pkg/pb"
 )
 

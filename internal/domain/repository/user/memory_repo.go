@@ -20,7 +20,7 @@ func NewMemoryRepo() *memoryRepo {
 
 func (repo *memoryRepo) List(ctx context.Context) ([]model.User, error) {
 	return []model.User{
-		model.User{
+		{
 			ID: "test_user1",
 		},
 	}, nil

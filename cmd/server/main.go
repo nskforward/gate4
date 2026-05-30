@@ -5,16 +5,16 @@ import (
 	"log/slog"
 
 	"github.com/nskforward/gate4/internal/apps"
-	"github.com/nskforward/gate4/internal/domain/handler"
-	"github.com/nskforward/gate4/internal/domain/repository/user"
-	"github.com/nskforward/gate4/internal/domain/usecase"
+	handler "github.com/nskforward/gate4/internal/domain/handler/user"
+	repository "github.com/nskforward/gate4/internal/domain/repository/user"
+	usecases "github.com/nskforward/gate4/internal/domain/usecases/user"
 	"github.com/nskforward/gate4/pkg/di"
 )
 
 func main() {
 	c := di.NewContainer()
-	di.Provide[usecase.UserRepo](c, user.NewMemoryRepo)
-	di.Provide[*usecase.UserUsecase](c, usecase.NewUserUsecase)
+	di.Provide[usecases.UserRepository](c, repository.NewMemoryRepo)
+	di.Provide[*usecases.UserUsecases](c, usecases.NewUserUsecases)
 	di.Provide[*handler.UserHandler](c, handler.NewUserHandler)
 	di.Provide[*apps.App](c, apps.NewApp)
 

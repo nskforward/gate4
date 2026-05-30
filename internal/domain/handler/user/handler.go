@@ -1,22 +1,22 @@
-package handler
+package user
 
 import (
 	"context"
 
 	"github.com/nskforward/gate4/internal/domain/model"
-	"github.com/nskforward/gate4/internal/domain/usecase"
+	usecases "github.com/nskforward/gate4/internal/domain/usecases/user"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 )
 
 type UserHandler struct {
 	pb.UnimplementedUsersServer
-	userUsecase *usecase.UserUsecase
+	userUsecases *usecases.UserUsecases
 }
 
-func NewUserHandler(userUsecase *usecase.UserUsecase) *UserHandler {
+func NewUserHandler(userUsecases *usecases.UserUsecases) *UserHandler {
 	return &UserHandler{
-		userUsecase: userUsecase,
+		userUsecases: userUsecases,
 	}
 }
 
@@ -25,7 +25,7 @@ func (h *UserHandler) Register(serv *grpc.Server) {
 }
 
 func (h *UserHandler) ListUsers(ctx context.Context, req *pb.EmptyMessage) (*pb.UserList, error) {
-	users, err := h.userUsecase.List(ctx)
+	users, err := h.userUsecases.List(ctx)
 	// TODO: handle not found
 	if err != nil {
 		return nil, err
