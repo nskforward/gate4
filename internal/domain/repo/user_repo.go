@@ -1,10 +1,10 @@
-package repos
+package repo
 
 import (
 	"context"
 	"errors"
 
-	"github.com/nskforward/gate4/internal/domain"
+	"github.com/nskforward/gate4/internal/domain/model"
 )
 
 var (
@@ -18,6 +18,6 @@ func NewUserRepo() *userRepo {
 	return &userRepo{}
 }
 
-func (repo *userRepo) List(ctx context.Context) ([]domain.User, error) {
+func (repo *userRepo) List(ctx context.Context) ([]model.User, error) {
 	return nil, errors.New("userRepo not implemented")
 }

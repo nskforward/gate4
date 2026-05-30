@@ -1,19 +1,19 @@
 package handlers
 
 import (
-	"github.com/nskforward/gate4/internal/domain/usecases"
+	"github.com/nskforward/gate4/internal/domain/usecase"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
 )
 
 type UserHandler struct {
 	pb.UnimplementedUsersServer
-	userUsecases *usecases.UserUsecases
+	userUsecase *usecase.UserUsecase
 }
 
-func NewUserHandler(userUsecases *usecases.UserUsecases) *UserHandler {
+func NewUserHandler(userUsecase *usecase.UserUsecase) *UserHandler {
 	return &UserHandler{
-		userUsecases: userUsecases,
+		userUsecase: userUsecase,
 	}
 }
 
