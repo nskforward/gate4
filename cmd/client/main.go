@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/nskforward/gate4/cmd/client/handler"
-	"github.com/nskforward/gate4/internal/transport"
+	"github.com/nskforward/gate4/internal/api/grpc/client"
 )
 
 func main() {
@@ -22,14 +22,14 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	client, err := transport.NewGrpcClient()
+	c, err := client.NewClient()
 	if err != nil {
 		return err
 	}
-	defer client.Close()
+	defer c.Close()
 
 	r := handler.NewRouter()
-	routes(r, client)
+	routes(r, c)
 
 	return r.Run(ctx)
 }

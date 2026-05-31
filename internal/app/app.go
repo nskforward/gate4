@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server"
 	"github.com/nskforward/gate4/internal/infra"
-	"github.com/nskforward/gate4/internal/transport"
 	"github.com/nskforward/gate4/pkg/di"
 )
 
@@ -29,7 +29,7 @@ func (app *App) Start(ctx context.Context) error {
 
 	infra.InitLogger()
 
-	grpcServer, err := di.Resolve[*transport.GrpcServer](app.container)
+	grpcServer, err := di.Resolve[*server.Server](app.container)
 	if err != nil {
 		return err
 	}

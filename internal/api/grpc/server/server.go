@@ -1,4 +1,4 @@
-package transport
+package server
 
 import (
 	"context"
@@ -9,23 +9,22 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/nskforward/gate4/internal/api/grpc/server"
 	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
 	"github.com/nskforward/gate4/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-type GrpcServer struct {
+type Server struct {
 	tcpAddr    string
 	socketPath string
 	tcpServer  *grpc.Server
 	unixServer *grpc.Server
 }
 
-func NewGrpcServer(cfg config.Config,
-	userHandler *server.UserHandler,
-) (*GrpcServer, error) {
+func NewServer(cfg config.Config,
+	userHandler *UserHandler,
+) (*Server, error) {
 
 	tlsConfig, err := newTLSConfig(cfg)
 	if err != nil {
@@ -43,7 +42,7 @@ func NewGrpcServer(cfg config.Config,
 	)
 	unixServer := grpc.NewServer(interceptors)
 	userHandler.Register(tcpServer, unixServer)
-	return &GrpcServer{
+	return &Server{
 		tcpAddr:    cfg.TCPAddr,
 		socketPath: filepath.Join(os.TempDir(), "gate4.sock"),
 		tcpServer:  tcpServer,
@@ -51,7 +50,7 @@ func NewGrpcServer(cfg config.Config,
 	}, nil
 }
 
-func (s *GrpcServer) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	tcpListener, err := net.Listen("tcp", s.tcpAddr)
 	if err != nil {
 		return err

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/nskforward/gate4/internal/api/grpc/converter"
+	"github.com/nskforward/gate4/internal/api/grpc/common"
 	"github.com/nskforward/gate4/internal/domain/service"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
@@ -33,6 +33,6 @@ func (h *UserHandler) ListUsers(ctx context.Context, req *pb.EmptyMessage) (*pb.
 		return nil, err
 	}
 	return &pb.UserList{
-		Users: converter.ConvertInUsers(users),
+		Users: common.ConvertInUsers(users),
 	}, nil
 }

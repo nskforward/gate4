@@ -1,20 +1,19 @@
-package transport
+package client
 
 import (
 	"os"
 	"path/filepath"
 
-	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type GrpcClient struct {
-	UserClient *client.UserHandler
+type Client struct {
+	UserClient *UserHandler
 	conn       *grpc.ClientConn
 }
 
-func NewGrpcClient() (*GrpcClient, error) {
+func NewClient() (*Client, error) {
 	addr := "unix:///" + filepath.ToSlash(filepath.Join(os.TempDir(), "gate4.sock"))
 
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -22,12 +21,12 @@ func NewGrpcClient() (*GrpcClient, error) {
 		return nil, err
 	}
 
-	return &GrpcClient{
-		UserClient: client.NewUserHandler(conn),
+	return &Client{
+		UserClient: NewUserHandler(conn),
 		conn:       conn,
 	}, nil
 }
 
-func (c *GrpcClient) Close() {
+func (c *Client) Close() {
 	c.conn.Close()
 }

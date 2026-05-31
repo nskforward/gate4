@@ -6,18 +6,18 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/nskforward/gate4/internal/transport"
+	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
 // user list [-blocked] [-active]
-func ListUsers(client *transport.GrpcClient) Handler {
+func ListUsers(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		_, activeArg := console.FindArg("-active", args)
 		_, blockedArg := console.FindArg("-blocked", args)
 
-		users, err := client.UserClient.ListUsers(ctx)
+		users, err := c.UserClient.ListUsers(ctx)
 		if err != nil {
 			return err
 		}
