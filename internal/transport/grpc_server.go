@@ -9,8 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server"
+	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/domain/handler/grpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -30,11 +31,17 @@ func NewGrpcServer(cfg config.Config,
 	if err != nil {
 		return nil, fmt.Errorf("cannot init tls config: %w", err)
 	}
+
+	interceptors := grpc.ChainUnaryInterceptor(
+		interceptor.Logging,
+		interceptor.Recovery,
+	)
+
 	tcpServer := grpc.NewServer(
 		grpc.Creds(credentials.NewTLS(tlsConfig)),
-		grpc.ChainUnaryInterceptor(),
+		interceptors,
 	)
-	unixServer := grpc.NewServer(grpc.ChainUnaryInterceptor())
+	unixServer := grpc.NewServer(interceptors)
 	userHandler.Register(tcpServer, unixServer)
 	return &GrpcServer{
 		tcpAddr:    cfg.TCPAddr,

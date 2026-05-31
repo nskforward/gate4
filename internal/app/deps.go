@@ -1,8 +1,8 @@
 package app
 
 import (
+	"github.com/nskforward/gate4/internal/api/grpc/server"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/domain/handler/grpc/server"
 	"github.com/nskforward/gate4/internal/domain/repository"
 	"github.com/nskforward/gate4/internal/domain/service"
 	"github.com/nskforward/gate4/internal/transport"

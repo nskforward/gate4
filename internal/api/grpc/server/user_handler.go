@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/nskforward/gate4/internal/domain/handler/grpc/converter"
+	"github.com/nskforward/gate4/internal/api/grpc/converter"
 	"github.com/nskforward/gate4/internal/domain/service"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"

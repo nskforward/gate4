@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/nskforward/gate4/internal/domain/handler/grpc/client"
+	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
