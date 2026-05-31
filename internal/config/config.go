@@ -43,9 +43,9 @@ func Load() Config {
 	cfg.Finam.APIAddr = useDefault(*finamAddr, "api.finam.ru:443")
 	cfg.FileStorageDir = useDefault(*storeDir, "data/storage")
 	cfg.CA.Key = useDefault(*caKey, "data/ssl/ca.key")
-	cfg.CA.Cert = useDefault(*caCert, "data/ssl/ca.cert")
+	cfg.CA.Cert = useDefault(*caCert, "data/ssl/ca.crt")
 	cfg.SSL.Key = useDefault(*serverKey, "data/ssl/server.key")
-	cfg.SSL.Cert = useDefault(*serverCert, "data/ssl/server.cert")
+	cfg.SSL.Cert = useDefault(*serverCert, "data/ssl/server.crt")
 
 	return cfg
 }

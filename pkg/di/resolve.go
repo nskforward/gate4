@@ -1,47 +1,49 @@
 package di
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
-func Resolve[T any](c *Container) (T, bool) {
+func Resolve[T any](c *Container) (T, error) {
 	targetType := reflect.TypeFor[T]()
-	val, ok := resolveAny(c, targetType)
-	if !ok {
+	val, err := resolveAny(c, targetType)
+	if err != nil {
 		var zero T
-		return zero, false
+		return zero, fmt.Errorf("di: resolving %v: %w", targetType, err)
 	}
-	return val.(T), true
+	return val.(T), nil
 }
 
-func resolveAny(c *Container, t reflect.Type) (any, bool) {
+func resolveAny(c *Container, t reflect.Type) (any, error) {
 	c.mu.RLock()
-	// Проверяем кэш
 	if val, ok := c.cache[t]; ok {
 		c.mu.RUnlock()
-		return val, true
+		return val, nil
 	}
 	prov, ok := c.providers[t]
 	c.mu.RUnlock()
 	if !ok {
-		return nil, false
+		return nil, fmt.Errorf("no provider for type %v", t)
 	}
 
 	fnType := prov.fn.Type()
 	args := make([]reflect.Value, fnType.NumIn())
 	for i := 0; i < fnType.NumIn(); i++ {
 		argType := fnType.In(i)
-		dep, ok := resolveAny(c, argType)
-		if !ok {
-			return nil, false
+		dep, err := resolveAny(c, argType)
+		if err != nil {
+			return nil, fmt.Errorf("argument %d (%v): %w", i, argType, err)
 		}
 		args[i] = reflect.ValueOf(dep)
 	}
 
-	// Вызываем конструктор
 	results := prov.fn.Call(args)
 	var instance any
 	if prov.hasError {
 		if !results[1].IsNil() {
-			return nil, false
+			constructorErr := results[1].Interface().(error)
+			return nil, constructorErr
 		}
 		instance = results[0].Interface()
 	} else {
@@ -51,5 +53,5 @@ func resolveAny(c *Container, t reflect.Type) (any, bool) {
 	c.mu.Lock()
 	c.cache[t] = instance
 	c.mu.Unlock()
-	return instance, true
+	return instance, nil
 }
