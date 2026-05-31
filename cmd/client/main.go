@@ -1,1 +1,35 @@
 package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/nskforward/gate4/cmd/client/handler"
+	"github.com/nskforward/gate4/internal/transport"
+)
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	err := run(ctx)
+	if err != nil && !errors.Is(err, context.Canceled) {
+		fmt.Fprintln(os.Stderr, "error:", err)
+	}
+}
+
+func run(ctx context.Context) error {
+	client, err := transport.NewGrpcClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	r := handler.NewRouter()
+	routes(r, client)
+
+	return r.Run(ctx)
+}

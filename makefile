@@ -13,4 +13,4 @@ test:
 	go test ./test/... -v
 
 client:
-	go build -o build/gate4 cmd/cli/*.go
+	go build -o build/gate4 cmd/client/*.go

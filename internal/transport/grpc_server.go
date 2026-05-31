@@ -10,21 +10,21 @@ import (
 	"time"
 
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/domain/handler"
+	"github.com/nskforward/gate4/internal/domain/handler/grpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-type GRPCTransport struct {
+type GrpcServer struct {
 	tcpAddr    string
 	socketPath string
 	tcpServer  *grpc.Server
 	unixServer *grpc.Server
 }
 
-func NewGRPCTransport(cfg config.Config,
-	grpcUserHandler *handler.GRPCUserHandler,
-) (*GRPCTransport, error) {
+func NewGrpcServer(cfg config.Config,
+	userHandler *server.UserHandler,
+) (*GrpcServer, error) {
 
 	tlsConfig, err := newTLSConfig(cfg)
 	if err != nil {
@@ -35,8 +35,8 @@ func NewGRPCTransport(cfg config.Config,
 		grpc.ChainUnaryInterceptor(),
 	)
 	unixServer := grpc.NewServer(grpc.ChainUnaryInterceptor())
-	grpcUserHandler.Register(tcpServer, unixServer)
-	return &GRPCTransport{
+	userHandler.Register(tcpServer, unixServer)
+	return &GrpcServer{
 		tcpAddr:    cfg.TCPAddr,
 		socketPath: filepath.Join(os.TempDir(), "gate4.sock"),
 		tcpServer:  tcpServer,
@@ -44,7 +44,7 @@ func NewGRPCTransport(cfg config.Config,
 	}, nil
 }
 
-func (s *GRPCTransport) Start(ctx context.Context) error {
+func (s *GrpcServer) Start(ctx context.Context) error {
 	tcpListener, err := net.Listen("tcp", s.tcpAddr)
 	if err != nil {
 		return err

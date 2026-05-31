@@ -29,7 +29,7 @@ func (app *App) Start(ctx context.Context) error {
 
 	infra.InitLogger()
 
-	grpcServer, err := di.Resolve[*transport.GRPCTransport](app.container)
+	grpcServer, err := di.Resolve[*transport.GrpcServer](app.container)
 	if err != nil {
 		return err
 	}
