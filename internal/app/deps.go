@@ -10,7 +10,7 @@ import (
 
 func (app *App) initDeps() {
 	di.Provide[config.Config](app.container, config.Load)
-	di.Provide[service.UserRepository](app.container, repository.NewUserMemoryRepo)
+	di.Provide[service.UserRepository](app.container, repository.NewInMemUserRepo)
 	di.Provide[*service.UserService](app.container, service.NewUserService)
 	di.Provide[*server.UserHandler](app.container, server.NewUserHandler)
 	di.Provide[*server.Server](app.container, server.NewServer)
