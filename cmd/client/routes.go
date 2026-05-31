@@ -7,10 +7,10 @@ import (
 
 func routes(r *handler.Router, c *client.Client) {
 	r.Handle("help", Help)
-	//r.Handle("cert create", handler.CreateCert(client))
 	r.Handle("user list", handler.ListUsers(c))
-	//r.Handle("user create", handler.CreateUser(client))
-	//r.Handle("user delete", handler.DeleteUser(client))
+	r.Handle("user create", handler.CreateUser(c))
+	r.Handle("user delete", handler.DeleteUser(c))
+	//r.Handle("cert create", handler.CreateCert(client))
 	//r.Handle("user block", handler.BlockUser(client))
 	//r.Handle("user edit", handler.UpdateUser(client))
 	//r.Handle("subscribe quotes", handler.SubscribeQuotes(client))

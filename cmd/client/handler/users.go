@@ -3,10 +3,12 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
+	"github.com/nskforward/gate4/internal/domain/model"
 	"github.com/nskforward/gate4/pkg/console"
 )
 
@@ -22,13 +24,11 @@ func ListUsers(c *client.Client) Handler {
 			return err
 		}
 
-		maxLenID := 0
+		maxName := 0
+		maxEmail := 0
 
 		filtered := users[:0]
 		for _, user := range users {
-			if len(user.ID) > maxLenID {
-				maxLenID = len(user.ID)
-			}
 			if user.Blocked && activeArg && !blockedArg {
 				continue
 			}
@@ -36,6 +36,12 @@ func ListUsers(c *client.Client) Handler {
 				continue
 			}
 			filtered = append(filtered, user)
+			if len(user.Name) > maxName {
+				maxName = len(user.Name)
+			}
+			if len(user.Email) > maxEmail {
+				maxEmail = len(user.Email)
+			}
 		}
 
 		sort.Slice(filtered, func(i, j int) bool {
@@ -47,55 +53,48 @@ func ListUsers(c *client.Client) Handler {
 			return nil
 		}
 
-		maskID := fmt.Sprintf("%%-%ds", maxLenID)
+		nameMask := fmt.Sprintf("%%-%ds", maxName)
+		emailMask := fmt.Sprintf("%%-%ds", maxEmail)
+		idMask := fmt.Sprintf("%%-%dv", countDigits(len(filtered)))
 
-		fmt.Println(strings.Repeat("-", 31+maxLenID))
-		fmt.Println("| # |", fmt.Sprintf(maskID, "USER ID"), "| STATUS  | CREATED    |")
-		fmt.Println(strings.Repeat("-", 31+maxLenID))
+		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
+		fmt.Println(
+			"|", fmt.Sprintf(idMask, "#"),
+			"|", "USER ID                             ",
+			"|", fmt.Sprintf(nameMask, "NAME"),
+			"|", fmt.Sprintf(emailMask, "EMAIL"),
+			"| STATUS  | CREATED    |")
+		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
 
 		for i, user := range filtered {
-			fmt.Println(
-				fmt.Sprintf("| %d |", i+1),
-				console.FormatText(fmt.Sprintf(maskID, user.ID), console.White),
-				"|",
-				formatStatus(user.Blocked),
-				"|", user.Created.Format("2006-01-02"), "|",
+			fmt.Println("|",
+				fmt.Sprintf(idMask, i+1), "|",
+				user.ID, "|",
+				fmt.Sprintf(nameMask, user.Name), "|",
+				fmt.Sprintf(emailMask, user.Email), "|",
+				formatStatus(user.Blocked), "|",
+				user.Created.Format("2006-01-02"), "|",
 			)
 		}
-		fmt.Println(strings.Repeat("-", 31+maxLenID))
+		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
 		return nil
 	}
 }
 
-/*
-func CreateUser(client *transport.GrpcClient) Handler {
+func CreateUser(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 		var user model.User
+		var err error
 
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		input, err := scanner.Scan(ctx, "broker id", "", nil)
-		if err != nil {
-			return err
-		}
-		user.BrokerID = users.BrokerID(input)
-		err = user.BrokerID.Validate()
+		user.Name, err = scanner.Scan(ctx, "name", "", nil)
 		if err != nil {
 			return err
 		}
 
-		user.AccountID, err = scanner.Scan(ctx, "account id", "", nil)
-		if err != nil {
-			return err
-		}
-
-		user.Secret, err = scanner.ScanPassword(ctx, "secret")
-		if err != nil {
-			return err
-		}
-
-		user.Expires, err = scanner.ScanTime(ctx, "expires", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0), nil)
+		user.Email, err = scanner.Scan(ctx, "email", "", nil)
 		if err != nil {
 			return err
 		}
@@ -105,19 +104,25 @@ func CreateUser(client *transport.GrpcClient) Handler {
 			return err
 		}
 
-		err = client.CreateUser(ctx, &user)
+		err = c.UserClient.CreateUser(ctx, &user)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println("success: user created with id", user.ID)
+		fmt.Println("success: user created")
+		fmt.Println()
+		fmt.Println("user detailes:")
+		fmt.Println("- id:", user.ID)
+		fmt.Println("- name:", user.Name)
+		fmt.Println("- email:", user.Email)
+		fmt.Println("- blocked:", user.Blocked)
+		fmt.Println("- created:", user.Created.Format("2006-01-02 15:04:05"))
 
 		return nil
 	}
 }
-*/
-/*
-func DeleteUser(client *transport.GrpcClient) Handler {
+
+func DeleteUser(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string
@@ -146,16 +151,16 @@ func DeleteUser(client *transport.GrpcClient) Handler {
 			return nil
 		}
 
-		err = client.DeleteUser(ctx, userID)
+		err = c.UserClient.DeleteUser(ctx, userID)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println("success: user deleted with id", userID)
+		fmt.Println("success: user deleted", userID)
 		return nil
 	}
 }
-*/
+
 /*
 func BlockUser(client *transport.GrpcClient) Handler {
 	return func(ctx context.Context, args []string) error {
@@ -253,4 +258,15 @@ func formatStatus(blocked bool) string {
 		status = console.FormatText("blocked", console.Red)
 	}
 	return fmt.Sprintf("%-7s", status)
+}
+
+func countDigits(n int) int {
+	if n == 0 {
+		return 1
+	}
+	// Для отрицательных чисел можно взять модуль (если нужно)
+	if n < 0 {
+		n = -n
+	}
+	return int(math.Floor(math.Log10(float64(n)))) + 1
 }
