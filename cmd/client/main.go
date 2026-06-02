@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/nskforward/gate4/cmd/client/handler"
 	"github.com/nskforward/gate4/internal/api/grpc/client"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
 func main() {
@@ -30,8 +30,8 @@ func run(ctx context.Context) error {
 	}
 	defer c.Close()
 
-	r := handler.NewRouter()
+	r := router.NewRouter("GATE 4 CLI client v0.0.1")
 	routes(r, c)
 
-	return r.Run(ctx)
+	return r.Run(ctx, os.Args)
 }

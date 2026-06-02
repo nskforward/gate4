@@ -7,9 +7,10 @@ import (
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/internal/domain/model"
 	"github.com/nskforward/gate4/pkg/console/input"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
-func CreateUser(c *client.Client) Handler {
+func CreateUser(c *client.Client) router.Handler {
 	return func(ctx context.Context, args []string) error {
 		var user model.User
 		var err error

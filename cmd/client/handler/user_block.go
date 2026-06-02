@@ -8,13 +8,14 @@ import (
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console/input"
 	"github.com/nskforward/gate4/pkg/console/output"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
-func BlockUser(c *client.Client) Handler {
+func BlockUser(c *client.Client) router.Handler {
 	return changeUserStatus(c, true)
 }
 
-func UnblockUser(c *client.Client) Handler {
+func UnblockUser(c *client.Client) router.Handler {
 	return changeUserStatus(c, false)
 }
 

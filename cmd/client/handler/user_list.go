@@ -9,10 +9,11 @@ import (
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console/input"
 	"github.com/nskforward/gate4/pkg/console/output"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
 // user list [-blocked] [-active]
-func ListUsers(c *client.Client) Handler {
+func ListUsers(c *client.Client) router.Handler {
 	return func(ctx context.Context, args []string) error {
 
 		_, activeArg := input.FindArg("-active", args)

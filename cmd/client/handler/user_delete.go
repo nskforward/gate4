@@ -7,9 +7,10 @@ import (
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console/input"
 	"github.com/nskforward/gate4/pkg/console/output"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
-func DeleteUser(c *client.Client) Handler {
+func DeleteUser(c *client.Client) router.Handler {
 	return func(ctx context.Context, args []string) error {
 
 		var argUserID string

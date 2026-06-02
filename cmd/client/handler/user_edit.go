@@ -7,9 +7,10 @@ import (
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console/input"
+	"github.com/nskforward/gate4/pkg/console/router"
 )
 
-func EditUser(c *client.Client) Handler {
+func EditUser(c *client.Client) router.Handler {
 	return func(ctx context.Context, args []string) error {
 
 		if len(args) < 1 {
