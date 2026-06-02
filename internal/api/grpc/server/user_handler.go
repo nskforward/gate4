@@ -52,7 +52,7 @@ func (h *UserHandler) UpdateUser(ctx context.Context, user *pb.User) (*pb.EmptyM
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	return nil, nil
+	return &pb.EmptyMessage{}, nil
 }
 
 func (h *UserHandler) DeleteUser(ctx context.Context, req *pb.UserID) (*pb.EmptyMessage, error) {

@@ -14,7 +14,7 @@ func Help(context.Context, []string) error {
 	userSection.AddCommand("user list [-blocked] [-active]", "show all users")
 	userSection.AddCommand("user create", "create a new user")
 	userSection.AddCommand("user delete <user_id>", "delete a user by id")
-	userSection.AddCommand("user edit <user_id>", "update the user detailes by id")
+	userSection.AddCommand("user edit <user_id>", "update the user details by id")
 	userSection.AddCommand("user block <user_id>", "block a user by id")
 	userSection.AddCommand("user unblock <user_id>", "unblock a user by id")
 	userSection.AddCommand("user cert <user_id>", "generate a cert for grpc client")

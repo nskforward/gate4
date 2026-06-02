@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"os/signal"
-	"syscall"
 
 	"github.com/nskforward/gate4/internal/api/grpc/server"
 	"github.com/nskforward/gate4/internal/infra"
@@ -24,9 +22,6 @@ func NewApp() *App {
 }
 
 func (app *App) Start(ctx context.Context) error {
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
 	infra.InitLogger()
 
 	grpcServer, err := di.Resolve[*server.Server](app.container)

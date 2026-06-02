@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"log/slog"
 	"os"
 )
 
@@ -24,18 +25,24 @@ type Config struct {
 	FileStorageDir string
 }
 
-func Load() Config {
-	tcpAddr := flag.String("tcp-addr", os.Getenv("GATE4_TCP_ADDR"), "server tcp address to listen")
-	finamAddr := flag.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
-	storeDir := flag.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
+func Load(args []string) Config {
+	flags := flag.NewFlagSet("app", flag.ExitOnError)
 
-	caKey := flag.String("ssl-ca-key", os.Getenv("GATE4_SSL_CA_KEY"), "path to file of CA key")
-	caCert := flag.String("ssl-ca-cert", os.Getenv("GATE4_SSL_CA_CERT"), "path to file of CA cert")
+	tcpAddr := flags.String("tcp-addr", os.Getenv("GATE4_TCP_ADDR"), "server tcp address to listen")
+	finamAddr := flags.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
+	storeDir := flags.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
 
-	serverKey := flag.String("ssl-key", os.Getenv("GATE4_SSL_KEY"), "server ssl key path")
-	serverCert := flag.String("ssl-cert", os.Getenv("GATE4_SSL_CERT"), "server ssl cert path")
+	caKey := flags.String("ssl-ca-key", os.Getenv("GATE4_SSL_CA_KEY"), "path to file of CA key")
+	caCert := flags.String("ssl-ca-cert", os.Getenv("GATE4_SSL_CA_CERT"), "path to file of CA cert")
 
-	flag.Parse()
+	serverKey := flags.String("ssl-key", os.Getenv("GATE4_SSL_KEY"), "server ssl key path")
+	serverCert := flags.String("ssl-cert", os.Getenv("GATE4_SSL_CERT"), "server ssl cert path")
+
+	err := flags.Parse(args)
+	if err != nil {
+		slog.Error("config cannot parse flags", "reason", err.Error())
+		os.Exit(1)
+	}
 
 	var cfg Config
 

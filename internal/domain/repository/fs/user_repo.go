@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/domain/model"
@@ -13,6 +14,7 @@ import (
 type UserRepo struct {
 	file  string
 	cache *mem.UserRepo
+	mx    sync.Mutex
 }
 
 func NewUserRepo(cfg config.Config) (*UserRepo, error) {
@@ -40,7 +42,7 @@ func NewUserRepo(cfg config.Config) (*UserRepo, error) {
 		return nil, err
 	}
 
-	return repo, repo.load()
+	return repo, repo.loadFromFile()
 }
 
 func (repo *UserRepo) FindByID(ctx context.Context, userID string) (model.User, error) {
@@ -56,7 +58,7 @@ func (repo *UserRepo) Save(ctx context.Context, newUser model.User) error {
 	if err != nil {
 		return err
 	}
-	return repo.save()
+	return repo.saveToFile()
 }
 
 func (repo *UserRepo) Delete(ctx context.Context, userID string) error {
@@ -64,10 +66,13 @@ func (repo *UserRepo) Delete(ctx context.Context, userID string) error {
 	if err != nil {
 		return err
 	}
-	return repo.save()
+	return repo.saveToFile()
 }
 
-func (repo *UserRepo) load() error {
+func (repo *UserRepo) loadFromFile() error {
+	repo.mx.Lock()
+	defer repo.mx.Unlock()
+
 	f, err := os.Open(repo.file)
 	if err != nil {
 		return err
@@ -76,7 +81,10 @@ func (repo *UserRepo) load() error {
 	return repo.cache.Unmarshal(context.Background(), f)
 }
 
-func (repo *UserRepo) save() error {
+func (repo *UserRepo) saveToFile() error {
+	repo.mx.Lock()
+	defer repo.mx.Unlock()
+
 	f, err := os.Create(repo.file)
 	if err != nil {
 		return err
