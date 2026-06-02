@@ -16,8 +16,8 @@ import (
 func ListUsers(c *client.Client) router.Handler {
 	return func(ctx context.Context, args []string) error {
 
-		_, activeArg := input.FindArg("-active", args)
-		_, blockedArg := input.FindArg("-blocked", args)
+		_, activeArg := input.FindArg("-a", args)
+		_, blockedArg := input.FindArg("-b", args)
 
 		users, err := c.UserClient.ListUsers(ctx)
 		if err != nil {
