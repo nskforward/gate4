@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"errors"
+	"strings"
+	"time"
+)
 
 type User struct {
 	ID      string
@@ -8,4 +12,16 @@ type User struct {
 	Email   string
 	Blocked bool
 	Created time.Time
+}
+
+func (user User) Validate() error {
+	if len(user.Email) < 3 || user.Email[0] == '@' || user.Email[len(user.Email)-1] == '@' || !strings.Contains(user.Email, "@") {
+		return errors.New("invalid email")
+	}
+
+	if len(user.Name) < 2 {
+		return errors.New("name length must be at least 2 characters")
+	}
+
+	return nil
 }

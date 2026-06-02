@@ -23,6 +23,20 @@ func NewUserHandler(conn *grpc.ClientConn) *UserHandler {
 	}
 }
 
+func (h *UserHandler) FindByID(ctx context.Context, userID string) (model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	user, err := h.client.FindUserByID(ctx, &pb.UserID{UserId: userID})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.Unavailable {
+			return model.User{}, errors.New("server unavailable")
+		}
+		return model.User{}, err
+	}
+	return common.ConvertOutUser(user), nil
+}
+
 func (h *UserHandler) ListUsers(ctx context.Context) ([]model.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -35,6 +49,20 @@ func (h *UserHandler) ListUsers(ctx context.Context) ([]model.User, error) {
 		return nil, err
 	}
 	return common.ConvertOutUsers(resp.Users), nil
+}
+
+func (h *UserHandler) UpdateUser(ctx context.Context, user model.User) error {
+	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	_, err := h.client.UpdateUser(reqCtx, common.ConvertInUser(user))
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.Unavailable {
+			return errors.New("server unavailable")
+		}
+		return err
+	}
+	return nil
 }
 
 func (h *UserHandler) CreateUser(ctx context.Context, user *model.User) error {

@@ -10,7 +10,7 @@ service Users {
     rpc ListUsers(EmptyMessage) returns (UserList);
     rpc CreateUser(User) returns (User);
     rpc GetUser(UserID) returns (User);
-    rpc FindUser(UserID) returns (User);
+    rpc FindUserByID(UserID) returns (User);
     rpc DeleteUser(UserID) returns (EmptyMessage);
     rpc UpdateUser(User) returns (EmptyMessage);
     rpc CreateCert(CreateCertRequest) returns (CreateCertResponse);

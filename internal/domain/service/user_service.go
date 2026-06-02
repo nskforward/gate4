@@ -3,20 +3,42 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/nskforward/gate4/internal/domain/model"
+	"github.com/nskforward/gate4/internal/domain/repository"
 )
 
 type UserService struct {
-	userRepo UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewUserService(userRepo UserRepository) *UserService {
+func NewUserService(userRepo repository.UserRepository) *UserService {
 	return &UserService{
 		userRepo: userRepo,
 	}
+}
+
+// Update updates all fields except ID and Created.
+func (s *UserService) Update(ctx context.Context, newUser model.User) error {
+	err := newUser.Validate()
+	if err != nil {
+		return fmt.Errorf("validation error: %w", err)
+	}
+	oldUser, err := s.userRepo.FindByID(ctx, newUser.ID)
+	if err != nil {
+		return err
+	}
+	oldUser.Email = newUser.Email
+	oldUser.Name = newUser.Name
+	oldUser.Blocked = newUser.Blocked
+	return s.userRepo.Save(ctx, oldUser)
+}
+
+func (s *UserService) FindByID(ctx context.Context, userID string) (model.User, error) {
+	return s.userRepo.FindByID(ctx, userID)
 }
 
 func (s *UserService) List(ctx context.Context) ([]model.User, error) {
@@ -24,18 +46,13 @@ func (s *UserService) List(ctx context.Context) ([]model.User, error) {
 }
 
 func (s *UserService) Create(ctx context.Context, newUser *model.User) error {
-	if newUser.ID != "" {
-		return errors.New("user id must be empty for a new user")
-	}
-	if newUser.Name == "" {
-		return errors.New("user name cannot be empty")
-	}
-	if newUser.Email == "" {
-		return errors.New("user email cannot be empty")
+	err := newUser.Validate()
+	if err != nil {
+		return fmt.Errorf("validation error: %w", err)
 	}
 	newUser.ID = uuid.NewString()
 	newUser.Created = time.Now()
-	return s.userRepo.Create(ctx, *newUser)
+	return s.userRepo.Save(ctx, *newUser)
 }
 
 func (s *UserService) Delete(ctx context.Context, userID string) error {

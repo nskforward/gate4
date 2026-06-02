@@ -43,12 +43,16 @@ func NewUserRepo(cfg config.Config) (*UserRepo, error) {
 	return repo, repo.load()
 }
 
+func (repo *UserRepo) FindByID(ctx context.Context, userID string) (model.User, error) {
+	return repo.cache.FindByID(ctx, userID)
+}
+
 func (repo *UserRepo) List(ctx context.Context) ([]model.User, error) {
 	return repo.cache.List(ctx)
 }
 
-func (repo *UserRepo) Create(ctx context.Context, newUser model.User) error {
-	err := repo.cache.Create(ctx, newUser)
+func (repo *UserRepo) Save(ctx context.Context, newUser model.User) error {
+	err := repo.cache.Save(ctx, newUser)
 	if err != nil {
 		return err
 	}

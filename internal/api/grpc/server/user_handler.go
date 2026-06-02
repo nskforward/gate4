@@ -47,6 +47,22 @@ func (h *UserHandler) CreateUser(ctx context.Context, user *pb.User) (*pb.User, 
 	return common.ConvertInUser(modelUser), nil
 }
 
+func (h *UserHandler) UpdateUser(ctx context.Context, user *pb.User) (*pb.EmptyMessage, error) {
+	err := h.userService.Update(ctx, common.ConvertOutUser(user))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	return nil, nil
+}
+
 func (h *UserHandler) DeleteUser(ctx context.Context, req *pb.UserID) (*pb.EmptyMessage, error) {
 	return nil, h.userService.Delete(ctx, req.UserId)
+}
+
+func (h *UserHandler) FindUserByID(ctx context.Context, req *pb.UserID) (*pb.User, error) {
+	user, err := h.userService.FindByID(ctx, req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return common.ConvertInUser(user), nil
 }

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/nskforward/gate4/internal/domain/model"
+	"github.com/nskforward/gate4/internal/domain/repository"
 )
 
 type UserRepo struct {
@@ -22,13 +23,23 @@ func NewUserRepo() *UserRepo {
 	}
 }
 
+func (repo *UserRepo) FindByID(ctx context.Context, userID string) (model.User, error) {
+	repo.mx.RLock()
+	defer repo.mx.RUnlock()
+	user, ok := repo.users[userID]
+	if !ok {
+		return model.User{}, repository.ErrNotFound
+	}
+	return user, nil
+}
+
 func (repo *UserRepo) List(ctx context.Context) ([]model.User, error) {
 	repo.mx.RLock()
 	defer repo.mx.RUnlock()
 	return slices.Collect(maps.Values(repo.users)), nil
 }
 
-func (repo *UserRepo) Create(ctx context.Context, newUser model.User) error {
+func (repo *UserRepo) Save(ctx context.Context, newUser model.User) error {
 	repo.mx.Lock()
 	defer repo.mx.Unlock()
 	repo.users[newUser.ID] = newUser
