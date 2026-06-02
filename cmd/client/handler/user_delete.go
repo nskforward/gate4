@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/input"
+	"github.com/nskforward/gate4/pkg/console/output"
 )
 
 func DeleteUser(c *client.Client) Handler {
@@ -18,7 +19,7 @@ func DeleteUser(c *client.Client) Handler {
 			args = args[1:]
 		}
 
-		scanner := console.NewScanner()
+		scanner := input.NewScanner()
 		defer scanner.Close()
 
 		userID, err := scanner.Scan(ctx, "user id", "", &argUserID)
@@ -26,7 +27,7 @@ func DeleteUser(c *client.Client) Handler {
 			return err
 		}
 
-		fmt.Println(console.FormatText("WARNING!", console.Yellow, console.Bold), "user will be permanently removed")
+		fmt.Println(output.FormatText("WARNING!", output.Yellow, output.Bold), "user will be permanently removed")
 		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
 		if err != nil {
 			return err

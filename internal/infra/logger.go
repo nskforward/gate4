@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/output"
 )
 
 func InitLogger() {
-	slog.SetDefault(console.NewLogger(os.Stdout, slog.LevelDebug))
+	slog.SetDefault(output.NewLogger(os.Stdout, slog.LevelDebug))
 }

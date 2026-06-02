@@ -1,4 +1,4 @@
-package console
+package input
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/nskforward/gate4/pkg/console/output"
 	"golang.org/x/term"
 )
 
@@ -30,7 +31,7 @@ func (s *Scanner) Close() {
 }
 
 func (s *Scanner) Confirm(ctx context.Context, prompt string) bool {
-	result, _ := s.ScanBool(ctx, FormatText(prompt, Yellow), nil, nil)
+	result, _ := s.ScanBool(ctx, output.FormatText(prompt, output.Yellow), nil, nil)
 	return result
 }
 

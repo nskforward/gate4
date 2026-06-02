@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/nskforward/gate4/pkg/help"
+	"github.com/nskforward/gate4/pkg/console/help"
 )
 
 func Help(context.Context, []string) error {

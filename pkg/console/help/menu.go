@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/output"
 )
 
 type Menu struct {
@@ -50,30 +50,30 @@ func (m *Menu) WriteTo(w io.Writer) (int64, error) {
 	var buf bytes.Buffer
 
 	buf.WriteByte('\n')
-	buf.WriteString(console.BuildPrefix(console.Cyan, console.Bold))
+	buf.WriteString(output.BuildPrefix(output.Cyan, output.Bold))
 	buf.WriteString(m.title)
-	buf.WriteString(console.Reset)
+	buf.WriteString(output.Reset)
 	buf.WriteByte('\n')
 
 	for _, section := range m.sections {
 		buf.WriteByte('\n')
-		buf.WriteString(console.BuildPrefix(console.Gray100))
+		buf.WriteString(output.BuildPrefix(output.Gray100))
 		buf.WriteString(strings.ToTitle(section.name))
 		buf.WriteByte(' ')
 		buf.WriteString("COMMANDS")
-		buf.WriteString(console.Reset)
+		buf.WriteString(output.Reset)
 		buf.WriteString("\n\n")
 		for _, command := range section.commands {
 			buf.WriteString("    ")
-			buf.WriteString(console.BuildPrefix(console.White))
+			buf.WriteString(output.BuildPrefix(output.White))
 			buf.WriteString(command[0])
-			buf.WriteString(console.Reset)
+			buf.WriteString(output.Reset)
 			buf.WriteByte(' ')
 			buf.WriteString(strings.Repeat(" ", section.maxKey-len(command[0])))
-			buf.WriteString(console.BuildPrefix(console.Gray100))
+			buf.WriteString(output.BuildPrefix(output.Gray100))
 			buf.WriteString("- ")
 			buf.WriteString(command[1])
-			buf.WriteString(console.Reset)
+			buf.WriteString(output.Reset)
 			buf.WriteByte('\n')
 		}
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/internal/domain/model"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/input"
 )
 
 func CreateUser(c *client.Client) Handler {
@@ -14,7 +14,7 @@ func CreateUser(c *client.Client) Handler {
 		var user model.User
 		var err error
 
-		scanner := console.NewScanner()
+		scanner := input.NewScanner()
 		defer scanner.Close()
 
 		user.Name, err = scanner.Scan(ctx, "name", "", nil)

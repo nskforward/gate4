@@ -6,7 +6,8 @@ import (
 	"fmt"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/input"
+	"github.com/nskforward/gate4/pkg/console/output"
 )
 
 func BlockUser(c *client.Client) Handler {
@@ -32,11 +33,11 @@ func changeUserStatus(c *client.Client, blockedAction bool) func(ctx context.Con
 			return err
 		}
 
-		scanner := console.NewScanner()
+		scanner := input.NewScanner()
 		defer scanner.Close()
 
 		fmt.Println(
-			console.FormatText("WARNING!", console.Yellow, console.Bold),
+			output.FormatText("WARNING!", output.Yellow, output.Bold),
 			fmt.Sprintf("the following user will be %s:", getStatusActionMessage(blockedAction)),
 			fmt.Sprintf("%s (%s)", oldUser.Name, oldUser.Email),
 		)
@@ -69,7 +70,7 @@ func changeUserStatus(c *client.Client, blockedAction bool) func(ctx context.Con
 
 func getStatusActionMessage(defaultBlocked bool) string {
 	if defaultBlocked {
-		return console.FormatText("blocked", console.Red)
+		return output.FormatText("blocked", output.Red)
 	}
-	return console.FormatText("unblocked", console.Green)
+	return output.FormatText("unblocked", output.Green)
 }

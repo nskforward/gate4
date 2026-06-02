@@ -1,4 +1,4 @@
-package console
+package output
 
 type Style int
 

@@ -7,15 +7,16 @@ import (
 	"strings"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/input"
+	"github.com/nskforward/gate4/pkg/console/output"
 )
 
 // user list [-blocked] [-active]
 func ListUsers(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
-		_, activeArg := console.FindArg("-active", args)
-		_, blockedArg := console.FindArg("-blocked", args)
+		_, activeArg := input.FindArg("-active", args)
+		_, blockedArg := input.FindArg("-blocked", args)
 
 		users, err := c.UserClient.ListUsers(ctx)
 		if err != nil {
@@ -80,9 +81,9 @@ func ListUsers(c *client.Client) Handler {
 }
 
 func formatStatus(blocked bool) string {
-	status := console.FormatText("active ", console.Green)
+	status := output.FormatText("active ", output.Green)
 	if blocked {
-		status = console.FormatText("blocked", console.Red)
+		status = output.FormatText("blocked", output.Red)
 	}
 	return fmt.Sprintf("%-7s", status)
 }

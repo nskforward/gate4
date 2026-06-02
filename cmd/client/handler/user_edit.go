@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
-	"github.com/nskforward/gate4/pkg/console"
+	"github.com/nskforward/gate4/pkg/console/input"
 )
 
 func EditUser(c *client.Client) Handler {
@@ -24,7 +24,7 @@ func EditUser(c *client.Client) Handler {
 			return err
 		}
 
-		scanner := console.NewScanner()
+		scanner := input.NewScanner()
 		defer scanner.Close()
 
 		oldUser.Name, err = scanner.Scan(ctx, "name", oldUser.Name, nil)
