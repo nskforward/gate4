@@ -11,7 +11,9 @@ func routes(r *handler.Router, c *client.Client) {
 	r.Handle("user create", handler.CreateUser(c))
 	r.Handle("user delete", handler.DeleteUser(c))
 	r.Handle("user edit", handler.UpdateUser(c))
+	r.Handle("user block", handler.BlockUser(c))
+	r.Handle("user unblock", handler.UnblockUser(c))
 	//r.Handle("cert create", handler.CreateCert(client))
-	//r.Handle("user block", handler.BlockUser(client))
+
 	//r.Handle("subscribe quotes", handler.SubscribeQuotes(client))
 }

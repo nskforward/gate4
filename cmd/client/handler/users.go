@@ -141,7 +141,7 @@ func DeleteUser(c *client.Client) Handler {
 			return err
 		}
 
-		fmt.Println(console.FormatText("WARNING!", console.Red, console.Bold), "user will be permanently removed")
+		fmt.Println(console.FormatText("WARNING!", console.Yellow, console.Bold), "user will be permanently removed")
 		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
 		if err != nil {
 			return err
@@ -206,96 +206,87 @@ func UpdateUser(c *client.Client) Handler {
 	}
 }
 
-/*
-func BlockUser(client *transport.GrpcClient) Handler {
+func BlockUser(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
-		var argUserID string
+		if len(args) < 1 {
+			return errors.New("requeres 1 argument")
+		}
 
-		if len(args) == 1 {
-			argUserID = args[0]
-			args = args[1:]
+		userID := args[0]
+		args = args[1:]
+
+		oldUser, err := c.UserClient.FindByID(ctx, userID)
+		if err != nil {
+			return err
 		}
 
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		userID, err := scanner.Scan(ctx, "user id", "", &argUserID)
+		fmt.Println(console.FormatText("WARNING!", console.Yellow, console.Bold), fmt.Sprintf("the following user will be %s:", console.FormatText("blocked", console.Red)), fmt.Sprintf("%s (%s)", oldUser.Name, oldUser.Email))
+		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
+		if err != nil {
+			return err
+		}
+		if !allow {
+			fmt.Println("canceled")
+			return nil
+		}
+
+		oldUser.Blocked = true
+
+		err = c.UserClient.UpdateUser(ctx, oldUser)
 		if err != nil {
 			return err
 		}
 
-		blocked, err := scanner.ScanBool(ctx, "blocked?", nil, nil)
-		if err != nil {
-			return err
-		}
-
-		return errors.New("not implemented")
-
-			err = client.BlockUser(ctx, userID, blocked)
-			if err != nil {
-				return err
-			}
-
-
-		op := "blocked"
-		if !blocked {
-			op = "unblocked"
-		}
-
-		fmt.Println("success: user", op, "with id", userID)
+		fmt.Println("success: user has been blocked")
 
 		return nil
 	}
 }
-*/
 
-/*
-func UpdateUser(client *transport.GrpcClient) Handler {
+func UnblockUser(c *client.Client) Handler {
 	return func(ctx context.Context, args []string) error {
 
-		var argUserID string
+		if len(args) < 1 {
+			return errors.New("requeres 1 argument")
+		}
 
-		if len(args) == 1 {
-			argUserID = args[0]
-			args = args[1:]
+		userID := args[0]
+		args = args[1:]
+
+		oldUser, err := c.UserClient.FindByID(ctx, userID)
+		if err != nil {
+			return err
 		}
 
 		scanner := console.NewScanner()
 		defer scanner.Close()
 
-		userID, err := scanner.Scan(ctx, "user id", "", &argUserID)
+		fmt.Println(console.FormatText("WARNING!", console.Yellow, console.Bold), fmt.Sprintf("the following user will be %s:", console.FormatText("unblocked", console.Green)), fmt.Sprintf("%s (%s)", oldUser.Name, oldUser.Email))
+		allow, err := scanner.ScanBool(ctx, "continue?", nil, nil)
+		if err != nil {
+			return err
+		}
+		if !allow {
+			fmt.Println("canceled")
+			return nil
+		}
+
+		oldUser.Blocked = false
+
+		err = c.UserClient.UpdateUser(ctx, oldUser)
 		if err != nil {
 			return err
 		}
 
-		secret, err := scanner.ScanPassword(ctx, "secret")
-		if err != nil {
-			return err
-		}
-
-		validUntil, err := scanner.ScanTime(ctx, "valid until", "2006-01-02 15:04", time.Now().AddDate(1, 0, 0), nil)
-		if err != nil {
-			return err
-		}
-
-		_ = secret
-		_ = validUntil
-
-		return errors.New("not implemented")
-
-			err = client.UpdateUser(ctx, userID, secret, validUntil)
-			if err != nil {
-				return err
-			}
-
-
-		fmt.Println("success: user update with id", userID)
+		fmt.Println("success: user has been unblocked")
 
 		return nil
 	}
 }
-*/
 
 func formatStatus(blocked bool) string {
 	status := console.FormatText("active ", console.Green)
