@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID      string
-	Name    string
-	Email   string
-	Blocked bool
-	Created time.Time
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Email   string    `json:"email"`
+	Blocked bool      `json:"blocked"`
+	Created time.Time `json:"created"`
 }
 
 func (user User) Validate() error {

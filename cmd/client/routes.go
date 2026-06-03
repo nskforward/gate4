@@ -7,13 +7,16 @@ import (
 )
 
 func routes(r *router.Router, c *client.Client) {
+
 	r.Handle("help", "show help menu", r.PrintHelp())
+
 	r.Handle("user list [-a, -b]", "show users with filter: -a active, -b blocked", handler.ListUsers(c))
 	r.Handle("user create", "create a new user", handler.CreateUser(c))
 	r.Handle("user delete <id>", "delete user", handler.DeleteUser(c))
 	r.Handle("user edit <id>", "change user details", handler.EditUser(c))
 	r.Handle("user block <id>", "block a user", handler.BlockUser(c))
 	r.Handle("user unblock <id>", "unblock a user", handler.UnblockUser(c))
+	r.Handle("token list <user_id>", "show user tokens", handler.ListTokens(c))
 
 	//r.Handle("cert create", handler.CreateCert(client))
 	//r.Handle("subscribe quotes", handler.SubscribeQuotes(client))
