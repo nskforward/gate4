@@ -22,6 +22,7 @@ const (
 	Tokens_ListUserTokens_FullMethodName = "/proto.Tokens/ListUserTokens"
 	Tokens_CreateToken_FullMethodName    = "/proto.Tokens/CreateToken"
 	Tokens_DeleteToken_FullMethodName    = "/proto.Tokens/DeleteToken"
+	Tokens_Whoami_FullMethodName         = "/proto.Tokens/Whoami"
 )
 
 // TokensClient is the client API for Tokens service.
@@ -31,6 +32,7 @@ type TokensClient interface {
 	ListUserTokens(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*TokenList, error)
 	CreateToken(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Token, error)
 	DeleteToken(ctx context.Context, in *TokenID, opts ...grpc.CallOption) (*EmptyMessage, error)
+	Whoami(ctx context.Context, in *TokenID, opts ...grpc.CallOption) (*User, error)
 }
 
 type tokensClient struct {
@@ -71,6 +73,16 @@ func (c *tokensClient) DeleteToken(ctx context.Context, in *TokenID, opts ...grp
 	return out, nil
 }
 
+func (c *tokensClient) Whoami(ctx context.Context, in *TokenID, opts ...grpc.CallOption) (*User, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, Tokens_Whoami_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokensServer is the server API for Tokens service.
 // All implementations must embed UnimplementedTokensServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type TokensServer interface {
 	ListUserTokens(context.Context, *UserID) (*TokenList, error)
 	CreateToken(context.Context, *Token) (*Token, error)
 	DeleteToken(context.Context, *TokenID) (*EmptyMessage, error)
+	Whoami(context.Context, *TokenID) (*User, error)
 	mustEmbedUnimplementedTokensServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedTokensServer) CreateToken(context.Context, *Token) (*Token, e
 }
 func (UnimplementedTokensServer) DeleteToken(context.Context, *TokenID) (*EmptyMessage, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteToken not implemented")
+}
+func (UnimplementedTokensServer) Whoami(context.Context, *TokenID) (*User, error) {
+	return nil, status.Error(codes.Unimplemented, "method Whoami not implemented")
 }
 func (UnimplementedTokensServer) mustEmbedUnimplementedTokensServer() {}
 func (UnimplementedTokensServer) testEmbeddedByValue()                {}
@@ -172,6 +188,24 @@ func _Tokens_DeleteToken_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Tokens_Whoami_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokensServer).Whoami(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Tokens_Whoami_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokensServer).Whoami(ctx, req.(*TokenID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Tokens_ServiceDesc is the grpc.ServiceDesc for Tokens service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var Tokens_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteToken",
 			Handler:    _Tokens_DeleteToken_Handler,
+		},
+		{
+			MethodName: "Whoami",
+			Handler:    _Tokens_Whoami_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

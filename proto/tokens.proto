@@ -11,6 +11,7 @@ service Tokens {
     rpc ListUserTokens(UserID) returns (TokenList);
     rpc CreateToken(Token) returns (Token);
     rpc DeleteToken(TokenID) returns (EmptyMessage);
+    rpc Whoami(TokenID) returns (User);
 }
 
 message Token {

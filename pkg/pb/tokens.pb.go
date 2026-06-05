@@ -190,11 +190,12 @@ const file_tokens_proto_rawDesc = "" +
 	"\tTokenList\x12$\n" +
 	"\x06tokens\x18\x01 \x03(\v2\f.proto.TokenR\x06tokens\"$\n" +
 	"\aTokenID\x12\x19\n" +
-	"\btoken_id\x18\x01 \x01(\tR\atokenId2\x9a\x01\n" +
+	"\btoken_id\x18\x01 \x01(\tR\atokenId2\xc1\x01\n" +
 	"\x06Tokens\x121\n" +
 	"\x0eListUserTokens\x12\r.proto.UserID\x1a\x10.proto.TokenList\x12)\n" +
 	"\vCreateToken\x12\f.proto.Token\x1a\f.proto.Token\x122\n" +
-	"\vDeleteToken\x12\x0e.proto.TokenID\x1a\x13.proto.EmptyMessageB\x0eZ\fgate4/pkg/pbb\x06proto3"
+	"\vDeleteToken\x12\x0e.proto.TokenID\x1a\x13.proto.EmptyMessage\x12%\n" +
+	"\x06Whoami\x12\x0e.proto.TokenID\x1a\v.proto.UserB\x0eZ\fgate4/pkg/pbb\x06proto3"
 
 var (
 	file_tokens_proto_rawDescOnce sync.Once
@@ -215,17 +216,20 @@ var file_tokens_proto_goTypes = []any{
 	(*TokenID)(nil),      // 2: proto.TokenID
 	(*UserID)(nil),       // 3: proto.UserID
 	(*EmptyMessage)(nil), // 4: proto.EmptyMessage
+	(*User)(nil),         // 5: proto.User
 }
 var file_tokens_proto_depIdxs = []int32{
 	0, // 0: proto.TokenList.tokens:type_name -> proto.Token
 	3, // 1: proto.Tokens.ListUserTokens:input_type -> proto.UserID
 	0, // 2: proto.Tokens.CreateToken:input_type -> proto.Token
 	2, // 3: proto.Tokens.DeleteToken:input_type -> proto.TokenID
-	1, // 4: proto.Tokens.ListUserTokens:output_type -> proto.TokenList
-	0, // 5: proto.Tokens.CreateToken:output_type -> proto.Token
-	4, // 6: proto.Tokens.DeleteToken:output_type -> proto.EmptyMessage
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	2, // 4: proto.Tokens.Whoami:input_type -> proto.TokenID
+	1, // 5: proto.Tokens.ListUserTokens:output_type -> proto.TokenList
+	0, // 6: proto.Tokens.CreateToken:output_type -> proto.Token
+	4, // 7: proto.Tokens.DeleteToken:output_type -> proto.EmptyMessage
+	5, // 8: proto.Tokens.Whoami:output_type -> proto.User
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name

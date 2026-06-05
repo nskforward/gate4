@@ -50,3 +50,33 @@ func (s *TokenService) ListUserTokens(ctx context.Context, userID string) ([]mod
 func (s *TokenService) DeleteToken(ctx context.Context, tokenID string) error {
 	return s.tokenRepo.DeleteToken(ctx, tokenID)
 }
+
+func (s *TokenService) Whoami(ctx context.Context, tokenID string) (model.User, error) {
+
+	token, err := s.tokenRepo.FindByID(ctx, tokenID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return model.User{}, fmt.Errorf("unknown token")
+		}
+		return model.User{}, err
+	}
+
+	err = token.Validate()
+	if err != nil {
+		return model.User{}, fmt.Errorf("token validation failed: %w", err)
+	}
+
+	user, err := s.userRepo.FindByID(ctx, token.UserID)
+	if err != nil {
+		if errors.Is(err, repository.ErrNotFound) {
+			return model.User{}, fmt.Errorf("unknown token user")
+		}
+		return model.User{}, err
+	}
+
+	if user.Blocked {
+		return model.User{}, errors.New("user blocked")
+	}
+
+	return user, nil
+}

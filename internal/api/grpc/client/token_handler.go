@@ -50,3 +50,13 @@ func (h *TokenHandler) DeleteToken(ctx context.Context, tokenID string) error {
 	_, err := h.client.DeleteToken(ctx, &pb.TokenID{TokenId: tokenID})
 	return wrapError(err)
 }
+
+func (h *TokenHandler) Whoami(ctx context.Context, tokenID string) (model.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	user, err := h.client.Whoami(ctx, &pb.TokenID{TokenId: tokenID})
+	if err != nil {
+		return model.User{}, wrapError(err)
+	}
+	return common.ConvertOutUser(user), nil
+}
