@@ -9,8 +9,9 @@ import (
 )
 
 type Client struct {
-	UserClient *UserHandler
-	conn       *grpc.ClientConn
+	UserClient  *UserHandler
+	TokenClient *TokenHandler
+	conn        *grpc.ClientConn
 }
 
 func NewClient() (*Client, error) {
@@ -22,8 +23,9 @@ func NewClient() (*Client, error) {
 	}
 
 	return &Client{
-		UserClient: NewUserHandler(conn),
-		conn:       conn,
+		UserClient:  NewUserHandler(conn),
+		TokenClient: NewTokenHandler(conn),
+		conn:        conn,
 	}, nil
 }
 

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/nskforward/gate4/internal/api/grpc/client"
 	"github.com/nskforward/gate4/pkg/console/router"
@@ -22,8 +23,20 @@ func ListTokens(c *client.Client) router.Handler {
 			args = args[1:]
 		}
 
-		_ = userID
+		tokens, err := c.TokenClient.ListUserTokens(ctx, userID)
+		if err != nil {
+			return err
+		}
 
-		return errors.ErrUnsupported
+		if len(tokens) == 0 {
+			fmt.Println("no tokens")
+			return nil
+		}
+
+		for _, t := range tokens {
+			fmt.Println(t.ID, t.Created, t.Expires)
+		}
+
+		return nil
 	}
 }

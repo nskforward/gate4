@@ -22,6 +22,7 @@ func ConvertInUser(user model.User) *pb.User {
 		Email:   user.Email,
 		Blocked: user.Blocked,
 		Created: user.Created.Unix(),
+		Role:    user.Role.String(),
 	}
 }
 
@@ -40,5 +41,6 @@ func ConvertOutUser(user *pb.User) model.User {
 		Email:   user.Email,
 		Blocked: user.Blocked,
 		Created: time.Unix(user.Created, 0),
+		Role:    model.Role(user.Role),
 	}
 }

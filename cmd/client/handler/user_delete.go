@@ -44,7 +44,7 @@ func DeleteUser(c *client.Client) router.Handler {
 			return err
 		}
 
-		fmt.Println("success: user deleted", userID)
+		fmt.Println("user deleted", userID)
 		return nil
 	}
 }

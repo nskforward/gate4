@@ -19,8 +19,8 @@ type UserRepository interface {
 }
 
 type TokenRepository interface {
-	FindByID(ctx context.Context, tokenID string) (*model.Token, error)
-	ListUserTokens(ctx context.Context, userID string) ([]*model.Token, error)
-	SaveToken(ctx context.Context, token *model.Token) error
+	FindByID(ctx context.Context, tokenID string) (model.Token, error)
+	ListUserTokens(ctx context.Context, userID string) ([]model.Token, error)
+	SaveToken(ctx context.Context, token model.Token) error
 	DeleteToken(ctx context.Context, tokenID string) error
 }

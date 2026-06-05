@@ -22,6 +22,7 @@ message User {
     string email    = 3;
     int64 created   = 4;
     bool blocked    = 5;
+    string role     = 6;
 }
 
 message UserList {

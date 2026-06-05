@@ -57,14 +57,17 @@ func ListUsers(c *client.Client) router.Handler {
 		emailMask := fmt.Sprintf("%%-%ds", maxEmail)
 		idMask := fmt.Sprintf("%%-%dv", countDigits(len(filtered)))
 
-		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
+		fmt.Println()
+		fmt.Println(strings.Repeat("-", 84+maxName+maxEmail))
+
 		fmt.Println(
 			"|", fmt.Sprintf(idMask, "#"),
 			"|", "USER ID                             ",
 			"|", fmt.Sprintf(nameMask, "NAME"),
 			"|", fmt.Sprintf(emailMask, "EMAIL"),
+			"| ROLE    ",
 			"| STATUS  | CREATED    |")
-		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
+		fmt.Println(strings.Repeat("-", 84+maxName+maxEmail))
 
 		for i, user := range filtered {
 			fmt.Println("|",
@@ -72,11 +75,13 @@ func ListUsers(c *client.Client) router.Handler {
 				user.ID, "|",
 				fmt.Sprintf(nameMask, user.Name), "|",
 				fmt.Sprintf(emailMask, user.Email), "|",
+				fmt.Sprintf("%-8s", user.Role.String()), "|",
 				formatStatus(user.Blocked), "|",
 				user.Created.Format("2006-01-02"), "|",
 			)
 		}
-		fmt.Println(strings.Repeat("-", 73+maxName+maxEmail))
+		fmt.Println(strings.Repeat("-", 84+maxName+maxEmail))
+		fmt.Println()
 		return nil
 	}
 }

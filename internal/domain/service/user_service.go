@@ -12,12 +12,14 @@ import (
 )
 
 type UserService struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
+	tokenRepo repository.TokenRepository
 }
 
-func NewUserService(userRepo repository.UserRepository) *UserService {
+func NewUserService(userRepo repository.UserRepository, tokenRepo repository.TokenRepository) *UserService {
 	return &UserService{
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		tokenRepo: tokenRepo,
 	}
 }
 
@@ -34,6 +36,7 @@ func (s *UserService) Update(ctx context.Context, newUser model.User) error {
 	oldUser.Email = newUser.Email
 	oldUser.Name = newUser.Name
 	oldUser.Blocked = newUser.Blocked
+	oldUser.Role = newUser.Role
 	return s.userRepo.Save(ctx, oldUser)
 }
 
@@ -59,5 +62,15 @@ func (s *UserService) Delete(ctx context.Context, userID string) error {
 	if userID == "" {
 		return errors.New("user id must be specified")
 	}
+
+	tokens, err := s.tokenRepo.ListUserTokens(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if len(tokens) > 0 {
+		return errors.New("cannot delete user with active tokens")
+	}
+
 	return s.userRepo.Delete(ctx, userID)
 }

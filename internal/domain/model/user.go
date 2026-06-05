@@ -12,6 +12,7 @@ type User struct {
 	Email   string    `json:"email"`
 	Blocked bool      `json:"blocked"`
 	Created time.Time `json:"created"`
+	Role    Role      `json:"role"`
 }
 
 func (user User) Validate() error {
@@ -23,5 +24,5 @@ func (user User) Validate() error {
 		return errors.New("name length must be at least 2 characters")
 	}
 
-	return nil
+	return user.Role.Validate()
 }

@@ -24,6 +24,7 @@ type Server struct {
 
 func NewServer(cfg config.Config,
 	userHandler *UserHandler,
+	tokenHandler *TokenHandler,
 ) (*Server, error) {
 
 	tlsConfig, err := newTLSConfig(cfg)
@@ -42,6 +43,7 @@ func NewServer(cfg config.Config,
 	)
 	unixServer := grpc.NewServer(interceptors)
 	userHandler.Register(tcpServer, unixServer)
+	tokenHandler.Register(tcpServer, unixServer)
 	return &Server{
 		tcpAddr:    cfg.TCPAddr,
 		socketPath: filepath.Join(os.TempDir(), "gate4.sock"),

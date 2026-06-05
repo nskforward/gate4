@@ -2,8 +2,10 @@ package input
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,6 +13,11 @@ import (
 	"github.com/nskforward/gate4/pkg/console/output"
 	"golang.org/x/term"
 )
+
+type Option struct {
+	Key         string
+	Description string
+}
 
 type Scanner struct {
 	closeOnce sync.Once
@@ -33,6 +40,22 @@ func (s *Scanner) Close() {
 func (s *Scanner) Confirm(ctx context.Context, prompt string) bool {
 	result, _ := s.ScanBool(ctx, output.FormatText(prompt, output.Yellow), nil, nil)
 	return result
+}
+
+func (s *Scanner) ScanInt(ctx context.Context, prompt string, defaultValue, dst *int) (int, error) {
+	dstStr := ""
+	if dst != nil {
+		dstStr = strconv.Itoa(*dst)
+	}
+	defStr := ""
+	if defaultValue != nil {
+		defStr = strconv.Itoa(*defaultValue)
+	}
+	input, err := s.Scan(ctx, prompt, defStr, &dstStr)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(input)
 }
 
 func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time, dst *time.Time) (time.Time, error) {
@@ -147,7 +170,6 @@ func (s *Scanner) Scan(ctx context.Context, prompt, defaultValue string, dst *st
 }
 
 func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, error) {
-
 	prompt = fmt.Sprintf("- %s: ", prompt)
 
 	fd := int(os.Stdin.Fd())
@@ -212,4 +234,31 @@ func (s *Scanner) ScanPassword(ctx context.Context, prompt string) (string, erro
 	case pass := <-passCh:
 		return pass, nil
 	}
+}
+
+func (s *Scanner) ScanOption(ctx context.Context, prompt string, defaultvalue string, options []Option) (string, error) {
+
+	var defNum *int
+
+	for i, option := range options {
+		fmt.Println(" ", output.FormatText(strconv.Itoa(i+1), output.Cyan), "-", output.FormatText(option.Description, output.Gray100))
+		if option.Key == defaultvalue {
+			defNum = new(i + 1)
+		}
+	}
+
+	prompt = fmt.Sprintf("%s [%s]", prompt, output.FormatText(fmt.Sprintf("1-%d", len(options)), output.Cyan))
+
+	val, err := s.ScanInt(ctx, prompt, defNum, nil)
+	if err != nil {
+		return "", err
+	}
+
+	if val < 1 || val > len(options) {
+		return "", errors.New("value must be in the valid range")
+	}
+
+	index := val - 1
+
+	return options[index].Key, nil
 }

@@ -2,15 +2,12 @@ package client
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/nskforward/gate4/internal/api/grpc/common"
 	"github.com/nskforward/gate4/internal/domain/model"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type UserHandler struct {
@@ -28,11 +25,7 @@ func (h *UserHandler) FindByID(ctx context.Context, userID string) (model.User, 
 	defer cancel()
 	user, err := h.client.FindUserByID(ctx, &pb.UserID{UserId: userID})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Unavailable {
-			return model.User{}, errors.New("server unavailable")
-		}
-		return model.User{}, err
+		return model.User{}, wrapError(err)
 	}
 	return common.ConvertOutUser(user), nil
 }
@@ -42,56 +35,34 @@ func (h *UserHandler) ListUsers(ctx context.Context) ([]model.User, error) {
 	defer cancel()
 	resp, err := h.client.ListUsers(ctx, &pb.EmptyMessage{})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Unavailable {
-			return nil, errors.New("server unavailable")
-		}
-		return nil, err
+		return nil, wrapError(err)
 	}
 	return common.ConvertOutUsers(resp.Users), nil
 }
 
 func (h *UserHandler) UpdateUser(ctx context.Context, user model.User) error {
-	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	_, err := h.client.UpdateUser(reqCtx, common.ConvertInUser(user))
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Unavailable {
-			return errors.New("server unavailable")
-		}
-		return err
-	}
-	return nil
+	_, err := h.client.UpdateUser(ctx, common.ConvertInUser(user))
+	return wrapError(err)
 }
 
 func (h *UserHandler) CreateUser(ctx context.Context, user *model.User) error {
-	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	resp, err := h.client.CreateUser(reqCtx, common.ConvertInUser(*user))
+	resp, err := h.client.CreateUser(ctx, common.ConvertInUser(*user))
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Unavailable {
-			return errors.New("server unavailable")
-		}
-		return err
+		return wrapError(err)
 	}
 	*user = common.ConvertOutUser(resp)
 	return nil
 }
 
 func (h *UserHandler) DeleteUser(ctx context.Context, userID string) error {
-	reqCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	_, err := h.client.DeleteUser(reqCtx, &pb.UserID{
+	_, err := h.client.DeleteUser(ctx, &pb.UserID{
 		UserId: userID,
 	})
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.Unavailable {
-			return errors.New("server unavailable")
-		}
-		return err
-	}
-	return nil
+	return wrapError(err)
 }

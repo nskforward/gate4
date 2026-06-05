@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "gate4/pkg/pb";
+
+import "common.proto";
+import "users.proto";
+
+service Tokens {
+    rpc ListUserTokens(UserID) returns (TokenList);
+    rpc CreateToken(Token) returns (Token);
+    rpc DeleteToken(TokenID) returns (EmptyMessage);
+}
+
+message Token {
+    string id = 1;
+    string user_id  = 2;
+    int64 created   = 3;
+    int64 expires   = 4;
+}
+
+message TokenList {
+  repeated Token tokens = 1;
+}
+
+message TokenID {
+  string token_id = 1;
+}

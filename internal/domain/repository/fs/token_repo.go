@@ -11,13 +11,13 @@ import (
 	"github.com/nskforward/gate4/internal/domain/repository/mem"
 )
 
-type UserRepo struct {
+type TokenRepo struct {
 	file  string
-	cache *mem.UserRepo
+	cache *mem.TokenRepo
 	mx    sync.Mutex
 }
 
-func NewUserRepo(cfg config.Config) (*UserRepo, error) {
+func NewTokenRepo(cfg config.Config) (*TokenRepo, error) {
 	dir, err := filepath.Abs(cfg.FileStorageDir)
 	if err != nil {
 		return nil, err
@@ -27,11 +27,11 @@ func NewUserRepo(cfg config.Config) (*UserRepo, error) {
 		return nil, err
 	}
 
-	file := filepath.Join(dir, "users.json")
+	file := filepath.Join(dir, "tokens.json")
 
-	repo := &UserRepo{
+	repo := &TokenRepo{
 		file:  file,
-		cache: mem.NewUserRepo(),
+		cache: mem.NewTokenRepo(),
 	}
 
 	_, err = os.Stat(file)
@@ -42,36 +42,34 @@ func NewUserRepo(cfg config.Config) (*UserRepo, error) {
 		return nil, err
 	}
 
-	repo.loadFromFile()
-
-	return repo, nil
+	return repo, repo.loadFromFile()
 }
 
-func (repo *UserRepo) FindByID(ctx context.Context, userID string) (model.User, error) {
-	return repo.cache.FindByID(ctx, userID)
+func (repo *TokenRepo) FindByID(ctx context.Context, tokenID string) (model.Token, error) {
+	return repo.cache.FindByID(ctx, tokenID)
 }
 
-func (repo *UserRepo) List(ctx context.Context) ([]model.User, error) {
-	return repo.cache.List(ctx)
+func (repo *TokenRepo) ListUserTokens(ctx context.Context, userID string) ([]model.Token, error) {
+	return repo.cache.ListUserTokens(ctx, userID)
 }
 
-func (repo *UserRepo) Save(ctx context.Context, newUser model.User) error {
-	err := repo.cache.Save(ctx, newUser)
+func (repo *TokenRepo) SaveToken(ctx context.Context, token model.Token) error {
+	err := repo.cache.SaveToken(ctx, token)
 	if err != nil {
 		return err
 	}
 	return repo.saveToFile()
 }
 
-func (repo *UserRepo) Delete(ctx context.Context, userID string) error {
-	err := repo.cache.Delete(ctx, userID)
+func (repo *TokenRepo) DeleteToken(ctx context.Context, tokenID string) error {
+	err := repo.cache.DeleteToken(ctx, tokenID)
 	if err != nil {
 		return err
 	}
 	return repo.saveToFile()
 }
 
-func (repo *UserRepo) loadFromFile() error {
+func (repo *TokenRepo) loadFromFile() error {
 	repo.mx.Lock()
 	defer repo.mx.Unlock()
 
@@ -80,11 +78,10 @@ func (repo *UserRepo) loadFromFile() error {
 		return err
 	}
 	defer f.Close()
-
 	return repo.cache.Unmarshal(context.Background(), f)
 }
 
-func (repo *UserRepo) saveToFile() error {
+func (repo *TokenRepo) saveToFile() error {
 	repo.mx.Lock()
 	defer repo.mx.Unlock()
 
