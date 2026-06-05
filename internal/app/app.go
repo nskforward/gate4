@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 
-	"github.com/nskforward/gate4/internal/api/grpc/server"
+	"github.com/nskforward/gate4/internal/api"
+	grpcserver "github.com/nskforward/gate4/internal/api/grpc/server"
+	httpserver "github.com/nskforward/gate4/internal/api/http/server"
 	"github.com/nskforward/gate4/internal/infra"
 	"github.com/nskforward/gate4/pkg/di"
 )
@@ -24,10 +26,11 @@ func NewApp() *App {
 func (app *App) Start(ctx context.Context) error {
 	infra.InitLogger()
 
-	grpcServer, err := di.Resolve[*server.Server](app.container)
-	if err != nil {
-		return err
-	}
+	server := api.NewServer(
+		grpcserver.NewUnixServer(),
+		grpcserver.NewTCPServer(""),
+		httpserver.NewHTTPServer(),
+	)
 
-	return grpcServer.Start(ctx)
+	return server.Start(ctx)
 }

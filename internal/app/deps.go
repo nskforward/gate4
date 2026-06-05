@@ -3,7 +3,7 @@ package app
 import (
 	"os"
 
-	"github.com/nskforward/gate4/internal/api/grpc/server"
+	"github.com/nskforward/gate4/internal/api/grpc/server/handler"
 	"github.com/nskforward/gate4/internal/config"
 	"github.com/nskforward/gate4/internal/domain/repository"
 	"github.com/nskforward/gate4/internal/domain/repository/fs"
@@ -22,8 +22,6 @@ func (app *App) initDeps() {
 	di.Provide[*service.UserService](app.container, service.NewUserService)
 	di.Provide[*service.TokenService](app.container, service.NewTokenService)
 
-	di.Provide[*server.UserHandler](app.container, server.NewUserHandler)
-	di.Provide[*server.TokenHandler](app.container, server.NewTokenHandler)
-
-	di.Provide[*server.Server](app.container, server.NewServer)
+	di.Provide[*handler.UserHandler](app.container, handler.NewUserHandler)
+	di.Provide[*handler.TokenHandler](app.container, handler.NewTokenHandler)
 }

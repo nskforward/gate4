@@ -1,4 +1,4 @@
-package server
+package handler
 
 import (
 	"context"
@@ -22,10 +22,8 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
-func (h *UserHandler) Register(servers ...*grpc.Server) {
-	for _, s := range servers {
-		pb.RegisterUsersServer(s, h)
-	}
+func (h *UserHandler) Register(s *grpc.Server) {
+	pb.RegisterUsersServer(s, h)
 }
 
 func (h *UserHandler) ListUsers(ctx context.Context, req *pb.EmptyMessage) (*pb.UserList, error) {

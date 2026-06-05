@@ -1,4 +1,4 @@
-package server
+package handler
 
 import (
 	"context"
@@ -20,10 +20,8 @@ func NewTokenHandler(tokenService *service.TokenService) *TokenHandler {
 	}
 }
 
-func (h *TokenHandler) Register(servers ...*grpc.Server) {
-	for _, s := range servers {
-		pb.RegisterTokensServer(s, h)
-	}
+func (h *TokenHandler) Register(s *grpc.Server) {
+	pb.RegisterTokensServer(s, h)
 }
 
 func (h *TokenHandler) ListUserTokens(ctx context.Context, req *pb.UserID) (*pb.TokenList, error) {
