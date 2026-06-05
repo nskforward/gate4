@@ -47,9 +47,14 @@ func (repo *UserRepo) Save(ctx context.Context, newUser model.User) error {
 }
 
 func (repo *UserRepo) Delete(ctx context.Context, userID string) error {
+	user, err := repo.FindByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
 	repo.mx.Lock()
 	defer repo.mx.Unlock()
-	delete(repo.users, userID)
+	delete(repo.users, user.ID)
 	return nil
 }
 

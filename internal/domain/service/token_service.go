@@ -23,7 +23,7 @@ func NewTokenService(userRepo repository.UserRepository, tokenRepo repository.To
 	}
 }
 
-func (s *TokenService) CreateToken(ctx context.Context, token model.Token) error {
+func (s *TokenService) CreateToken(ctx context.Context, token *model.Token) error {
 	token.ID = uuid.NewString()
 	token.Created = time.Now()
 	err := token.Validate()
@@ -40,7 +40,7 @@ func (s *TokenService) CreateToken(ctx context.Context, token model.Token) error
 		return errors.New("cannot create a token for blocked user")
 	}
 
-	return s.tokenRepo.SaveToken(ctx, token)
+	return s.tokenRepo.SaveToken(ctx, *token)
 }
 
 func (s *TokenService) ListUserTokens(ctx context.Context, userID string) ([]model.Token, error) {

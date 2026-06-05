@@ -30,14 +30,18 @@ func (h *TokenHandler) ListUserTokens(ctx context.Context, userID string) ([]mod
 	return common.ConvertOutTokens(result.Tokens), nil
 }
 
-func (h *TokenHandler) CreateToken(ctx context.Context, req model.Token) (model.Token, error) {
+func (h *TokenHandler) CreateToken(ctx context.Context, token *model.Token) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	result, err := h.client.CreateToken(ctx, common.ConvertInToken(req))
+	result, err := h.client.CreateToken(ctx, common.ConvertInToken(*token))
 	if err != nil {
-		return model.Token{}, wrapError(err)
+		return wrapError(err)
 	}
-	return common.ConvertOutToken(result), nil
+
+	token.ID = result.Id
+	token.Created = time.Unix(result.Created, 0)
+
+	return nil
 }
 
 func (h *TokenHandler) DeleteToken(ctx context.Context, tokenID string) error {

@@ -16,7 +16,10 @@ func routes(r *router.Router, c *client.Client) {
 	r.Handle("user edit <id>", "change user details", handler.EditUser(c))
 	r.Handle("user block <id>", "block a user", handler.BlockUser(c))
 	r.Handle("user unblock <id>", "unblock a user", handler.UnblockUser(c))
+
 	r.Handle("token list <user_id>", "show user tokens", handler.ListTokens(c))
+	r.Handle("token create <user_id>", "create user token", handler.CreateToken(c))
+	r.Handle("token delete <token_id>", "delete token", handler.DeleteToken(c))
 
 	//r.Handle("cert create", handler.CreateCert(client))
 	//r.Handle("subscribe quotes", handler.SubscribeQuotes(client))

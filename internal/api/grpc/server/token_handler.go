@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/nskforward/gate4/internal/api/grpc/common"
-	"github.com/nskforward/gate4/internal/domain/model"
 	"github.com/nskforward/gate4/internal/domain/service"
 	"github.com/nskforward/gate4/pkg/pb"
 	"google.golang.org/grpc"
@@ -38,8 +37,8 @@ func (h *TokenHandler) ListUserTokens(ctx context.Context, req *pb.UserID) (*pb.
 }
 
 func (h *TokenHandler) CreateToken(ctx context.Context, req *pb.Token) (*pb.Token, error) {
-	var token model.Token
-	err := h.tokenService.CreateToken(ctx, token)
+	token := common.ConvertOutToken(req)
+	err := h.tokenService.CreateToken(ctx, &token)
 	if err != nil {
 		return nil, err
 	}

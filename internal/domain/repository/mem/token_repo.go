@@ -45,9 +45,14 @@ func (repo *TokenRepo) ListUserTokens(ctx context.Context, userID string) ([]mod
 }
 
 func (repo *TokenRepo) DeleteToken(ctx context.Context, tokenID string) error {
+	token, err := repo.FindByID(ctx, tokenID)
+	if err != nil {
+		return err
+	}
+
 	repo.mx.Lock()
 	defer repo.mx.Unlock()
-	delete(repo.tokens, tokenID)
+	delete(repo.tokens, token.ID)
 	return nil
 }
 

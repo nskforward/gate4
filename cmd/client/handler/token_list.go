@@ -32,10 +32,22 @@ func ListTokens(c *client.Client) router.Handler {
 			fmt.Println("no tokens")
 			return nil
 		}
+		fmt.Println()
+		fmt.Println("-----------------------------------------------------------------------")
+		fmt.Println("| #  | ID                                   | CREATED    | EXPIRES    |")
+		fmt.Println("-----------------------------------------------------------------------")
 
-		for _, t := range tokens {
-			fmt.Println(t.ID, t.Created, t.Expires)
+		for i, t := range tokens {
+			fmt.Println(
+				"|", fmt.Sprintf("%-2d", i+1),
+				"|", t.ID,
+				"|", t.Created.Format("2006-01-02"),
+				"|", t.Expires.Format("2006-01-02"),
+				"|")
 		}
+
+		fmt.Println("-----------------------------------------------------------------------")
+		fmt.Println()
 
 		return nil
 	}
