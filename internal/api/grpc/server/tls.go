@@ -9,7 +9,7 @@ import (
 	"github.com/nskforward/gate4/pkg/ssl"
 )
 
-func newTLSConfig(cfg config.Config) (*tls.Config, error) {
+func NewTLSConfig(cfg config.Config) (*tls.Config, error) {
 
 	cert, err := ssl.LoadCertificate(cfg.SSL.Cert)
 	if err != nil {

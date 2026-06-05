@@ -2,9 +2,12 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type TCPServer struct {
@@ -12,15 +15,18 @@ type TCPServer struct {
 	transport *grpc.Server
 }
 
-/*
-	grpc.Creds(credentials.NewTLS(tlsConfig)),
-	interceptors := grpc.ChainUnaryInterceptor(
-		interceptor.Logging,
-		interceptor.Recovery,
-	)
-*/
+func NewTCPServer(addr string, tlsConfig *tls.Config) *TCPServer {
+	opts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(
+			interceptor.Logging,
+			interceptor.Recovery,
+		),
+	}
 
-func NewTCPServer(addr string, opts ...grpc.ServerOption) *TCPServer {
+	if tlsConfig != nil {
+		opts = append(opts, grpc.Creds(credentials.NewTLS(tlsConfig)))
+	}
+
 	return &TCPServer{
 		addr:      addr,
 		transport: grpc.NewServer(opts...),

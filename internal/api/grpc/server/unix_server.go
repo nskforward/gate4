@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
 	"google.golang.org/grpc"
 )
 
@@ -14,17 +15,13 @@ type UnixServer struct {
 	transport  *grpc.Server
 }
 
-/*
-	interceptors := grpc.ChainUnaryInterceptor(
-		interceptor.Logging,
-		interceptor.Recovery,
-	)
-*/
-
-func NewUnixServer(opts ...grpc.ServerOption) *UnixServer {
+func NewUnixServer() *UnixServer {
 	s := &UnixServer{
 		socketPath: filepath.Join(os.TempDir(), "gate4.sock"),
-		transport:  grpc.NewServer(opts...),
+		transport: grpc.NewServer(grpc.ChainUnaryInterceptor(
+			interceptor.Logging,
+			interceptor.Recovery,
+		)),
 	}
 	return s
 }
