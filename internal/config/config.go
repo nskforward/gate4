@@ -7,19 +7,27 @@ import (
 )
 
 type Config struct {
-	TCPAddr string
-	SSL     struct {
-		Cert string
-		Key  string
+	GRPC struct {
+		Addr string
 	}
 
-	CA struct {
-		Cert string
-		Key  string
+	HTTP struct {
+		Addr string
+	}
+
+	SSL struct {
+		CA struct {
+			Cert string
+			Key  string
+		}
+		Server struct {
+			Cert string
+			Key  string
+		}
 	}
 
 	Finam struct {
-		APIAddr string
+		Addr string
 	}
 
 	FileStorageDir string
@@ -28,7 +36,9 @@ type Config struct {
 func Load(args []string) Config {
 	flags := flag.NewFlagSet("app", flag.ExitOnError)
 
-	tcpAddr := flags.String("tcp-addr", os.Getenv("GATE4_TCP_ADDR"), "server tcp address to listen")
+	grpcAddr := flags.String("grpc-addr", os.Getenv("GATE4_GRPC_ADDR"), "tcp address of grpc server to listen")
+	httpAddr := flags.String("http-addr", os.Getenv("GATE4_HTTP_ADDR"), "tcp address of http server to listen")
+
 	finamAddr := flags.String("addr-finam", os.Getenv("GATE4_FINAM_ADDR"), "finam address to connect")
 	storeDir := flags.String("store-dir", os.Getenv("GATE4_STORE_DIR"), "path to store dir")
 
@@ -46,13 +56,15 @@ func Load(args []string) Config {
 
 	var cfg Config
 
-	cfg.TCPAddr = useDefault(*tcpAddr, ":443")
-	cfg.Finam.APIAddr = useDefault(*finamAddr, "api.finam.ru:443")
+	cfg.HTTP.Addr = useDefault(*httpAddr, ":443")
+	cfg.GRPC.Addr = useDefault(*grpcAddr, ":4443")
+
+	cfg.Finam.Addr = useDefault(*finamAddr, "api.finam.ru:443")
 	cfg.FileStorageDir = useDefault(*storeDir, "data/storage")
-	cfg.CA.Key = useDefault(*caKey, "data/ssl/ca.key")
-	cfg.CA.Cert = useDefault(*caCert, "data/ssl/ca.crt")
-	cfg.SSL.Key = useDefault(*serverKey, "data/ssl/server.key")
-	cfg.SSL.Cert = useDefault(*serverCert, "data/ssl/server.crt")
+	cfg.SSL.CA.Key = useDefault(*caKey, "data/ssl/ca.key")
+	cfg.SSL.CA.Cert = useDefault(*caCert, "data/ssl/ca.crt")
+	cfg.SSL.Server.Key = useDefault(*serverKey, "data/ssl/server.key")
+	cfg.SSL.Server.Cert = useDefault(*serverCert, "data/ssl/server.crt")
 
 	return cfg
 }

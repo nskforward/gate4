@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server/handler"
 	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
 	"google.golang.org/grpc"
 )
@@ -15,7 +16,7 @@ type UnixServer struct {
 	transport  *grpc.Server
 }
 
-func NewUnixServer() *UnixServer {
+func NewUnixServer(userHandler *handler.UserHandler, tokenHandler *handler.TokenHandler) *UnixServer {
 	s := &UnixServer{
 		socketPath: filepath.Join(os.TempDir(), "gate4.sock"),
 		transport: grpc.NewServer(grpc.ChainUnaryInterceptor(
@@ -23,13 +24,11 @@ func NewUnixServer() *UnixServer {
 			interceptor.Recovery,
 		)),
 	}
-	return s
-}
 
-func (s *UnixServer) Register(handlers ...Registrable) {
-	for _, h := range handlers {
-		h.Register(s.transport)
-	}
+	userHandler.Register(s.transport)
+	tokenHandler.Register(s.transport)
+
+	return s
 }
 
 func (s *UnixServer) Start(ctx context.Context) error {
@@ -37,7 +36,6 @@ func (s *UnixServer) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(s.socketPath)
 	err = s.transport.Serve(l)
 	if err != nil && err != grpc.ErrServerStopped {
 		return err
@@ -58,5 +56,8 @@ func (s *UnixServer) Stop(ctx context.Context) error {
 	case <-ctx.Done():
 		s.transport.Stop()
 	}
+
+	os.Remove(s.socketPath)
+
 	return nil
 }

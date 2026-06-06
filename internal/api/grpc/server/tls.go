@@ -11,17 +11,17 @@ import (
 
 func NewTLSConfig(cfg config.Config) (*tls.Config, error) {
 
-	cert, err := ssl.LoadCertificate(cfg.SSL.Cert)
+	cert, err := ssl.LoadCertificate(cfg.SSL.Server.Cert)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load server cert: %w", err)
 	}
 
-	key, err := ssl.LoadPrivateKey(cfg.SSL.Key)
+	key, err := ssl.LoadPrivateKey(cfg.SSL.Server.Key)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load server key: %w", err)
 	}
 
-	caCert, err := ssl.LoadCertificate(cfg.CA.Cert)
+	caCert, err := ssl.LoadCertificate(cfg.SSL.CA.Cert)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load CA cert: %w", err)
 	}

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/nskforward/gate4/internal/api"
@@ -30,37 +29,8 @@ func (app *App) initDeps() {
 	di.Provide[*handler.TokenHandler](app.container, handler.NewTokenHandler)
 
 	di.Provide[*httpserver.HTTPServer](app.container, httpserver.NewHTTPServer)
-
 	di.Provide[*grpcserver.UnixServer](app.container, grpcserver.NewUnixServer)
-	di.Provide[*grpcserver.TCPServer](app.container, func() (*grpcserver.TCPServer, error) {
-		cfg, err := di.Resolve[config.Config](app.container)
-		if err != nil {
-			return nil, fmt.Errorf("cannot resolve config: %w", err)
-		}
-		tlsConfig, err := grpcserver.NewTLSConfig(cfg)
-		if err != nil {
-			return nil, fmt.Errorf("cannot get tls config: %w", err)
-		}
-		return grpcserver.NewTCPServer(cfg.TCPAddr, tlsConfig), nil
-	})
+	di.Provide[*grpcserver.TCPServer](app.container, grpcserver.NewTCPServer)
 
-	di.Provide[*api.Server](app.container, func() (*api.Server, error) {
-
-		unixServer, err := di.Resolve[*grpcserver.UnixServer](app.container)
-		if err != nil {
-			return nil, err
-		}
-
-		tcpServer, err := di.Resolve[*grpcserver.TCPServer](app.container)
-		if err != nil {
-			return nil, err
-		}
-
-		httpServer, err := di.Resolve[*httpserver.HTTPServer](app.container)
-		if err != nil {
-			return nil, err
-		}
-
-		return api.NewServer(unixServer, tcpServer, httpServer), nil
-	})
+	di.Provide[*api.Server](app.container, api.NewServer)
 }

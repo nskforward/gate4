@@ -2,8 +2,12 @@ package api
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 	"time"
+
+	grpcserver "github.com/nskforward/gate4/internal/api/grpc/server"
+	httpserver "github.com/nskforward/gate4/internal/api/http/server"
 )
 
 type ServerInterface interface {
@@ -15,17 +19,17 @@ type Server struct {
 	children []ServerInterface
 }
 
-func NewServer(children ...ServerInterface) *Server {
+func NewServer(unixServer *grpcserver.UnixServer, tcpServer *grpcserver.TCPServer, httpServer *httpserver.HTTPServer) *Server {
 	return &Server{
-		children: children,
+		children: []ServerInterface{unixServer, tcpServer, httpServer},
 	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
 	errorc := make(chan error, len(s.children))
-	defer close(errorc)
-
+	instances := 0
 	for _, child := range s.children {
+		instances++
 		go func(ser ServerInterface) {
 			err := ser.Start(ctx)
 			if err != nil {
@@ -34,19 +38,31 @@ func (s *Server) Start(ctx context.Context) error {
 		}(child)
 	}
 
+	go func() {
+		defer close(errorc)
+		select {
+		case <-ctx.Done():
+			stopCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			s.Stop(stopCtx)
+
+		case err := <-errorc:
+			slog.Error("server instance exited with error", "reason", err.Error())
+			stopCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			s.Stop(stopCtx)
+			errorc <- err
+		}
+	}()
+
 	select {
-
-	case <-ctx.Done():
-		stopCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		return s.Stop(stopCtx)
-
 	case err := <-errorc:
-		stopCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		s.Stop(stopCtx)
 		return err
+	case <-time.After(200 * time.Millisecond):
+		slog.Info("server started", "instances", instances)
 	}
+
+	return <-errorc
 }
 
 func (s *Server) Stop(ctx context.Context) error {

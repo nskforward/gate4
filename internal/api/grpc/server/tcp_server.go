@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
+	"fmt"
 	"net"
 
+	"github.com/nskforward/gate4/internal/api/grpc/server/handler"
 	"github.com/nskforward/gate4/internal/api/grpc/server/interceptor"
+	"github.com/nskforward/gate4/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -15,22 +17,27 @@ type TCPServer struct {
 	transport *grpc.Server
 }
 
-func NewTCPServer(addr string, tlsConfig *tls.Config) *TCPServer {
-	opts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(
-			interceptor.Logging,
-			interceptor.Recovery,
+func NewTCPServer(cfg config.Config, userHandler *handler.UserHandler, tokenHandler *handler.TokenHandler) (*TCPServer, error) {
+	tlsConfig, err := NewTLSConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get tls config: %w", err)
+	}
+
+	s := &TCPServer{
+		addr: cfg.GRPC.Addr,
+		transport: grpc.NewServer(
+			grpc.ChainUnaryInterceptor(
+				interceptor.Logging,
+				interceptor.Recovery,
+			),
+			grpc.Creds(credentials.NewTLS(tlsConfig)),
 		),
 	}
 
-	if tlsConfig != nil {
-		opts = append(opts, grpc.Creds(credentials.NewTLS(tlsConfig)))
-	}
+	userHandler.Register(s.transport)
+	tokenHandler.Register(s.transport)
 
-	return &TCPServer{
-		addr:      addr,
-		transport: grpc.NewServer(opts...),
-	}
+	return s, nil
 }
 
 func (s *TCPServer) Register(handlers ...Registrable) {
