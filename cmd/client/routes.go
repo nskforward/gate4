@@ -10,6 +10,7 @@ func routes(r *router.Router, c *client.Client) {
 
 	r.Handle("help", "show help menu", r.PrintHelp())
 	r.Handle("whoami <token_id>", "check token", handler.WhoAmI(c))
+	r.Handle("cert", "create tls key/cert pair", handler.CreateCert)
 
 	r.Handle("user list [-a, -b]", "show users with filter: -a active, -b blocked", handler.ListUsers(c))
 	r.Handle("user create", "create a new user", handler.CreateUser(c))

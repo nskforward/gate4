@@ -75,7 +75,12 @@ func ParseCertificate(data []byte) (*x509.Certificate, error) {
 }
 
 func SaveCertificate(cert *x509.Certificate, path string) error {
-	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
 		return err
 	}
