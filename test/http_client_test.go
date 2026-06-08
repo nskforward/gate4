@@ -27,16 +27,22 @@ func sendHttpRequest(ctx context.Context) error {
 	}
 
 	req.WithContext(ctx)
-	req.Header.Add("Authorization", "Bearer 45925f18-8934-4d1b-b756-508b4e9dadb2")
+	req.Header.Add("Authorization", "Bearer d6955fcf-e8ed-4ee2-b9ca-1ee5819d677b")
 	resp, err := httpClient().Do(req)
 	if err != nil {
 		return fmt.Errorf("cannot execute http request: %w", err)
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("---- response ----")
+	fmt.Println("----- headers -----")
+	for k, v := range resp.Header {
+		fmt.Println(k, v)
+	}
+
+	fmt.Println("----- response -----")
 	io.Copy(os.Stdout, resp.Body)
-	fmt.Println("------------------")
+	fmt.Println()
+	fmt.Println("--------------------")
 
 	if resp.StatusCode/100 != 2 {
 		return fmt.Errorf("bad status code: %s", resp.Status)

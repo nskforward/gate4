@@ -3,42 +3,27 @@ package server
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 
-	"github.com/nskforward/gate4/internal/api/http/server/interceptor"
 	"github.com/nskforward/gate4/internal/config"
-	"github.com/nskforward/gate4/internal/domain/service"
 )
 
 type HTTPServer struct {
 	transport *http.Server
-	auth      *interceptor.Auth
 }
 
-func NewHTTPServer(cfg config.Config, userService *service.UserService, tokenService *service.TokenService) (*HTTPServer, error) {
+func NewHTTPServer(cfg config.Config, mux *http.ServeMux) (*HTTPServer, error) {
 	tlsConfig, err := NewTLSConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	auth := interceptor.NewAuth(userService, tokenService)
-
-	defaultRoute := func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("http api call", "method", r.Method, "path", r.RequestURI)
-		http.Error(w, "route not found", 404)
-	}
-
-	router := http.NewServeMux()
-	router.HandleFunc("/", auth.Auth(defaultRoute))
-
 	return &HTTPServer{
 		transport: &http.Server{
 			Addr:      cfg.HTTP.Addr,
-			Handler:   router,
+			Handler:   mux,
 			TLSConfig: tlsConfig,
 		},
-		auth: auth,
 	}, nil
 }
 

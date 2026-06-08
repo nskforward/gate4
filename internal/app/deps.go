@@ -1,6 +1,7 @@
 package app
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/nskforward/gate4/internal/api"
@@ -28,6 +29,7 @@ func (app *App) initDeps() {
 	di.Provide[*handler.UserHandler](app.container, handler.NewUserHandler)
 	di.Provide[*handler.TokenHandler](app.container, handler.NewTokenHandler)
 
+	di.Provide[*http.ServeMux](app.container, httpserver.NewRouter)
 	di.Provide[*httpserver.HTTPServer](app.container, httpserver.NewHTTPServer)
 	di.Provide[*grpcserver.UnixServer](app.container, grpcserver.NewUnixServer)
 	di.Provide[*grpcserver.TCPServer](app.container, grpcserver.NewTCPServer)

@@ -51,7 +51,7 @@ func (s *TokenService) DeleteToken(ctx context.Context, tokenID string) error {
 	return s.tokenRepo.DeleteToken(ctx, tokenID)
 }
 
-func (s *TokenService) Whoami(ctx context.Context, tokenID string) (model.User, error) {
+func (s *TokenService) FindUser(ctx context.Context, tokenID string) (model.User, error) {
 
 	token, err := s.tokenRepo.FindByID(ctx, tokenID)
 	if err != nil {
@@ -72,10 +72,6 @@ func (s *TokenService) Whoami(ctx context.Context, tokenID string) (model.User, 
 			return model.User{}, fmt.Errorf("unknown token user")
 		}
 		return model.User{}, err
-	}
-
-	if user.Blocked {
-		return model.User{}, errors.New("user blocked")
 	}
 
 	return user, nil

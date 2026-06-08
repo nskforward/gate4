@@ -48,7 +48,7 @@ func (h *TokenHandler) DeleteToken(ctx context.Context, req *pb.TokenID) (*pb.Em
 }
 
 func (h *TokenHandler) Whoami(ctx context.Context, req *pb.TokenID) (*pb.User, error) {
-	user, err := h.tokenService.Whoami(ctx, req.TokenId)
+	user, err := h.tokenService.FindUser(ctx, req.TokenId)
 	if err != nil {
 		return nil, err
 	}
