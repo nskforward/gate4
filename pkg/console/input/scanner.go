@@ -42,10 +42,10 @@ func (s *Scanner) Confirm(ctx context.Context, prompt string) bool {
 	return result
 }
 
-func (s *Scanner) ScanInt(ctx context.Context, prompt string, defaultValue, dst *int) (int, error) {
+func (s *Scanner) ScanInt(ctx context.Context, prompt string, defaultValue, src *int) (int, error) {
 	dstStr := ""
-	if dst != nil {
-		dstStr = strconv.Itoa(*dst)
+	if src != nil {
+		dstStr = strconv.Itoa(*src)
 	}
 	defStr := ""
 	if defaultValue != nil {
@@ -58,10 +58,10 @@ func (s *Scanner) ScanInt(ctx context.Context, prompt string, defaultValue, dst 
 	return strconv.Atoi(input)
 }
 
-func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time, dst *time.Time) (time.Time, error) {
+func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultValue time.Time, src *time.Time) (time.Time, error) {
 	dstStr := ""
-	if dst != nil {
-		dstStr = (*dst).Format(layout)
+	if src != nil {
+		dstStr = (*src).Format(layout)
 	}
 
 	defStr := ""
@@ -78,12 +78,12 @@ func (s *Scanner) ScanTime(ctx context.Context, prompt, layout string, defaultVa
 	return time.Parse(layout, input)
 }
 
-func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue, dst *bool) (bool, error) {
+func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue, src *bool) (bool, error) {
 	prompt = fmt.Sprintf("%s (y/n)", prompt)
 
 	dstStr := ""
-	if dst != nil {
-		dstStr = bool2str(*dst)
+	if src != nil {
+		dstStr = bool2str(*src)
 	}
 
 	defStr := ""
@@ -98,12 +98,12 @@ func (s *Scanner) ScanBool(ctx context.Context, prompt string, defaultValue, dst
 	return str2bool(input), nil
 }
 
-func (s *Scanner) Scan(ctx context.Context, prompt, defaultValue string, dst *string) (string, error) {
+func (s *Scanner) Scan(ctx context.Context, prompt, defaultValue string, src *string) (string, error) {
 	prompt = fmt.Sprintf("- %s:", prompt)
 
-	if dst != nil && *dst != "" {
-		fmt.Println(prompt, *dst)
-		return *dst, nil
+	if src != nil && *src != "" {
+		fmt.Println(prompt, *src)
+		return *src, nil
 	}
 
 	fd := int(os.Stdin.Fd())

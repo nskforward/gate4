@@ -19,7 +19,7 @@ func Logging(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler g
 	duration := time.Since(start)
 
 	if err != nil {
-		slog.Warn("failed api call",
+		slog.Warn("grpc api call",
 			slog.String("req-id", reqID),
 			slog.String("method", info.FullMethod),
 			slog.Int64("time-ms", duration.Milliseconds()),
@@ -28,7 +28,7 @@ func Logging(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler g
 		return resp, err
 	}
 
-	slog.Info("successful api call",
+	slog.Info("grpc api call",
 		slog.String("req-id", reqID),
 		slog.String("method", info.FullMethod),
 		slog.Int64("time-ms", duration.Milliseconds()),

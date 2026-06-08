@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject pkix.Name) *x509.Certificate {
+func CreateTemplate(isCA bool, expires time.Time, addresses []string, subject pkix.Name) *x509.Certificate {
 	dnsList := []string{}
 	ipList := []net.IP{}
 	for _, addr := range addresses {
@@ -42,7 +42,7 @@ func CreateCertificate(isCA bool, expires time.Time, addresses []string, subject
 	}
 }
 
-func SignCertificate(template, ca *x509.Certificate, key crypto.Signer, caKey crypto.PrivateKey) (*x509.Certificate, error) {
+func CreateCertificate(template, ca *x509.Certificate, key crypto.Signer, caKey crypto.PrivateKey) (*x509.Certificate, error) {
 	data, err := x509.CreateCertificate(rand.Reader, template, ca, key.Public(), caKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot sign cert: %w", err)
