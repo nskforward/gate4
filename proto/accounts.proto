@@ -8,30 +8,24 @@ import "common.proto";
 import "users.proto";
 
 service Accounts {
-    rpc ListAccounts(UserID) returns (AccountList);
-    rpc CreateAccount(UserID) returns (Account);
+    rpc ListUserAccounts(UserID) returns (AccountList);
+    rpc CreateAccount(Account) returns (Account);
     rpc GetAccount(AccountID) returns (Account);
     rpc DeleteAccount(AccountID) returns (EmptyMessage);
     rpc UpdateAccount(Account) returns (EmptyMessage);
 }
 
 message Account {
-    string id       = 1;
-    string user_id  = 2;
-    int64 created   = 3;
-    int64 expires   = 4;
-    bool blocked    = 5;
-    Broker broker   = 6;
+    string id      = 1;
+    string user_id = 2;
+    string broker  = 3;
+    int64 created  = 4;
+    int64 expires  = 5;
+    optional bytes credentials = 6;
 }
 
 message AccountList {
   repeated Account accounts = 1;
-}
-
-message Broker {
-    string name     = 1;
-    string account  = 2;
-    string secret   = 3;
 }
 
 message AccountID {

@@ -10,6 +10,7 @@ type Account struct {
 	UserID      string    `json:"user_id"`
 	Broker      string    `json:"broker"`
 	Created     time.Time `json:"created"`
+	Expires     time.Time `json:"expires"`
 	Credentials []byte    `json:"credentials"`
 }
 
