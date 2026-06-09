@@ -26,6 +26,7 @@ func (app *App) initDeps() {
 
 	di.Provide[*service.UserService](app.container, service.NewUserService)
 	di.Provide[*service.TokenService](app.container, service.NewTokenService)
+	di.Provide[*service.AccountService](app.container, service.NewAccountService)
 
 	di.Provide[*handler.UserHandler](app.container, handler.NewUserHandler)
 	di.Provide[*handler.TokenHandler](app.container, handler.NewTokenHandler)

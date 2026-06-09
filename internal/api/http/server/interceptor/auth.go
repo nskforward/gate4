@@ -33,6 +33,11 @@ func (i *Auth) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		if user.Blocked {
+			http.Error(w, "user blocked", http.StatusForbidden)
+			return
+		}
+
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), handler.User, user)))
 	}
 }

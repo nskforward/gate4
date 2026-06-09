@@ -31,13 +31,9 @@ func (s *TokenService) CreateToken(ctx context.Context, token *model.Token) erro
 		return fmt.Errorf("validation error: %w", err)
 	}
 
-	user, err := s.userRepo.FindByID(ctx, token.UserID)
+	_, err = s.userRepo.FindByID(ctx, token.UserID)
 	if err != nil {
 		return fmt.Errorf("cannot find user by id: %w", err)
-	}
-
-	if user.Blocked {
-		return errors.New("cannot create a token for blocked user")
 	}
 
 	return s.tokenRepo.SaveToken(ctx, *token)
