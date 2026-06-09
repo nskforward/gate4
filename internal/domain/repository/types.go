@@ -24,3 +24,10 @@ type TokenRepository interface {
 	SaveToken(ctx context.Context, token model.Token) error
 	DeleteToken(ctx context.Context, tokenID string) error
 }
+
+type AccountRepository interface {
+	FindByID(ctx context.Context, accountID string) (model.Account, error)
+	ListUserAccount(ctx context.Context, userID string) ([]model.Account, error)
+	SaveAccount(ctx context.Context, account model.Account) error
+	DeleteAccount(ctx context.Context, accountID string) error
+}

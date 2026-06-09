@@ -22,6 +22,7 @@ func (app *App) initDeps() {
 
 	di.Provide[repository.UserRepository](app.container, fs.NewUserRepo)
 	di.Provide[repository.TokenRepository](app.container, fs.NewTokenRepo)
+	di.Provide[repository.AccountRepository](app.container, fs.NewAccountRepo)
 
 	di.Provide[*service.UserService](app.container, service.NewUserService)
 	di.Provide[*service.TokenService](app.container, service.NewTokenService)
