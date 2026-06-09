@@ -27,7 +27,13 @@ func WhoAmI(c *client.Client) router.Handler {
 			return err
 		}
 
-		fmt.Println(user.Name, user.Email, user.Role.String(), user.Created)
+		fmt.Println("---------------- USER -----------------")
+		fmt.Println("name    :", user.Name)
+		fmt.Println("email   :", user.Email)
+		fmt.Println("role    :", user.Role.String())
+		fmt.Println("blocked :", user.Blocked)
+		fmt.Println("created :", user.Created)
+		fmt.Println("---------------------------------------")
 
 		return nil
 	}
